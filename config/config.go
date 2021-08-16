@@ -11,9 +11,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-// LoadConfig loads configuration into the given mapstructure (https://github.com/mitchellh/mapstructure)
+// Load loads configuration into the given mapstructure (https://github.com/mitchellh/mapstructure)
 // from a config.yaml file and overrides with any values set in env variables
-func LoadConfig(config interface{}) {
+func Load(config interface{}) {
 	verifyParamIsPtrToStructElsePanic(config)
 	// TODO: allow a way to override viper configs and whole viper instance
 	v := getViperWithDefaults()
@@ -52,11 +52,11 @@ func LoadConfig(config interface{}) {
 func verifyParamIsPtrToStructElsePanic(param interface{}) {
 	value := reflect.ValueOf(param)
 	if value.Kind() != reflect.Ptr {
-		panicf("Require Ptr to a Struct for LoadConfig. Got %v\n", value.Kind())
+		panicf("Require Ptr to a Struct for Load. Got %v\n", value.Kind())
 	} else {
 		value = reflect.Indirect(value)
 		if value.Kind() != reflect.Struct {
-			panicf("Require Ptr to a Struct for LoadConfig. Got Ptr to %v\n", value.Kind())
+			panicf("Require Ptr to a Struct for Load. Got Ptr to %v\n", value.Kind())
 		}
 	}
 }

@@ -28,7 +28,7 @@ type NestedConfig struct {
 
 func main() {
 	var c Config
-	config.LoadConfig(&c) // pass pointer to the struct into which you want to load config
+	config.Load(&c) // pass pointer to the struct into which you want to load config
 	s, _ := json.MarshalIndent(c, "", "  ") // spaces: 2 | tabs: 1 😛
 	fmt.Println(string(s))
 }
