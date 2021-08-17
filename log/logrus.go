@@ -14,7 +14,7 @@ func (l Logrus) getFields(args ...interface{}) map[string]interface{} {
 	fieldMap := map[string]interface{}{}
 	if len(args) > 1 && len(args)%2 == 0 {
 		for i := 1; i < len(args); i += 2 {
-			fieldMap[args[i-1].(string)] = args[i-1]
+			fieldMap[args[i-1].(string)] = args[i]
 		}
 	}
 	return fieldMap

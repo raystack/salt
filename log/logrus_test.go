@@ -48,7 +48,7 @@ func TestLogrus(t *testing.T) {
 		logger.Debug("current values", "day", 11, "month", "aug")
 		foo.Flush()
 
-		assert.Equal(t, "level=debug msg=\"current values\" day=day month=month\n", b.String())
+		assert.Equal(t, "level=debug msg=\"current values\" day=11 month=aug\n", b.String())
 	})
 	t.Run("should handle errors correctly", func(t *testing.T) {
 		var b bytes.Buffer
@@ -58,7 +58,19 @@ func TestLogrus(t *testing.T) {
 			DisableTimestamp: true,
 		}))
 		var err = fmt.Errorf("request failed")
-		logger.Error(err.Error())
+		logger.Error(err.Error(), "hello", "world")
+		foo.Flush()
+		assert.Equal(t, "level=error msg=\"request failed\" hello=world\n", b.String())
+	})
+	t.Run("should ignore params if malformed", func(t *testing.T) {
+		var b bytes.Buffer
+		foo := bufio.NewWriter(&b)
+
+		logger := log.NewLogrus(log.LogrusWithLevel("info"), log.LogrusWithWriter(foo), log.LogrusWithFormatter(&logrus.TextFormatter{
+			DisableTimestamp: true,
+		}))
+		var err = fmt.Errorf("request failed")
+		logger.Error(err.Error(), "hello", "world", "!")
 		foo.Flush()
 		assert.Equal(t, "level=error msg=\"request failed\"\n", b.String())
 	})
