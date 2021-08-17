@@ -1,6 +1,6 @@
 # config
 
-This package is an wrapper over viper wwith opinionated defaults that allows loading config from a yaml file and environment variables.
+This package is an wrapper over viper with opinionated defaults that allows loading config from a yaml file and environment variables.
 
 ## Usage
 
