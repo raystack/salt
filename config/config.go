@@ -41,6 +41,12 @@ func WithConfigType(in string) LoaderOption {
 	}
 }
 
+func WithEnvPrefix(in string) LoaderOption {
+	return func(l *Loader) {
+		l.v.SetEnvPrefix(in)
+	}
+}
+
 func WithEnvKeyReplacer(old string, new string) LoaderOption {
 	return func(l *Loader) {
 		l.v.SetEnvKeyReplacer(strings.NewReplacer(old, new))
