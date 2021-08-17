@@ -11,16 +11,61 @@ import (
 	"github.com/spf13/viper"
 )
 
+type Loader struct {
+	v *viper.Viper
+}
+
+type LoaderOption func(*Loader)
+
+func WithViper(in *viper.Viper) LoaderOption {
+	return func(l *Loader) {
+		l.v = in
+	}
+}
+
+func WithConfigName(in string) LoaderOption {
+	return func(l *Loader) {
+		l.v.SetConfigName(in)
+	}
+}
+
+func AddConfigPath(in string) LoaderOption {
+	return func(l *Loader) {
+		l.v.AddConfigPath(in)
+	}
+}
+
+func WithConfigType(in string) LoaderOption {
+	return func(l *Loader) {
+		l.v.SetConfigType(in)
+	}
+}
+
+func WithEnvKeyReplacer(old string, new string) LoaderOption {
+	return func(l *Loader) {
+		l.v.SetEnvKeyReplacer(strings.NewReplacer(old, new))
+	}
+}
+
+func NewLoader(options ...LoaderOption) *Loader {
+	loader := &Loader{
+		v: getViperWithDefaults(),
+	}
+
+	for _, option := range options {
+		option(loader)
+	}
+	return loader
+}
+
 // Load loads configuration into the given mapstructure (https://github.com/mitchellh/mapstructure)
 // from a config.yaml file and overrides with any values set in env variables
-func Load(config interface{}) {
+func (l *Loader) Load(config interface{}) {
 	verifyParamIsPtrToStructElsePanic(config)
-	// TODO: allow a way to override viper configs and whole viper instance
-	v := getViperWithDefaults()
 
-	v.AutomaticEnv()
+	l.v.AutomaticEnv()
 
-	err := v.ReadInConfig()
+	err := l.v.ReadInConfig()
 	if err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			panicf("unable to read configs using viper: %v\n", err)
@@ -34,7 +79,7 @@ func Load(config interface{}) {
 
 	// Bind each conf fields to environment vars
 	for key := range configKeys {
-		err := v.BindEnv(configKeys[key])
+		err := l.v.BindEnv(configKeys[key])
 		if err != nil {
 			panicf("unable to bind env keys: %v\n", err)
 		}
@@ -43,7 +88,7 @@ func Load(config interface{}) {
 	// set defaults using the default struct tag
 	defaults.SetDefaults(config)
 
-	err = v.Unmarshal(config)
+	err = l.v.Unmarshal(config)
 	if err != nil {
 		panicf("unable to load config to struct: %v\n", err)
 	}

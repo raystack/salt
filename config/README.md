@@ -28,7 +28,11 @@ type NestedConfig struct {
 
 func main() {
 	var c Config
-	config.Load(&c) // pass pointer to the struct into which you want to load config
+	l := config.NewLoader(
+		// config.WithConfigName("config"),
+		// config.AddConfigPath("~/.app"),
+	)
+	l.Load(&c) // pass pointer to the struct into which you want to load config
 	s, _ := json.MarshalIndent(c, "", "  ") // spaces: 2 | tabs: 1 😛
 	fmt.Println(string(s))
 }
@@ -60,6 +64,5 @@ or a mix of both.
 **Configs set in environment will override the ones set as default and in yaml file.**
 
 ## TODO
- - allow overiding viper configs and injecting viper instance
- - function to print/return config keys in yaml path and env format as helper with defaults
+ - function to print/return config keys in yaml path and env format with defaults as helper
  - add support for flags
