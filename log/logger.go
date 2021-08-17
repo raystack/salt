@@ -19,12 +19,30 @@ type Option func(interface{})
 // long as it is printable.
 //     l.Info("processed request", "time taken", timeTaken, "started at", startedAt)
 type Logger interface {
+
+	// Debug level message with alternating key/value pairs
+	// key should be string, value could be anything printable
 	Debug(msg string, args ...interface{})
+
+	// Info level message with alternating key/value pairs
+	// key should be string, value could be anything printable
 	Info(msg string, args ...interface{})
+
+	// Warn level message with alternating key/value pairs
+	// key should be string, value could be anything printable
 	Warn(msg string, args ...interface{})
+
+	// Error level message with alternating key/value pairs
+	// key should be string, value could be anything printable
 	Error(msg string, args ...interface{})
+
+	// Fatal level message with alternating key/value pairs
+	// key should be string, value could be anything printable
 	Fatal(msg string, args ...interface{})
 
+	// Level returns priority level for which this logger will filter logs
 	Level() string
+
+	// Writer used to print logs
 	Writer() io.Writer
 }

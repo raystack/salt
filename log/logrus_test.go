@@ -3,6 +3,7 @@ package log_test
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -48,5 +49,17 @@ func TestLogrus(t *testing.T) {
 		foo.Flush()
 
 		assert.Equal(t, "level=debug msg=\"current values\" day=day month=month\n", b.String())
+	})
+	t.Run("should handle errors correctly", func(t *testing.T) {
+		var b bytes.Buffer
+		foo := bufio.NewWriter(&b)
+
+		logger := log.NewLogrus(log.LogrusWithLevel("info"), log.LogrusWithWriter(foo), log.LogrusWithFormatter(&logrus.TextFormatter{
+			DisableTimestamp: true,
+		}))
+		var err = fmt.Errorf("request failed")
+		logger.Error(err.Error())
+		foo.Flush()
+		assert.Equal(t, "level=error msg=\"request failed\"\n", b.String())
 	})
 }
