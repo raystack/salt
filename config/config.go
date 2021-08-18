@@ -33,9 +33,9 @@ func WithConfigName(in string) LoaderOption {
 	}
 }
 
-// AddConfigPath adds config path to search the config file in,
+// WithConfigPath adds config path to search the config file in,
 // can be used multiple times to add multiple paths to search
-func AddConfigPath(in string) LoaderOption {
+func WithConfigPath(in string) LoaderOption {
 	return func(l *Loader) {
 		l.v.AddConfigPath(in)
 	}

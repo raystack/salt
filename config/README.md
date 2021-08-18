@@ -36,7 +36,7 @@ func main() {
 	var c Config
 	l := config.NewLoader(
 		// config.WithConfigName("config"),
-		// config.AddConfigPath("$HOME/.test"),
+		// config.WithConfigPath("$HOME/.test"),
 		config.WithEnvPrefix("CONFIG"),
 	)
 
