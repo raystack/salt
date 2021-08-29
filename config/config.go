@@ -132,7 +132,6 @@ func verifyParamIsPtrToStructElsePanic(param interface{}) error {
 func getViperWithDefaults() *viper.Viper {
 	v := viper.New()
 	v.SetConfigName("config")
-	v.AddConfigPath("./")
 	v.SetConfigType("yaml")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	return v
