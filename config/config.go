@@ -25,26 +25,26 @@ func WithViper(in *viper.Viper) LoaderOption {
 	}
 }
 
-// WithConfigName sets the file name of the config file without
+// WithName sets the file name of the config file without
 // the extension
-func WithConfigName(in string) LoaderOption {
+func WithName(in string) LoaderOption {
 	return func(l *Loader) {
 		l.v.SetConfigName(in)
 	}
 }
 
-// WithConfigPath adds config path to search the config file in,
+// WithPath adds config path to search the config file in,
 // can be used multiple times to add multiple paths to search
-func WithConfigPath(in string) LoaderOption {
+func WithPath(in string) LoaderOption {
 	return func(l *Loader) {
 		l.v.AddConfigPath(in)
 	}
 }
 
-// WithConfigType sets the type of the configuration e.g. "json",
+// WithType sets the type of the configuration e.g. "json",
 // "yaml", "hcl"
 // Also used for the extension of the file
-func WithConfigType(in string) LoaderOption {
+func WithType(in string) LoaderOption {
 	return func(l *Loader) {
 		l.v.SetConfigType(in)
 	}
@@ -132,7 +132,6 @@ func verifyParamIsPtrToStructElsePanic(param interface{}) error {
 func getViperWithDefaults() *viper.Viper {
 	v := viper.New()
 	v.SetConfigName("config")
-	v.AddConfigPath("./")
 	v.SetConfigType("yaml")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	return v

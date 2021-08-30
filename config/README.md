@@ -35,8 +35,11 @@ type NewRelicConfig struct {
 func main() {
 	var c Config
 	l := config.NewLoader(
-		// config.WithConfigName("config"),
-		// config.WithConfigPath("$HOME/.test"),
+		// config.WithViper(viper.New()), // default
+		// config.WithName("config"), // default
+		// config.WithType("yaml"), // default
+		// config.WithEnvKeyReplacer(".", "_"), // default
+		config.WithPath("$HOME/.test"),
 		config.WithEnvPrefix("CONFIG"),
 	)
 
@@ -74,7 +77,7 @@ export CONFIG_NEW_RELIC_LICENSE=____LICENSE_STRING_OF_40_CHARACTERS_____
 export CONFIG_LOG_LEVEL=debug
 ```
 
-or a mix of both. 
+or a mix of both.
 
 **Configs set in environment will override the ones set as default and in yaml file.**
 
