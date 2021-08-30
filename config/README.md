@@ -36,10 +36,10 @@ func main() {
 	var c Config
 	l := config.NewLoader(
 		// config.WithViper(viper.New()), // default
-		// config.WithConfigName("config"), // default
-		// config.WithConfigType("yaml"), // default
+		// config.WithName("config"), // default
+		// config.WithType("yaml"), // default
 		// config.WithEnvKeyReplacer(".", "_"), // default
-		config.WithConfigPath("$HOME/.test"),
+		config.WithPath("$HOME/.test"),
 		config.WithEnvPrefix("CONFIG"),
 	)
 
