@@ -79,7 +79,7 @@ func (c *ColorScheme) Infof(t string, args ...interface{}) string {
 }
 
 func (c *ColorScheme) Error(t string) string {
-	return termenv.String(t).Foreground(c.theme.ColorWarn).String()
+	return termenv.String(t).Foreground(c.theme.ColorError).String()
 }
 
 func (c *ColorScheme) Errorf(t string, args ...interface{}) string {
