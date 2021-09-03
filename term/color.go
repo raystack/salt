@@ -9,33 +9,33 @@ import (
 var tp = termenv.EnvColorProfile()
 
 type Theme struct {
-	ColorSuccess termenv.Color
-	ColorWarn    termenv.Color
-	ColorInfo    termenv.Color
-	ColorError   termenv.Color
-	ColorNeutral termenv.Color
-	ColorBase    termenv.Color
-	ColorPrimary termenv.Color
+	ColorGreen   termenv.Color
+	ColorYellow  termenv.Color
+	ColorCyan    termenv.Color
+	ColorRed     termenv.Color
+	ColorGrey    termenv.Color
+	ColorBlue    termenv.Color
+	ColorMagenta termenv.Color
 }
 
 var themes = map[string]Theme{
 	"light": {
-		ColorSuccess: tp.Color("#005F00"),
-		ColorWarn:    tp.Color("#FFAF00"),
-		ColorInfo:    tp.Color("#0087FF"),
-		ColorError:   tp.Color("#D70000"),
-		ColorNeutral: tp.Color("#303030"),
-		ColorBase:    tp.Color("#000087"),
-		ColorPrimary: tp.Color("#AF00FF"),
+		ColorGreen:   tp.Color("#005F00"),
+		ColorYellow:  tp.Color("#FFAF00"),
+		ColorCyan:    tp.Color("#0087FF"),
+		ColorRed:     tp.Color("#D70000"),
+		ColorGrey:    tp.Color("#303030"),
+		ColorBlue:    tp.Color("#000087"),
+		ColorMagenta: tp.Color("#AF00FF"),
 	},
 	"dark": {
-		ColorSuccess: tp.Color("#A8CC8C"),
-		ColorWarn:    tp.Color("#DBAB79"),
-		ColorInfo:    tp.Color("#66C2CD"),
-		ColorError:   tp.Color("#E88388"),
-		ColorNeutral: tp.Color("#B9BFCA"),
-		ColorBase:    tp.Color("#71BEF2"),
-		ColorPrimary: tp.Color("#D290E4"),
+		ColorGreen:   tp.Color("#A8CC8C"),
+		ColorYellow:  tp.Color("#DBAB79"),
+		ColorCyan:    tp.Color("#66C2CD"),
+		ColorRed:     tp.Color("#E88388"),
+		ColorGrey:    tp.Color("#B9BFCA"),
+		ColorBlue:    tp.Color("#71BEF2"),
+		ColorMagenta: tp.Color("#D290E4"),
 	},
 }
 
@@ -54,70 +54,86 @@ func NewColorScheme() *ColorScheme {
 	}
 }
 
-func (c *ColorScheme) Success(t string) string {
-	return termenv.String(t).Foreground(c.theme.ColorSuccess).String()
+func (c *ColorScheme) Bold(t string) string {
+	return termenv.String(t).Bold().String()
 }
 
-func (c *ColorScheme) Successf(t string, args ...interface{}) string {
-	return c.Success(fmt.Sprintf(t, args...))
+func (c *ColorScheme) Boldf(t string, args ...interface{}) string {
+	return c.Bold(fmt.Sprintf(t, args...))
 }
 
-func (c *ColorScheme) Warn(t string) string {
-	return termenv.String(t).Foreground(c.theme.ColorWarn).String()
+func (c *ColorScheme) Italic(t string) string {
+	return termenv.String(t).Italic().String()
 }
 
-func (c *ColorScheme) Warnf(t string, args ...interface{}) string {
-	return c.Warn(fmt.Sprintf(t, args...))
+func (c *ColorScheme) Italicf(t string, args ...interface{}) string {
+	return c.Italic(fmt.Sprintf(t, args...))
 }
 
-func (c *ColorScheme) Info(t string) string {
-	return termenv.String(t).Foreground(c.theme.ColorInfo).String()
+func (c *ColorScheme) Green(t string) string {
+	return termenv.String(t).Foreground(c.theme.ColorGreen).String()
 }
 
-func (c *ColorScheme) Infof(t string, args ...interface{}) string {
-	return c.Info(fmt.Sprintf(t, args...))
+func (c *ColorScheme) Greenf(t string, args ...interface{}) string {
+	return c.Green(fmt.Sprintf(t, args...))
 }
 
-func (c *ColorScheme) Error(t string) string {
-	return termenv.String(t).Foreground(c.theme.ColorError).String()
+func (c *ColorScheme) Yellow(t string) string {
+	return termenv.String(t).Foreground(c.theme.ColorYellow).String()
 }
 
-func (c *ColorScheme) Errorf(t string, args ...interface{}) string {
-	return c.Error(fmt.Sprintf(t, args...))
+func (c *ColorScheme) Yellowf(t string, args ...interface{}) string {
+	return c.Yellow(fmt.Sprintf(t, args...))
 }
 
-func (c *ColorScheme) Neutral(t string) string {
-	return termenv.String(t).Foreground(c.theme.ColorNeutral).String()
+func (c *ColorScheme) Cyan(t string) string {
+	return termenv.String(t).Foreground(c.theme.ColorCyan).String()
 }
 
-func (c *ColorScheme) Neutralf(t string, args ...interface{}) string {
-	return c.Neutral(fmt.Sprintf(t, args...))
+func (c *ColorScheme) Cyanf(t string, args ...interface{}) string {
+	return c.Cyan(fmt.Sprintf(t, args...))
 }
 
-func (c *ColorScheme) Base(t string) string {
-	return termenv.String(t).Foreground(c.theme.ColorBase).String()
+func (c *ColorScheme) Red(t string) string {
+	return termenv.String(t).Foreground(c.theme.ColorRed).String()
 }
 
-func (c *ColorScheme) Basef(t string, args ...interface{}) string {
-	return c.Base(fmt.Sprintf(t, args...))
+func (c *ColorScheme) Redf(t string, args ...interface{}) string {
+	return c.Red(fmt.Sprintf(t, args...))
 }
 
-func (c *ColorScheme) Primary(t string) string {
-	return termenv.String(t).Foreground(c.theme.ColorPrimary).String()
+func (c *ColorScheme) Grey(t string) string {
+	return termenv.String(t).Foreground(c.theme.ColorGrey).String()
 }
 
-func (c *ColorScheme) Primaryf(t string, args ...interface{}) string {
-	return c.Primary(fmt.Sprintf(t, args...))
+func (c *ColorScheme) Greyf(t string, args ...interface{}) string {
+	return c.Grey(fmt.Sprintf(t, args...))
+}
+
+func (c *ColorScheme) Blue(t string) string {
+	return termenv.String(t).Foreground(c.theme.ColorBlue).String()
+}
+
+func (c *ColorScheme) Bluef(t string, args ...interface{}) string {
+	return c.Blue(fmt.Sprintf(t, args...))
+}
+
+func (c *ColorScheme) Magenta(t string) string {
+	return termenv.String(t).Foreground(c.theme.ColorMagenta).String()
+}
+
+func (c *ColorScheme) Magentaf(t string, args ...interface{}) string {
+	return c.Magenta(fmt.Sprintf(t, args...))
 }
 
 func (c *ColorScheme) SuccessIcon() string {
-	return termenv.String("✓").Foreground(c.theme.ColorSuccess).String()
+	return termenv.String("✓").Foreground(c.theme.ColorGreen).String()
 }
 
 func (c *ColorScheme) WarningIcon() string {
-	return termenv.String("!").Foreground(c.theme.ColorWarn).String()
+	return termenv.String("!").Foreground(c.theme.ColorYellow).String()
 }
 
 func (c *ColorScheme) FailureIcon() string {
-	return termenv.String("X").Foreground(c.theme.ColorError).String()
+	return termenv.String("X").Foreground(c.theme.ColorRed).String()
 }
