@@ -13,9 +13,9 @@ type Theme struct {
 	ColorWarn    termenv.Color
 	ColorInfo    termenv.Color
 	ColorError   termenv.Color
-	ColorBody    termenv.Color
+	ColorNeutral termenv.Color
+	ColorBase    termenv.Color
 	ColorPrimary termenv.Color
-	ColorMagenta termenv.Color
 }
 
 var themes = map[string]Theme{
@@ -24,18 +24,18 @@ var themes = map[string]Theme{
 		ColorWarn:    tp.Color("#FFAF00"),
 		ColorInfo:    tp.Color("#0087FF"),
 		ColorError:   tp.Color("#D70000"),
-		ColorBody:    tp.Color("#303030"),
-		ColorPrimary: tp.Color("#000087"),
-		ColorMagenta: tp.Color("#AF00FF"),
+		ColorNeutral: tp.Color("#303030"),
+		ColorBase:    tp.Color("#000087"),
+		ColorPrimary: tp.Color("#AF00FF"),
 	},
 	"dark": {
 		ColorSuccess: tp.Color("#A8CC8C"),
 		ColorWarn:    tp.Color("#DBAB79"),
 		ColorInfo:    tp.Color("#66C2CD"),
 		ColorError:   tp.Color("#E88388"),
-		ColorBody:    tp.Color("#B9BFCA"),
-		ColorPrimary: tp.Color("#71BEF2"),
-		ColorMagenta: tp.Color("#D290E4"),
+		ColorNeutral: tp.Color("#B9BFCA"),
+		ColorBase:    tp.Color("#71BEF2"),
+		ColorPrimary: tp.Color("#D290E4"),
 	},
 }
 
@@ -50,7 +50,7 @@ func NewColorScheme() *ColorScheme {
 		}
 	}
 	return &ColorScheme{
-		theme: themes["light"],
+		theme: themes["dark"],
 	}
 }
 
@@ -84,6 +84,30 @@ func (c *ColorScheme) Error(t string) string {
 
 func (c *ColorScheme) Errorf(t string, args ...interface{}) string {
 	return c.Error(fmt.Sprintf(t, args...))
+}
+
+func (c *ColorScheme) Neutral(t string) string {
+	return termenv.String(t).Foreground(c.theme.ColorNeutral).String()
+}
+
+func (c *ColorScheme) Neutralf(t string, args ...interface{}) string {
+	return c.Neutral(fmt.Sprintf(t, args...))
+}
+
+func (c *ColorScheme) Base(t string) string {
+	return termenv.String(t).Foreground(c.theme.ColorBase).String()
+}
+
+func (c *ColorScheme) Basef(t string, args ...interface{}) string {
+	return c.Base(fmt.Sprintf(t, args...))
+}
+
+func (c *ColorScheme) Primary(t string) string {
+	return termenv.String(t).Foreground(c.theme.ColorPrimary).String()
+}
+
+func (c *ColorScheme) Primaryf(t string, args ...interface{}) string {
+	return c.Primary(fmt.Sprintf(t, args...))
 }
 
 func (c *ColorScheme) SuccessIcon() string {
