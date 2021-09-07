@@ -3,6 +3,7 @@ module github.com/odpf/salt
 go 1.16
 
 require (
+	github.com/charmbracelet/glamour v0.3.0 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/go-version v1.3.0
 	github.com/jeremywohl/flatten v1.0.1
