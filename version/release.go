@@ -80,20 +80,20 @@ func IsCurrentLatest(currVersion, latestVersion string) (bool, error) {
 	return false, nil
 }
 
-// UpdateMsg returns notification message if there is a greater version available
-// then current in github release channel
-// Note: all errors are silently ignored
-func UpdateMsg(currentVersion, githubRepo string) string {
+// UpdateNotice returns a notice message if there is a newer version available
+// Note:  all errors are ignored
+func UpdateNotice(currentVersion, githubRepo string) string {
 	info, err := ReleaseInfo(fmt.Sprintf(Release, githubRepo))
 	if err != nil {
 		return ""
 	}
-	isLatest, err := IsCurrentLatest(currentVersion, info.Version)
+	latestVersion := info.Version
+	isCurrentLatest, err := IsCurrentLatest(currentVersion, latestVersion)
 	if err != nil {
 		return ""
 	}
-	if isLatest {
-		return fmt.Sprintf("a newer version is available: %s, consider updating the client", info.Version)
+	if isCurrentLatest {
+		return ""
 	}
-	return ""
+	return fmt.Sprintf("A new release (%s) is available, consider updating the client.", info.Version)
 }

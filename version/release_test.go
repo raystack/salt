@@ -79,7 +79,7 @@ func TestIsCurrentLatest(t *testing.T) {
 	})
 }
 
-func TestUpdateMsg(t *testing.T) {
+func TestUpdateNotice(t *testing.T) {
 	muxRouter := mux.NewRouter()
 	server := httptest.NewServer(muxRouter)
 	t.Run("basic check for notify latest version", func(t *testing.T) {
@@ -98,7 +98,7 @@ func TestUpdateMsg(t *testing.T) {
 		res, err := version.IsCurrentLatest("v0.0.1", info.Version)
 		assert.Nil(t, err)
 		assert.True(t, res)
-		s := version.UpdateMsg("v0.0.1", "odpf/optimus")
+		s := version.UpdateNotice("v0.0.1", "odpf/optimus")
 		assert.NotEqual(t, "v0.0.1", s)
 	})
 }
