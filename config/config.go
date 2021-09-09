@@ -25,6 +25,14 @@ func WithViper(in *viper.Viper) LoaderOption {
 	}
 }
 
+// WithFile explicitly defines the path, name and extension
+// of the config file
+func WithFile(file string) LoaderOption {
+	return func(l *Loader) {
+		l.v.SetConfigFile(file)
+	}
+}
+
 // WithName sets the file name of the config file without
 // the extension
 func WithName(in string) LoaderOption {
