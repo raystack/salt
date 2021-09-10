@@ -8,6 +8,7 @@ import (
 
 var tp = termenv.EnvColorProfile()
 
+// Theme represents a color theme.
 type Theme struct {
 	ColorGreen   termenv.Color
 	ColorYellow  termenv.Color
@@ -39,10 +40,12 @@ var themes = map[string]Theme{
 	},
 }
 
+// ColorScheme is a color scheme.
 type ColorScheme struct {
 	theme Theme
 }
 
+// NewColorScheme returns a new ColorScheme with the given theme.
 func NewColorScheme() *ColorScheme {
 	if !termenv.HasDarkBackground() {
 		return &ColorScheme{
