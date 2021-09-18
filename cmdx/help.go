@@ -60,6 +60,7 @@ func rootHelpFunc(command *cobra.Command, args []string) {
 	}
 
 	coreCommands := []string{}
+	otherCommands := map[string][]string{}
 	additionalCommands := []string{}
 
 	for _, c := range command.Commands() {
@@ -73,13 +74,15 @@ func rootHelpFunc(command *cobra.Command, args []string) {
 		s := rpad(c.Name(), c.NamePadding()) + c.Short
 		if _, ok := c.Annotations["group:core"]; ok {
 			coreCommands = append(coreCommands, s)
+		} else if g, ok := c.Annotations["group:other"]; ok {
+			otherCommands[g] = append(otherCommands[g], s)
 		} else {
 			additionalCommands = append(additionalCommands, s)
 		}
 	}
 
-	// If there are no core commands, assume everything is a core command
-	if len(coreCommands) == 0 {
+	// If there are no core and other commands, assume everything is a core command
+	if len(coreCommands) == 0 && len(otherCommands) == 0 {
 		coreCommands = additionalCommands
 		additionalCommands = []string{}
 	}
@@ -104,6 +107,12 @@ func rootHelpFunc(command *cobra.Command, args []string) {
 
 	if len(coreCommands) > 0 {
 		helpEntries = append(helpEntries, helpEntry{"CORE COMMANDS", strings.Join(coreCommands, "\n")})
+	}
+
+	for name, cmds := range otherCommands {
+		if len(cmds) > 0 {
+			helpEntries = append(helpEntries, helpEntry{strings.ToUpper(name) + " COMMANDS", strings.Join(cmds, "\n")})
+		}
 	}
 
 	if len(additionalCommands) > 0 {
