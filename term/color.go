@@ -138,5 +138,5 @@ func (c *ColorScheme) WarningIcon() string {
 }
 
 func (c *ColorScheme) FailureIcon() string {
-	return termenv.String("X").Foreground(c.theme.ColorRed).String()
+	return termenv.String("✘").Foreground(c.theme.ColorRed).String()
 }
