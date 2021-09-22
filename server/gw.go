@@ -1,0 +1,33 @@
+package server
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/pkg/errors"
+	"google.golang.org/grpc"
+)
+
+type GRPCGateway struct {
+	// gwmux is the grpc-gateway proxy multiplexer
+	gwmux   *runtime.ServeMux
+	address string
+}
+
+func NewGateway(host string, port int) (*GRPCGateway, error) {
+	return &GRPCGateway{
+		gwmux: runtime.NewServeMux(
+			runtime.WithErrorHandler(runtime.DefaultHTTPErrorHandler),
+		),
+		address: fmt.Sprintf("%s:%d", host, port),
+	}, nil
+}
+
+func (s *GRPCGateway) RegisterHandler(ctx context.Context, f func(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error)) error {
+	if err := f(ctx, s.gwmux, s.address, []grpc.DialOption{grpc.WithInsecure()}); err != nil {
+		return errors.Wrap(err, "RegisterHandler")
+	}
+
+	return nil
+}
