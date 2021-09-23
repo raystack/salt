@@ -30,7 +30,7 @@ func NewHTTP(config Config, options ...HTTPOption) (*HTTPServer, error) {
 	for _, opt := range options {
 		opt(hos)
 	}
-	
+
 	server := &HTTPServer{config: config}
 	if hos.httpServer != nil {
 		server.httpServer = hos.httpServer
