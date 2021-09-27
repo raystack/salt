@@ -45,7 +45,6 @@ func httpS(httpPort, gatewayClientPort int) {
 
 	s, err := server.NewHTTP(server.Config{
 		Port: httpPort,
-		Host: "",
 	})
 	if err != nil {
 		panic(err)
@@ -76,7 +75,6 @@ func grpcS(grpcPort int) {
 
 	s, err := server.NewGRPC(server.Config{
 		Port: grpcPort,
-		Host: "",
 	}, server.WithGRPCServerOptions(GRPCMiddlewaresInterceptor))
 	if err != nil {
 		panic(err)
@@ -100,7 +98,6 @@ func muxS(muxPort int) {
 
 	s, err := server.NewMux(server.Config{
 		Port: muxPort,
-		Host: "",
 	}, server.WithMuxGRPCServerOptions(GRPCMiddlewaresInterceptor))
 	if err != nil {
 		panic(err)
