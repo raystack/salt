@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc"
 )
 
+// GRPCGateway helps in registering grpc-gateway proxy handlers for a grpc service on server.HTTPServer
 type GRPCGateway struct {
 	// gwmux is the grpc-gateway proxy multiplexer
 	gwmux   *runtime.ServeMux
@@ -17,9 +18,7 @@ type GRPCGateway struct {
 
 func NewGateway(host string, port int) (*GRPCGateway, error) {
 	return &GRPCGateway{
-		gwmux: runtime.NewServeMux(
-			runtime.WithErrorHandler(runtime.DefaultHTTPErrorHandler),
-		),
+		gwmux:   runtime.NewServeMux(),
 		address: fmt.Sprintf("%s:%d", host, port),
 	}, nil
 }
