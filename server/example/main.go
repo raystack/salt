@@ -56,7 +56,7 @@ func httpS(httpPort, gatewayClientPort int) {
 	}
 	gw.RegisterHandler(ctx, commonv1.RegisterCommonServiceHandlerFromEndpoint)
 
-	s.SetGateway(gw)
+	s.SetGateway("/api", gw)
 	s.RegisterHandler("/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "pong")
 	}))
@@ -110,7 +110,7 @@ func muxS(muxPort int) {
 	}
 	gw.RegisterHandler(ctx, commonv1.RegisterCommonServiceHandlerFromEndpoint)
 
-	s.SetGateway(gw)
+	s.SetGateway("/api", gw)
 
 	s.RegisterHandler("/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "pong")

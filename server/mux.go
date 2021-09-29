@@ -11,12 +11,14 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+// MuxServer is an server to serve grpc requests and http requests on same host and port
 type MuxServer struct {
 	config Config
 	GRPCServer
 	HTTPServer
 }
 
+// MuxOption sets configs, properties or other parameters for the server.MuxServer
 type MuxOption func(*muxOptions)
 
 type muxOptions struct {
@@ -24,24 +26,28 @@ type muxOptions struct {
 	httpOptions
 }
 
+// WithMuxGRPCServerOptions sets []grpc.ServerOption for the internal grpc server of server.MuxServer
 func WithMuxGRPCServerOptions(opts ...grpc.ServerOption) MuxOption {
 	return func(mos *muxOptions) {
 		WithGRPCServerOptions(opts...)(&mos.grpcOptions)
 	}
 }
 
+// WithMuxGRPCServer sets grpc.Server instance for the internal grpc server of server.MuxServer
 func WithMuxGRPCServer(grpcServer *grpc.Server) MuxOption {
 	return func(mos *muxOptions) {
 		WithGRPCServer(grpcServer)(&mos.grpcOptions)
 	}
 }
 
+// WithMuxHTTPServer sets http.Server instance for the internal http server of server.MuxServer
 func WithMuxHTTPServer(httpServer *http.Server) MuxOption {
 	return func(mos *muxOptions) {
 		WithHTTPServer(httpServer)(&mos.httpOptions)
 	}
 }
 
+// NewMux creates a new server.MuxServer instance with given config and server.MuxOption
 func NewMux(config Config, options ...MuxOption) (*MuxServer, error) {
 	mos := &muxOptions{}
 	for _, opt := range options {
@@ -66,6 +72,7 @@ func NewMux(config Config, options ...MuxOption) (*MuxServer, error) {
 	return server, nil
 }
 
+// Serve starts the configured grpc and http servers to serve requests
 func (s *MuxServer) Serve() error {
 	l, err := net.Listen("tcp", fmt.Sprintf("%s:%d", s.config.Host, s.config.Port))
 	if err != nil {
@@ -109,6 +116,7 @@ func (s *MuxServer) Serve() error {
 	return <-errorChannel
 }
 
+// Shutdown gracefully stops the server, and kills the server when passed context is cancelled
 func (s *MuxServer) Shutdown(ctx context.Context) {
 	s.HTTPServer.Shutdown(ctx)
 	s.GRPCServer.Shutdown(ctx)

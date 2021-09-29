@@ -16,6 +16,7 @@ type GRPCGateway struct {
 	address string
 }
 
+// NewGateway creates a new server.GRPCGateway to proxy grpc requests to specified host and port
 func NewGateway(host string, port int) (*GRPCGateway, error) {
 	return &GRPCGateway{
 		gwmux:   runtime.NewServeMux(),
@@ -23,10 +24,10 @@ func NewGateway(host string, port int) (*GRPCGateway, error) {
 	}, nil
 }
 
+// RegisterHandler helps in adding routes and handlers to be used for proxying requests to grpc service given the grpc-gateway generated Register*ServiceHandlerFromEndpoint function
 func (s *GRPCGateway) RegisterHandler(ctx context.Context, f func(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error)) error {
 	if err := f(ctx, s.gwmux, s.address, []grpc.DialOption{grpc.WithInsecure()}); err != nil {
 		return errors.Wrap(err, "RegisterHandler")
 	}
-
 	return nil
 }
