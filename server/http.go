@@ -15,7 +15,7 @@ type HTTPServer struct {
 	httpMux *http.ServeMux
 }
 
-// HTTPOption sets configs, properties or other paramters for the server.HTTPServer
+// HTTPOption sets configs, properties or other parameters for the server.HTTPServer
 type HTTPOption func(*httpOptions)
 
 type httpOptions struct {
