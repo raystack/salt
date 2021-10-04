@@ -25,4 +25,5 @@ require (
 	go.buf.build/odpf/gw/odpf/proton v1.1.9
 	go.uber.org/zap v1.19.0
 	google.golang.org/grpc v1.40.0
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
