@@ -21,6 +21,10 @@ func (err ConfigFileNotFoundError) Error() string {
 	return fmt.Sprintf("unable to read configs using viper: %v", err.Err)
 }
 
+func (err *ConfigFileNotFoundError) Unwrap() error {
+	return err.Err
+}
+
 type Loader struct {
 	v *viper.Viper
 }
