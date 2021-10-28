@@ -12,7 +12,7 @@ import (
 )
 
 // ConfigFileNotFoundError is returned when the config file is not found
-// Viper will load from env or default configs
+// Viper will load from env or defaults
 type ConfigFileNotFoundError struct {
 	err error
 }
