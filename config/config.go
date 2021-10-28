@@ -18,7 +18,7 @@ type ConfigFileNotFoundError struct {
 }
 
 func (err ConfigFileNotFoundError) Error() string {
-	return fmt.Sprintf("unable to read configs using viper: %v", err.err)
+	return fmt.Sprintf("unable to find config file, loading from env and defaults: %v", err.err)
 }
 
 func (err *ConfigFileNotFoundError) Unwrap() error {
