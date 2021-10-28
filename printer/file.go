@@ -24,7 +24,6 @@ func PrettyJSON(data interface{}) error {
 
 // Text prints the data for a given format
 func Text(data interface{}, format string) (err error) {
-
 	var output []byte
 	switch format {
 	case "yaml":
