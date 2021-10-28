@@ -11,6 +11,20 @@ import (
 	"github.com/spf13/viper"
 )
 
+// ConfigFileNotFoundError is returned when the config file is not found
+// Viper will load from env or default configs
+type ConfigFileNotFoundError struct {
+	Err error
+}
+
+func (err ConfigFileNotFoundError) Error() string {
+	return fmt.Sprintf("unable to read configs using viper: %v", err.Err)
+}
+
+func (err *ConfigFileNotFoundError) Unwrap() error {
+	return err.Err
+}
+
 type Loader struct {
 	v *viper.Viper
 }
@@ -99,7 +113,7 @@ func (l *Loader) Load(config interface{}) error {
 
 	if err := l.v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			return fmt.Errorf("unable to read configs using viper: %v", err)
+			return ConfigFileNotFoundError{err}
 		}
 	}
 
