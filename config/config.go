@@ -104,16 +104,18 @@ func NewLoader(options ...LoaderOption) *Loader {
 
 // Load loads configuration into the given mapstructure (https://github.com/mitchellh/mapstructure)
 // from a config.yaml file and overrides with any values set in env variables
-func (l *Loader) Load(config interface{}) (err error) {
+func (l *Loader) Load(config interface{}) error {
 	if err := verifyParamIsPtrToStructElsePanic(config); err != nil {
 		return err
 	}
 
 	l.v.AutomaticEnv()
 
+	var werr error
+
 	if err := l.v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			err = ConfigFileNotFoundError{err}
+			werr = ConfigFileNotFoundError{err}
 		} else {
 			return fmt.Errorf("unable to read config file: %v", err)
 		}
@@ -137,7 +139,11 @@ func (l *Loader) Load(config interface{}) (err error) {
 	if err := l.v.Unmarshal(config); err != nil {
 		return fmt.Errorf("unable to load config to struct: %v", err)
 	}
-	return err
+
+	if werr != nil {
+		return werr
+	}
+	return nil
 }
 
 func verifyParamIsPtrToStructElsePanic(param interface{}) error {
