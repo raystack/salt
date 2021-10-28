@@ -117,7 +117,7 @@ func (l *Loader) Load(config interface{}) error {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			werr = ConfigFileNotFoundError{err}
 		} else {
-			return fmt.Errorf("unable to read config file: %v", err)
+			return fmt.Errorf("unable to read config file: %w", err)
 		}
 	}
 
