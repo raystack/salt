@@ -11,6 +11,20 @@ import (
 	"github.com/spf13/viper"
 )
 
+// ConfigFileNotFoundError is returned when the config file is not found
+// Viper will load from env or default configs
+type ConfigFileNotFoundError struct {
+	err error
+}
+
+func (err ConfigFileNotFoundError) Error() string {
+	return fmt.Sprintf("unable to read configs using viper: %v", err.err)
+}
+
+func (err *ConfigFileNotFoundError) Unwrap() error {
+	return err.err
+}
+
 type Loader struct {
 	v *viper.Viper
 }
@@ -90,7 +104,7 @@ func NewLoader(options ...LoaderOption) *Loader {
 
 // Load loads configuration into the given mapstructure (https://github.com/mitchellh/mapstructure)
 // from a config.yaml file and overrides with any values set in env variables
-func (l *Loader) Load(config interface{}) error {
+func (l *Loader) Load(config interface{}) (err error) {
 	if err := verifyParamIsPtrToStructElsePanic(config); err != nil {
 		return err
 	}
@@ -99,7 +113,7 @@ func (l *Loader) Load(config interface{}) error {
 
 	if err := l.v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			fmt.Println("config file was not found. Env vars and defaults will be used")
+			err = ConfigFileNotFoundError{err}
 		} else {
 			return fmt.Errorf("unable to read config file: %v", err)
 		}
@@ -123,7 +137,7 @@ func (l *Loader) Load(config interface{}) error {
 	if err := l.v.Unmarshal(config); err != nil {
 		return fmt.Errorf("unable to load config to struct: %v", err)
 	}
-	return nil
+	return err
 }
 
 func verifyParamIsPtrToStructElsePanic(param interface{}) error {
