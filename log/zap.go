@@ -39,10 +39,10 @@ func (z Zap) Writer() io.Writer {
 	panic("not supported")
 }
 
-func ZapWithConfig(conf zap.Config, opt zap.Option) Option {
+func ZapWithConfig(conf zap.Config, opt ...zap.Option) Option {
 	return func(z interface{}) {
 		z.(*Zap).conf = conf
-		prodLogger, err := z.(*Zap).conf.Build(opt)
+		prodLogger, err := z.(*Zap).conf.Build(opt...)
 		if err != nil {
 			panic(err)
 		}
