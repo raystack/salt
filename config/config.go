@@ -111,11 +111,9 @@ func (l *Loader) Load(config interface{}) error {
 
 	l.v.AutomaticEnv()
 
-	var werr error
-
 	if err := l.v.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			werr = ConfigFileNotFoundError{err}
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			return ConfigFileNotFoundError{err}
 		} else {
 			return fmt.Errorf("unable to read config file: %w", err)
 		}
@@ -140,9 +138,6 @@ func (l *Loader) Load(config interface{}) error {
 		return fmt.Errorf("unable to load config to struct: %v", err)
 	}
 
-	if werr != nil {
-		return werr
-	}
 	return nil
 }
 
