@@ -117,7 +117,7 @@ func (l *Loader) Load(config interface{}) error {
 
 	if err := l.v.ReadInConfig(); err != nil {
 		var pathErr = new(fs.PathError)
-		if errors.As(err, &pathErr) {
+		if errors.As(err, &pathErr) || errors.As(err, &viper.ConfigFileNotFoundError{}) {
 			werr = ConfigFileNotFoundError{err}
 		} else {
 			return fmt.Errorf("unable to read config file: %w", err)
