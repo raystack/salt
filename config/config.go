@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"reflect"
 	"strings"
 
@@ -115,7 +116,8 @@ func (l *Loader) Load(config interface{}) error {
 	var werr error
 
 	if err := l.v.ReadInConfig(); err != nil {
-		if errors.As(err, new(viper.ConfigFileNotFoundError)) {
+		var pathErr = new(fs.PathError)
+		if errors.As(err, &pathErr) {
 			werr = ConfigFileNotFoundError{err}
 		} else {
 			return fmt.Errorf("unable to read config file: %w", err)
