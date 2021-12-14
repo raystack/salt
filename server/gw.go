@@ -17,9 +17,9 @@ type GRPCGateway struct {
 }
 
 // NewGateway creates a new server.GRPCGateway to proxy grpc requests to specified host and port
-func NewGateway(host string, port int) (*GRPCGateway, error) {
+func NewGateway(host string, port int, opts ...runtime.ServeMuxOption) (*GRPCGateway, error) {
 	return &GRPCGateway{
-		gwmux:   runtime.NewServeMux(),
+		gwmux:   runtime.NewServeMux(opts...),
 		address: fmt.Sprintf("%s:%d", host, port),
 	}, nil
 }
