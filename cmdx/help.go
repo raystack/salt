@@ -1,4 +1,4 @@
-package help
+package cmdx
 
 import (
 	"bytes"
@@ -10,8 +10,21 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// RootUsageFunc provides a custom usage function for the root command.
-func RootUsageFunc(command *cobra.Command) error {
+// SetHelp sets a custom help and usage function.
+// It allows to group commands in different sections
+// based on cobra commands annotations.
+func SetHelp(cmd *cobra.Command) {
+	cmd.PersistentFlags().Bool("help", false, "Show help for command")
+
+	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		rootHelpFunc(cmd, args)
+	})
+	cmd.SetUsageFunc(rootUsageFunc)
+	cmd.SetFlagErrorFunc(rootFlagErrorFunc)
+}
+
+// rootUsageFunc provides a custom usage function for the root command.
+func rootUsageFunc(command *cobra.Command) error {
 	command.Printf("Usage:  %s", command.UseLine())
 
 	subcommands := command.Commands()
@@ -34,8 +47,8 @@ func RootUsageFunc(command *cobra.Command) error {
 	return nil
 }
 
-// RootFlagErrorFunc provides a custom flag error function for the root command.
-func RootFlagErrorFunc(cmd *cobra.Command, err error) error {
+// rootFlagErrorFunc provides a custom flag error function for the root command.
+func rootFlagErrorFunc(cmd *cobra.Command, err error) error {
 	if err == pflag.ErrHelp {
 		return err
 	}
@@ -43,7 +56,7 @@ func RootFlagErrorFunc(cmd *cobra.Command, err error) error {
 }
 
 // RootHelpFunc provides a custom help function for the root command.
-func RootHelpFunc(command *cobra.Command, args []string) {
+func rootHelpFunc(command *cobra.Command, args []string) {
 	if isRootCmd(command.Parent()) && len(args) >= 2 && args[1] != "--help" && args[1] != "-h" {
 		nestedSuggestFunc(command, args[1])
 		return
@@ -173,7 +186,7 @@ func nestedSuggestFunc(command *cobra.Command, arg string) {
 	}
 
 	command.Print("\n")
-	_ = RootUsageFunc(command)
+	_ = rootUsageFunc(command)
 }
 
 func isRootCmd(command *cobra.Command) bool {
