@@ -13,7 +13,7 @@ import (
 func SetRefCmd(root *cobra.Command) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "reference",
-		Short: fmt.Sprint(root.Name(), " reference"),
+		Short: "Show command reference",
 		Long:  referenceLong(root),
 		Run:   referenceHelpFn(),
 	}
