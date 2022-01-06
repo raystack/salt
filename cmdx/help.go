@@ -140,6 +140,10 @@ func rootHelpFunc(command *cobra.Command, args []string) {
 		helpEntries = append(helpEntries, helpEntry{"EXAMPLES", command.Example})
 	}
 
+	if _, ok := command.Annotations["help:environment"]; ok {
+		helpEntries = append(helpEntries, helpEntry{"ENVIRONMENT VARIABLES", command.Annotations["help:environment"]})
+	}
+
 	if _, ok := command.Annotations["help:learn"]; ok {
 		helpEntries = append(helpEntries, helpEntry{"LEARN MORE", command.Annotations["help:learn"]})
 	}
