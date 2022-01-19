@@ -7,7 +7,6 @@ import (
 )
 
 // IsUnderHomebrew checks whether the given binary is under the homebrew path.
-// copied from: https://github.com/cli/cli/blob/trunk/cmd/gh/main.go#L298
 func IsUnderHomebrew(binpath string) bool {
 	if binpath == "" {
 		return false

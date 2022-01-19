@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// SetHelpTopicCommand sets the help topic command.
 func SetHelpTopic(title string, topic map[string]string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     title,
