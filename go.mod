@@ -3,6 +3,7 @@ module github.com/odpf/salt
 go 1.16
 
 require (
+	github.com/MakeNowJust/heredoc v1.0.0 // indirect
 	github.com/briandowns/spinner v1.18.0
 	github.com/charmbracelet/glamour v0.3.0
 	github.com/gorilla/mux v1.8.0
