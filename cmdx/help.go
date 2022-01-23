@@ -21,7 +21,6 @@ func SetHelp(cmd *cobra.Command) {
 	cmd.SetFlagErrorFunc(rootFlagErrorFunc)
 }
 
-// rootUsageFunc provides a custom usage function for the root command.
 func rootUsageFunc(command *cobra.Command) error {
 	command.Printf("Usage:  %s", command.UseLine())
 
@@ -45,7 +44,6 @@ func rootUsageFunc(command *cobra.Command) error {
 	return nil
 }
 
-// rootFlagErrorFunc provides a custom flag error function for the root command.
 func rootFlagErrorFunc(cmd *cobra.Command, err error) error {
 	if err == pflag.ErrHelp {
 		return err
@@ -53,7 +51,6 @@ func rootFlagErrorFunc(cmd *cobra.Command, err error) error {
 	return err
 }
 
-// RootHelpFunc provides a custom help function for the root command.
 func rootHelpFunc(command *cobra.Command, args []string) {
 	if isRootCmd(command.Parent()) && len(args) >= 2 && args[1] != "--help" && args[1] != "-h" {
 		nestedSuggestFunc(command, args[1])
