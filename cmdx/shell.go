@@ -7,6 +7,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// SetCompletionCmd is used to generate the completion script
+// in bash, zsh, fish, and powershell.
+// This should be added on the root command and can
+// be used as `completion bash` or `completion zsh`.
 func SetCompletionCmd(exec string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "completion [bash|zsh|fish|powershell]",

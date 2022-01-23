@@ -5,6 +5,13 @@ import (
 )
 
 // SetHelpTopicCommand sets the help topic command.
+// This should be added on the root command.
+// e.g. topic
+// map[string]string{
+//	"short": "short description",
+//	"long": "long description",
+//	"example": "example",
+// }
 func SetHelpTopic(title string, topic map[string]string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     title,

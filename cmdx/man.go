@@ -10,6 +10,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// SetRefCmd is used to generate the reference documentation
+// in markdown format for the command tree.
+// This should be added on the root command and can
+// be used as `help reference` or `reference help`.
 func SetRefCmd(root *cobra.Command) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "reference",
