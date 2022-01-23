@@ -7,6 +7,26 @@ import (
 	"strings"
 )
 
+// IsCmdErr returns true if erorr is cobra command error.
+// This is useful for distinguishing between a human error
+// and a program error and displaying the correct message.
+func IsCmdErr(err error) bool {
+	errstr := err.Error()
+
+	strs := []string{
+		"unknown command",
+		"unknown flag",
+		"unknown shorthand flag",
+	}
+
+	for _, str := range strs {
+		if strings.Contains(errstr, str) {
+			return true
+		}
+	}
+	return false
+}
+
 // rpad adds padding to the right of a string.
 func rpad(s string, padding int) string {
 	template := fmt.Sprintf("%%-%ds ", padding)
