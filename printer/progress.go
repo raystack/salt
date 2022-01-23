@@ -1,34 +1,15 @@
 package printer
 
 import (
-	"time"
-
-	"github.com/briandowns/spinner"
-	"github.com/odpf/salt/term"
+	"github.com/schollz/progressbar/v3"
 )
 
-type Spinner struct {
-	indicator *spinner.Spinner
-}
-
-func (s *Spinner) Stop() {
-	if s.indicator == nil {
-		return
-	}
-	s.indicator.Stop()
-}
-
-func Progress(label string) *Spinner {
-	set := spinner.CharSets[11]
-	if !term.IsTTY() {
-		return &Spinner{}
-	}
-	s := spinner.New(set, 120*time.Millisecond, spinner.WithColor("fgCyan"))
-	if label != "" {
-		s.Prefix = label + " "
-	}
-
-	s.Start()
-
-	return &Spinner{s}
+func Progress(max int, description string) *progressbar.ProgressBar {
+	bar := progressbar.NewOptions(
+		max,
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionSetDescription(description),
+		progressbar.OptionShowCount(),
+	)
+	return bar
 }
