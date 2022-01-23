@@ -19,12 +19,15 @@ func (s *Spinner) Stop() {
 }
 
 func Progress(label string) *Spinner {
-	set := spinner.CharSets[14]
+	set := spinner.CharSets[11]
 	if !term.IsTTY() {
 		return &Spinner{}
 	}
-	s := spinner.New(set, 100*time.Millisecond)
-	s.Prefix = label + " "
+	s := spinner.New(set, 120*time.Millisecond, spinner.WithColor("fgCyan"))
+	if label != "" {
+		s.Prefix = label + " "
+	}
+
 	s.Start()
 
 	return &Spinner{s}
