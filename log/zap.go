@@ -50,6 +50,11 @@ func ZapWithConfig(conf zap.Config, opts ...zap.Option) Option {
 	}
 }
 
+// GetInternalZapLogger Gets internal SugaredLogger instance
+func (z Zap) GetInternalZapLogger() *zap.SugaredLogger {
+	return z.log
+}
+
 func ZapWithNoop() Option {
 	return func(z interface{}) {
 		z.(*Zap).log = zap.NewNop().Sugar()
