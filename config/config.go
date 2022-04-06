@@ -10,6 +10,7 @@ import (
 	"github.com/jeremywohl/flatten"
 	"github.com/mcuadros/go-defaults"
 	"github.com/mitchellh/mapstructure"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -28,7 +29,8 @@ func (err *ConfigFileNotFoundError) Unwrap() error {
 }
 
 type Loader struct {
-	v *viper.Viper
+	v     *viper.Viper
+	flags *pflag.FlagSet
 }
 
 type LoaderOption func(*Loader)
@@ -92,6 +94,34 @@ func WithEnvKeyReplacer(old string, new string) LoaderOption {
 	}
 }
 
+// WithPFlags sets the flags (pflag) that will be used to override
+// the configs via command flags.
+func WithPFlags(flags *pflag.FlagSet) LoaderOption {
+	return func(l *Loader) {
+		l.flags = flags
+	}
+}
+
+// SetPFlagsKeyDelimiter sets the flags (pflag) delimiter's name.
+func SetPFlagsKeyDelimiter(delimiter string) LoaderOption {
+	return func(l *Loader) {
+		f := l.flags
+		if f == nil {
+			return
+		}
+
+		// normalize with the pflag names with replacer
+		normalizeFunc := f.GetNormalizeFunc()
+		f.SetNormalizeFunc(func(fs *pflag.FlagSet, name string) pflag.NormalizedName {
+			result := normalizeFunc(fs, name)
+			name = strings.ReplaceAll(string(result), delimiter, ".")
+			return pflag.NormalizedName(name)
+		})
+
+		l.flags = f
+	}
+}
+
 // NewLoader returns a config loader with given LoaderOption(s)
 func NewLoader(options ...LoaderOption) *Loader {
 	loader := &Loader{
@@ -111,6 +141,9 @@ func (l *Loader) Load(config interface{}) error {
 		return err
 	}
 
+	if l.flags != nil {
+		l.v.BindPFlags(l.flags)
+	}
 	l.v.AutomaticEnv()
 
 	var werr error
