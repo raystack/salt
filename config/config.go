@@ -94,31 +94,20 @@ func WithEnvKeyReplacer(old string, new string) LoaderOption {
 	}
 }
 
-// WithPFlags sets the flags (pflag) that will be used to override
-// the configs via command flags.
-func WithPFlags(flags *pflag.FlagSet) LoaderOption {
+// WithPFlags sets the flags (pflag) and its delimiter that will be
+// used to override the configs via command flags.
+func WithPFlags(flags *pflag.FlagSet, delimiter string) LoaderOption {
 	return func(l *Loader) {
-		l.flags = flags
-	}
-}
-
-// SetPFlagsKeyDelimiter sets the flags (pflag) delimiter's name.
-func SetPFlagsKeyDelimiter(delimiter string) LoaderOption {
-	return func(l *Loader) {
-		f := l.flags
-		if f == nil {
-			return
+		// normalize with the pflag names with replacer
+		normalizeFunc := flags.GetNormalizeFunc()
+		f := func(fs *pflag.FlagSet, name string) pflag.NormalizedName {
+			normalizedName := string(normalizeFunc(fs, name))
+			name = strings.ReplaceAll(normalizedName, delimiter, ".")
+			return pflag.NormalizedName(name)
 		}
 
-		// normalize with the pflag names with replacer
-		normalizeFunc := f.GetNormalizeFunc()
-		f.SetNormalizeFunc(func(fs *pflag.FlagSet, name string) pflag.NormalizedName {
-			result := normalizeFunc(fs, name)
-			name = strings.ReplaceAll(string(result), delimiter, ".")
-			return pflag.NormalizedName(name)
-		})
-
-		l.flags = f
+		flags.SetNormalizeFunc(f)
+		l.flags = flags
 	}
 }
 
