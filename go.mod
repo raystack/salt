@@ -31,7 +31,7 @@ require (
 	go.uber.org/zap v1.19.0
 	google.golang.org/grpc v1.40.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
-	gorm.io/datatypes v1.0.6
-	gorm.io/driver/postgres v1.3.5
-	gorm.io/gorm v1.23.5
+	gorm.io/datatypes v1.0.0
+	gorm.io/driver/postgres v1.0.8
+	gorm.io/gorm v1.20.12
 )
