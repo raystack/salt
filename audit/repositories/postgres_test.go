@@ -77,9 +77,11 @@ func (s *PostgresRepositoryTestSuite) TestInsert() {
 
 		l := &audit.Log{}
 
+		s.dbMock.ExpectBegin()
 		s.dbMock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "audit_logs" ("timestamp","action","actor","data","metadata","app") VALUES ($1,$2,$3,$4,$5,$6)`)).
 			WithArgs(l.Timestamp, l.Action, l.Actor, `null`, `null`, `null`).
 			WillReturnResult(sqlmock.NewResult(1, 1))
+		s.dbMock.ExpectCommit()
 
 		err := s.repository.Insert(context.Background(), l)
 		s.NoError(err)
@@ -119,7 +121,9 @@ func (s *PostgresRepositoryTestSuite) TestInsert() {
 		l := &audit.Log{}
 
 		expectedError := errors.New("test error")
+		s.dbMock.ExpectBegin()
 		s.dbMock.ExpectExec(".*").WillReturnError(expectedError)
+		s.dbMock.ExpectRollback()
 
 		err := s.repository.Insert(context.Background(), l)
 		s.ErrorIs(err, expectedError)
