@@ -4,15 +4,39 @@ package audit
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
-var TimeNow = time.Now
+var (
+	TimeNow = time.Now
+
+	ErrInvalidMetadata = errors.New("failed to cast existing metadata to map[string]interface{} type")
+)
 
 type actorContextKey struct{}
+type metadataContextKey struct{}
 
 func WithActor(ctx context.Context, actor string) context.Context {
 	return context.WithValue(ctx, actorContextKey{}, actor)
+}
+
+func WithMetadata(ctx context.Context, md map[string]interface{}) (context.Context, error) {
+	existingMetadata := ctx.Value(metadataContextKey{})
+	if existingMetadata == nil {
+		return context.WithValue(ctx, metadataContextKey{}, md), nil
+	}
+
+	// append new metadata
+	mapMd, ok := existingMetadata.(map[string]interface{})
+	if !ok {
+		return nil, ErrInvalidMetadata
+	}
+	for k, v := range md {
+		mapMd[k] = v
+	}
+
+	return context.WithValue(ctx, metadataContextKey{}, mapMd), nil
 }
 
 type repository interface {
@@ -28,9 +52,12 @@ func WithRepository(r repository) AuditOption {
 	}
 }
 
-func WithAppDetails(app AppDetails) AuditOption {
+func WithMetadataExtractor(fn func(context.Context) map[string]interface{}) AuditOption {
 	return func(s *Service) {
-		s.appDetails = app
+		s.withMetadata = func(ctx context.Context) (context.Context, error) {
+			md := fn(ctx)
+			return WithMetadata(ctx, md)
+		}
 	}
 }
 
@@ -41,9 +68,9 @@ func WithTraceIDExtractor(fn func(ctx context.Context) string) AuditOption {
 }
 
 type Service struct {
-	appDetails       AppDetails
 	repository       repository
 	trackIDExtractor func(ctx context.Context) string
+	withMetadata     func(ctx context.Context) (context.Context, error)
 }
 
 func New(opts ...AuditOption) *Service {
@@ -56,19 +83,22 @@ func New(opts ...AuditOption) *Service {
 }
 
 func (s *Service) Log(ctx context.Context, action string, data interface{}) error {
+	if s.withMetadata != nil {
+		var err error
+		ctx, err = s.withMetadata(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
 	l := &Log{
 		Timestamp: TimeNow(),
 		Action:    action,
 		Data:      data,
-		App:       &s.appDetails,
 	}
 
-	metadata := make(map[string]interface{})
-	if s.trackIDExtractor != nil {
-		metadata["trace_id"] = s.trackIDExtractor(ctx)
-	}
-	if metadata != nil {
-		l.Metadata = metadata
+	if md, ok := ctx.Value(metadataContextKey{}).(map[string]interface{}); ok {
+		l.Metadata = md
 	}
 
 	if actor, ok := ctx.Value(actorContextKey{}).(string); ok {

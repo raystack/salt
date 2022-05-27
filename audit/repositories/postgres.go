@@ -17,7 +17,6 @@ type auditPostgresModel struct {
 	Actor     string
 	Data      datatypes.JSON
 	Metadata  datatypes.JSON
-	App       datatypes.JSON
 }
 
 func (a auditPostgresModel) TableName() string {
@@ -48,17 +47,12 @@ func (r *PostgresRepository) Insert(ctx context.Context, l *audit.Log) error {
 	if err != nil {
 		return fmt.Errorf("marshaling metadata: %w", err)
 	}
-	app, err := json.Marshal(l.App)
-	if err != nil {
-		return fmt.Errorf("marshaling app: %w", err)
-	}
 	m := &auditPostgresModel{
 		Timestamp: l.Timestamp,
 		Action:    l.Action,
 		Actor:     l.Actor,
 		Data:      datatypes.JSON(data),
 		Metadata:  datatypes.JSON(metadata),
-		App:       datatypes.JSON(app),
 	}
 
 	if err := r.db.WithContext(ctx).Create(m).Error; err != nil {

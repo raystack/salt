@@ -49,7 +49,7 @@ func (s *PostgresRepositoryTestSuite) TestInit() {
 		s.setupTest()
 		defer s.cleanupTest()
 
-		s.dbMock.ExpectExec(regexp.QuoteMeta(`CREATE TABLE "audit_logs" ("timestamp" timestamptz,"action" text,"actor" text,"data" JSONB,"metadata" JSONB,"app" JSONB)`)).
+		s.dbMock.ExpectExec(regexp.QuoteMeta(`CREATE TABLE "audit_logs" ("timestamp" timestamptz,"action" text,"actor" text,"data" JSONB,"metadata" JSONB)`)).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 
 		err := s.repository.Init(context.Background())
@@ -78,8 +78,8 @@ func (s *PostgresRepositoryTestSuite) TestInsert() {
 		l := &audit.Log{}
 
 		s.dbMock.ExpectBegin()
-		s.dbMock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "audit_logs" ("timestamp","action","actor","data","metadata","app") VALUES ($1,$2,$3,$4,$5,$6)`)).
-			WithArgs(l.Timestamp, l.Action, l.Actor, `null`, `null`, `null`).
+		s.dbMock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "audit_logs" ("timestamp","action","actor","data","metadata") VALUES ($1,$2,$3,$4,$5)`)).
+			WithArgs(l.Timestamp, l.Action, l.Actor, `null`, `null`).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 		s.dbMock.ExpectCommit()
 

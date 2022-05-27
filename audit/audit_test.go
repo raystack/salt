@@ -24,11 +24,14 @@ type AuditTestSuite struct {
 func (s *AuditTestSuite) setupTest() {
 	s.mockRepository = new(mocks.Repository)
 	s.service = audit.New(
-		audit.WithAppDetails(audit.AppDetails{Name: "guardian_test", Version: "1"}),
-		audit.WithRepository(s.mockRepository),
-		audit.WithTraceIDExtractor(func(_ context.Context) string {
-			return "test-trace-id"
+		audit.WithMetadataExtractor(func(context.Context) map[string]interface{} {
+			return map[string]interface{}{
+				"trace_id":    "test-trace-id",
+				"app_name":    "guardian_test",
+				"app_version": 1,
+			}
 		}),
+		audit.WithRepository(s.mockRepository),
 	)
 
 	s.now = time.Now()
@@ -50,10 +53,10 @@ func (s *AuditTestSuite) TestLog() {
 			Action:    "action",
 			Actor:     "user@example.com",
 			Data:      map[string]interface{}{"foo": "bar"},
-			Metadata:  map[string]interface{}{"trace_id": "test-trace-id"},
-			App: &audit.AppDetails{
-				Name:    "guardian_test",
-				Version: "1",
+			Metadata: map[string]interface{}{
+				"trace_id":    "test-trace-id",
+				"app_name":    "guardian_test",
+				"app_version": 1,
 			},
 		}).Return(nil)
 
@@ -65,14 +68,23 @@ func (s *AuditTestSuite) TestLog() {
 
 	s.Run("should pass empty trace id if extractor not found", func() {
 		s.service = audit.New(
-			audit.WithAppDetails(audit.AppDetails{Name: "guardian_test", Version: "1"}),
+			audit.WithMetadataExtractor(func(ctx context.Context) map[string]interface{} {
+				return map[string]interface{}{
+					"app_name":    "guardian_test",
+					"app_version": 1,
+				}
+			}),
 			audit.WithRepository(s.mockRepository),
 		)
 
 		s.mockRepository.On("Insert", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 			l := args.Get(1).(*audit.Log)
 			s.IsType(map[string]interface{}{}, l.Metadata)
-			s.Empty(l.Metadata)
+
+			md := l.Metadata.(map[string]interface{})
+			s.Empty(md["trace_id"])
+			s.NotEmpty(md["app_name"])
+			s.NotEmpty(md["app_version"])
 		}).Return(nil)
 
 		err := s.service.Log(context.Background(), "", nil)
