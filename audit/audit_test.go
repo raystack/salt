@@ -71,7 +71,8 @@ func (s *AuditTestSuite) TestLog() {
 
 		s.mockRepository.On("Insert", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 			l := args.Get(1).(*audit.Log)
-			s.Empty(l.Metadata["trace_id"])
+			s.IsType(map[string]interface{}{}, l.Metadata)
+			s.Empty(l.Metadata)
 		}).Return(nil)
 
 		err := s.service.Log(context.Background(), "", nil)

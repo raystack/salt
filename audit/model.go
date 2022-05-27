@@ -13,5 +13,5 @@ type Log struct {
 	Actor     string
 	App       *AppDetails
 	Data      interface{}
-	Metadata  map[string]interface{}
+	Metadata  interface{}
 }

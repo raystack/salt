@@ -63,11 +63,12 @@ func (s *Service) Log(ctx context.Context, action string, data interface{}) erro
 		App:       &s.appDetails,
 	}
 
+	metadata := make(map[string]interface{})
 	if s.trackIDExtractor != nil {
-		if l.Metadata == nil {
-			l.Metadata = map[string]interface{}{}
-		}
-		l.Metadata["trace_id"] = s.trackIDExtractor(ctx)
+		metadata["trace_id"] = s.trackIDExtractor(ctx)
+	}
+	if metadata != nil {
+		l.Metadata = metadata
 	}
 
 	if actor, ok := ctx.Value(actorContextKey{}).(string); ok {
