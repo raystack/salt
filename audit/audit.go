@@ -5,6 +5,7 @@ package audit
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -61,20 +62,29 @@ func WithMetadataExtractor(fn func(context.Context) map[string]interface{}) Audi
 	}
 }
 
-func WithTraceIDExtractor(fn func(ctx context.Context) string) AuditOption {
+func WithActorExtractor(fn func(context.Context) (string, error)) AuditOption {
 	return func(s *Service) {
-		s.trackIDExtractor = fn
+		s.actorExtractor = fn
 	}
 }
 
+func defaultActorExtractor(ctx context.Context) (string, error) {
+	if actor, ok := ctx.Value(actorContextKey{}).(string); ok {
+		return actor, nil
+	}
+	return "", nil
+}
+
 type Service struct {
-	repository       repository
-	trackIDExtractor func(ctx context.Context) string
-	withMetadata     func(ctx context.Context) (context.Context, error)
+	repository     repository
+	actorExtractor func(context.Context) (string, error)
+	withMetadata   func(context.Context) (context.Context, error)
 }
 
 func New(opts ...AuditOption) *Service {
-	svc := &Service{}
+	svc := &Service{
+		actorExtractor: defaultActorExtractor,
+	}
 	for _, o := range opts {
 		o(svc)
 	}
@@ -85,8 +95,7 @@ func New(opts ...AuditOption) *Service {
 func (s *Service) Log(ctx context.Context, action string, data interface{}) error {
 	if s.withMetadata != nil {
 		var err error
-		ctx, err = s.withMetadata(ctx)
-		if err != nil {
+		if ctx, err = s.withMetadata(ctx); err != nil {
 			return err
 		}
 	}
@@ -101,7 +110,11 @@ func (s *Service) Log(ctx context.Context, action string, data interface{}) erro
 		l.Metadata = md
 	}
 
-	if actor, ok := ctx.Value(actorContextKey{}).(string); ok {
+	if s.actorExtractor != nil {
+		actor, err := s.actorExtractor(ctx)
+		if err != nil {
+			return fmt.Errorf("extracting actor: %w", err)
+		}
 		l.Actor = actor
 	}
 
