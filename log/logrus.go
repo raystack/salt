@@ -43,8 +43,13 @@ func (l *Logrus) Fatal(msg string, args ...interface{}) {
 func (l *Logrus) Level() string {
 	return l.log.Level.String()
 }
+
 func (l *Logrus) Writer() io.Writer {
 	return l.log.Writer()
+}
+
+func (l *Logrus) Entry(args ...interface{}) *logrus.Entry {
+	return l.log.WithFields(l.getFields(args...))
 }
 
 func LogrusWithLevel(level string) Option {
