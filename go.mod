@@ -3,6 +3,7 @@ module github.com/odpf/salt
 go 1.16
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/briandowns/spinner v1.18.0
 	github.com/charmbracelet/glamour v0.3.0
@@ -30,4 +31,7 @@ require (
 	go.uber.org/zap v1.19.0
 	google.golang.org/grpc v1.40.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	gorm.io/datatypes v1.0.0
+	gorm.io/driver/postgres v1.0.8
+	gorm.io/gorm v1.20.12
 )
