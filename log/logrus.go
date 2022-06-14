@@ -10,6 +10,10 @@ type Logrus struct {
 	log *logrus.Logger
 }
 
+func (l *Logrus) GetLogrusLogger() *logrus.Logger {
+	return l.log
+}
+
 func (l Logrus) getFields(args ...interface{}) map[string]interface{} {
 	fieldMap := map[string]interface{}{}
 	if len(args) > 1 && len(args)%2 == 0 {

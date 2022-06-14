@@ -75,3 +75,10 @@ func TestLogrus(t *testing.T) {
 		assert.Equal(t, "level=error msg=\"request failed\"\n", b.String())
 	})
 }
+
+func TestLogrusGetLogrusLogger(t *testing.T) {
+	t.Run("should return underlying *logrus.Logger", func(t *testing.T) {
+		logrusLogger := log.NewLogrus()
+		assert.NotNil(t, logrusLogger)
+	})
+}
