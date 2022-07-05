@@ -12,14 +12,27 @@ type HTTPServer struct {
 	config     Config
 	httpServer *http.Server
 	// httpMux is used for allowing addition of custom handlers to the http server
-	httpMux *http.ServeMux
+	httpMux    *http.ServeMux
+	middleware Middleware
 }
 
 // HTTPOption sets configs, properties or other parameters for the server.HTTPServer
 type HTTPOption func(*httpOptions)
 
+// Middleware creates wrapper around given handler with additional behaviour inserted
+// before and after handler invocation.
+type Middleware func(handler http.Handler) http.Handler
+
 type httpOptions struct {
 	httpServer *http.Server
+	middleware Middleware
+}
+
+// WithMiddleware applies a global middleware around mux.
+func WithMiddleware(m Middleware) HTTPOption {
+	return func(hos *httpOptions) {
+		hos.middleware = m
+	}
 }
 
 // WithHTTPServer sets http.Server instance for server.HTTPServer
@@ -44,15 +57,19 @@ func NewHTTP(config Config, options ...HTTPOption) (*HTTPServer, error) {
 	}
 	server.httpServer.Addr = fmt.Sprintf("%s:%d", config.Host, config.Port)
 	server.httpMux = http.NewServeMux()
+	server.middleware = hos.middleware
 
 	return server, nil
 }
 
 // Serve starts the configured http server to serve requests
 func (s *HTTPServer) Serve() error {
-	s.httpServer.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s.httpMux.ServeHTTP(w, r)
-	})
+	handler := http.Handler(s.httpMux)
+	if s.middleware != nil {
+		handler = s.middleware(handler)
+	}
+
+	s.httpServer.Handler = handler
 	return s.httpServer.ListenAndServe()
 }
 
