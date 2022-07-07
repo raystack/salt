@@ -8,6 +8,8 @@ import (
 )
 
 // HTTPServer is an server to serve http requests
+//
+// Deprecated: Prefer `mux` package instead of this.
 type HTTPServer struct {
 	config     Config
 	httpServer *http.Server
@@ -30,6 +32,8 @@ func WithHTTPServer(httpServer *http.Server) HTTPOption {
 }
 
 // NewHTTP creates a new server.HTTPServer instance with given config and server.HTTPOption
+//
+// Deprecated: Prefer `mux` package instead of this.
 func NewHTTP(config Config, options ...HTTPOption) (*HTTPServer, error) {
 	hos := &httpOptions{}
 	for _, opt := range options {
