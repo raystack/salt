@@ -73,13 +73,13 @@ func (cmw *cmuxWrapper) Serve(baseCtx context.Context, addr string) error {
 	}
 }
 
-func (mux *cmuxWrapper) shutDown() error {
-	mux.grpcServer.GracefulStop()
+func (cmw *cmuxWrapper) shutDown() error {
+	cmw.grpcServer.GracefulStop()
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), mux.gracePeriod)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cmw.gracePeriod)
 	defer cancel()
 
-	return mux.httpServer.Shutdown(shutdownCtx)
+	return cmw.httpServer.Shutdown(shutdownCtx)
 }
 
 func serveOnListener(l net.Listener, server interface{ Serve(l net.Listener) error }, errCh chan<- error) {
