@@ -74,15 +74,25 @@ func (cmw *cmuxWrapper) Serve(baseCtx context.Context, addr string) error {
 }
 
 func (cmw *cmuxWrapper) shutDown() error {
-	cmw.grpcServer.GracefulStop()
+	if cmw.grpcServer != nil {
+		cmw.grpcServer.GracefulStop()
+	}
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), cmw.gracePeriod)
-	defer cancel()
+	if cmw.httpServer != nil {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), cmw.gracePeriod)
+		defer cancel()
 
-	return cmw.httpServer.Shutdown(shutdownCtx)
+		return cmw.httpServer.Shutdown(shutdownCtx)
+	}
+
+	return nil
 }
 
 func serveOnListener(l net.Listener, server interface{ Serve(l net.Listener) error }, errCh chan<- error) {
+	if server == nil {
+		return
+	}
+
 	go func() {
 		err := server.Serve(l)
 		if err != nil {
