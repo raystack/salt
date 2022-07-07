@@ -12,6 +12,8 @@ import (
 )
 
 // GRPCServer is an server to serve grpc requests
+//
+// Deprecated: Prefer `mux` package instead of this.
 type GRPCServer struct {
 	config     Config
 	grpcServer *grpc.Server
@@ -40,6 +42,8 @@ func WithGRPCServer(grpcServer *grpc.Server) GRPCOption {
 }
 
 // NewGRPC creates a new server.GRPCServer instance with given config and server.GRPCOption
+//
+// Deprecated: Prefer `mux` package instead of this.
 func NewGRPC(config Config, options ...GRPCOption) (*GRPCServer, error) {
 	gos := &grpcOptions{}
 	for _, opt := range options {

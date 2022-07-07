@@ -38,7 +38,7 @@ func WithGRPCGateway(gwmux *runtime.ServeMux) GatewayOption {
 	}
 }
 
-// NewGateway creates a new server.GRPCGateway to proxy grpc requests to specified host and port
+// NewGateway creates a new server.GRPCGateway to proxy grpc requests to specified host and port.
 func NewGateway(host string, port int, opts ...GatewayOption) (*GRPCGateway, error) {
 	gwo := &gatewayOptions{}
 	for _, opt := range opts {

@@ -12,6 +12,8 @@ import (
 )
 
 // MuxServer is an server to serve grpc requests and http requests on same host and port
+//
+// Deprecated: Prefer `mux` package instead of this.
 type MuxServer struct {
 	config Config
 	GRPCServer
@@ -48,6 +50,8 @@ func WithMuxHTTPServer(httpServer *http.Server) MuxOption {
 }
 
 // NewMux creates a new server.MuxServer instance with given config and server.MuxOption
+//
+// Deprecated: Prefer `mux` package instead of this.
 func NewMux(config Config, options ...MuxOption) (*MuxServer, error) {
 	mos := &muxOptions{}
 	for _, opt := range options {
