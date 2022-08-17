@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"io"
 
 	"go.uber.org/zap"
@@ -10,6 +11,8 @@ type Zap struct {
 	log  *zap.SugaredLogger
 	conf zap.Config
 }
+
+const loggerCtxKey = "saltZapLoggerCtxKey"
 
 func (z Zap) Debug(msg string, args ...interface{}) {
 	z.log.With(args...).Debug(msg)
@@ -53,6 +56,25 @@ func ZapWithConfig(conf zap.Config, opts ...zap.Option) Option {
 // GetInternalZapLogger Gets internal SugaredLogger instance
 func (z Zap) GetInternalZapLogger() *zap.SugaredLogger {
 	return z.log
+}
+
+func (z Zap) NewContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, loggerCtxKey, z)
+}
+
+func WithFields(ctx context.Context, fields ...zap.Field) context.Context {
+	return context.WithValue(ctx, loggerCtxKey, Zap{
+		log:  FromContext(ctx).GetInternalZapLogger().Desugar().With(fields...).Sugar(),
+		conf: FromContext(ctx).conf,
+	})
+}
+
+func FromContext(ctx context.Context) Zap {
+	if ctxLogger, ok := ctx.Value(loggerCtxKey).(Zap); ok {
+		return ctxLogger
+	}
+
+	return Zap{}
 }
 
 func ZapWithNoop() Option {

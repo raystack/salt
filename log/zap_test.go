@@ -3,6 +3,7 @@ package log_test
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/url"
@@ -69,5 +70,32 @@ func TestZap(t *testing.T) {
 		bWriter.Flush()
 
 		assert.Equal(t, mockedTime.Format("2006-01-02T15:04:05.000Z0700")+"\tINFO\thello\t{\"wor\": \"ld\"}\n", b.String())
+	})
+
+	t.Run("should successfully print log from context", func(t *testing.T) {
+		var b bytes.Buffer
+		bWriter := bufio.NewWriter(&b)
+
+		zapper := log.NewZap(buildBufferedZapOption(bWriter, mockedTime))
+		ctx := zapper.NewContext(context.Background())
+		contextualLog := log.FromContext(ctx)
+		contextualLog.Info("hello", "wor", "ld")
+		bWriter.Flush()
+
+		assert.Equal(t, mockedTime.Format("2006-01-02T15:04:05.000Z0700")+"\tINFO\thello\t{\"wor\": \"ld\"}\n", b.String())
+	})
+
+	t.Run("should successfully print log from context with fields", func(t *testing.T) {
+		var b bytes.Buffer
+		bWriter := bufio.NewWriter(&b)
+
+		zapper := log.NewZap(buildBufferedZapOption(bWriter, mockedTime))
+		ctx := zapper.NewContext(context.Background())
+		ctx = log.WithFields(ctx, zap.Int("one", 1))
+		ctx = log.WithFields(ctx, zap.String("two", "two"))
+		log.FromContext(ctx).Info("hello", "wor", "ld")
+		bWriter.Flush()
+
+		assert.Equal(t, mockedTime.Format("2006-01-02T15:04:05.000Z0700")+"\tINFO\thello\t{\"one\": 1, \"two\": \"two\", \"wor\": \"ld\"}\n", b.String())
 	})
 }
