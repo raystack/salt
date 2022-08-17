@@ -12,7 +12,9 @@ type Zap struct {
 	conf zap.Config
 }
 
-const loggerCtxKey = "saltZapLoggerCtxKey"
+type ctxKey string
+
+var loggerCtxKey = ctxKey("zapLoggerCtxKey")
 
 func (z Zap) Debug(msg string, args ...interface{}) {
 	z.log.With(args...).Debug(msg)
