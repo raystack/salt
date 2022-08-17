@@ -68,6 +68,7 @@ func (z Zap) NewContext(ctx context.Context) context.Context {
 // WithFields will add Zap Fields to logger in Context
 func WithFields(ctx context.Context, fields ...zap.Field) context.Context {
 	return context.WithValue(ctx, loggerCtxKey, Zap{
+		// Error when not Desugaring when adding fields: github.com/ipfs/go-log/issues/85
 		log:  FromContext(ctx).GetInternalZapLogger().Desugar().With(fields...).Sugar(),
 		conf: FromContext(ctx).conf,
 	})
