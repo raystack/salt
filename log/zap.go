@@ -60,10 +60,12 @@ func (z Zap) GetInternalZapLogger() *zap.SugaredLogger {
 	return z.log
 }
 
+// NewContext will add Zap inside context
 func (z Zap) NewContext(ctx context.Context) context.Context {
 	return context.WithValue(ctx, loggerCtxKey, z)
 }
 
+// WithFields will add Zap Fields to logger in Context
 func WithFields(ctx context.Context, fields ...zap.Field) context.Context {
 	return context.WithValue(ctx, loggerCtxKey, Zap{
 		log:  FromContext(ctx).GetInternalZapLogger().Desugar().With(fields...).Sugar(),
@@ -71,6 +73,7 @@ func WithFields(ctx context.Context, fields ...zap.Field) context.Context {
 	})
 }
 
+// FromContext will help in fetching back zap logger from context
 func FromContext(ctx context.Context) Zap {
 	if ctxLogger, ok := ctx.Value(loggerCtxKey).(Zap); ok {
 		return ctxLogger
