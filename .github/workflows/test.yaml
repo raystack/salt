@@ -15,13 +15,14 @@ jobs:
     steps:
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.16'
+          go-version: '1.19'
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - name: run unit tests
         run: make test
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v3.2.0
         with:
           skip-go-installation: true
+          version: v1.46.2

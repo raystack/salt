@@ -3,6 +3,8 @@ package log_test
 import (
 	"bufio"
 	"bytes"
+	"context"
+	"crypto/rand"
 	"fmt"
 	"io"
 	"net/url"
@@ -15,8 +17,6 @@ import (
 
 	"github.com/odpf/salt/log"
 )
-
-const bufWriterKey = "zapBufWriter"
 
 type zapBufWriter struct {
 	io.Writer
@@ -41,7 +41,7 @@ func (m zapClock) NewTicker(duration time.Duration) *time.Ticker {
 	return time.NewTicker(duration)
 }
 
-func buildBufferedZapOption(writer io.Writer, t time.Time) log.Option {
+func buildBufferedZapOption(writer io.Writer, t time.Time, bufWriterKey string) log.Option {
 	config := zap.NewDevelopmentConfig()
 	config.DisableCaller = true
 	// register mock writer
@@ -64,10 +64,47 @@ func TestZap(t *testing.T) {
 		var b bytes.Buffer
 		bWriter := bufio.NewWriter(&b)
 
-		zapper := log.NewZap(buildBufferedZapOption(bWriter, mockedTime))
+		zapper := log.NewZap(buildBufferedZapOption(bWriter, mockedTime, randomString(10)))
 		zapper.Info("hello", "wor", "ld")
 		bWriter.Flush()
 
 		assert.Equal(t, mockedTime.Format("2006-01-02T15:04:05.000Z0700")+"\tINFO\thello\t{\"wor\": \"ld\"}\n", b.String())
 	})
+
+	t.Run("should successfully print log from context", func(t *testing.T) {
+		var b bytes.Buffer
+		bWriter := bufio.NewWriter(&b)
+
+		zapper := log.NewZap(buildBufferedZapOption(bWriter, mockedTime, randomString(10)))
+		ctx := zapper.NewContext(context.Background())
+		contextualLog := log.FromContext(ctx)
+		contextualLog.Info("hello", "wor", "ld")
+		bWriter.Flush()
+
+		assert.Equal(t, mockedTime.Format("2006-01-02T15:04:05.000Z0700")+"\tINFO\thello\t{\"wor\": \"ld\"}\n", b.String())
+	})
+
+	t.Run("should successfully print log from context with fields", func(t *testing.T) {
+		var b bytes.Buffer
+		bWriter := bufio.NewWriter(&b)
+
+		zapper := log.NewZap(buildBufferedZapOption(bWriter, mockedTime, randomString(10)))
+		ctx := zapper.NewContext(context.Background())
+		ctx = log.WithFields(ctx, zap.Int("one", 1))
+		ctx = log.WithFields(ctx, zap.String("two", "two"))
+		log.FromContext(ctx).Info("hello", "wor", "ld")
+		bWriter.Flush()
+
+		assert.Equal(t, mockedTime.Format("2006-01-02T15:04:05.000Z0700")+"\tINFO\thello\t{\"one\": 1, \"two\": \"two\", \"wor\": \"ld\"}\n", b.String())
+	})
+}
+
+func randomString(n int) string {
+	const alphabets = "abcdefghijklmnopqrstuvwxyz"
+	var alphaBytes = make([]byte, n)
+	rand.Read(alphaBytes)
+	for i, b := range alphaBytes {
+		alphaBytes[i] = alphabets[b%byte(len(alphabets))]
+	}
+	return string(alphaBytes)
 }

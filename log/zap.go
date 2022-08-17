@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"io"
 
 	"go.uber.org/zap"
@@ -10,6 +11,10 @@ type Zap struct {
 	log  *zap.SugaredLogger
 	conf zap.Config
 }
+
+type ctxKey string
+
+var loggerCtxKey = ctxKey("zapLoggerCtxKey")
 
 func (z Zap) Debug(msg string, args ...interface{}) {
 	z.log.With(args...).Debug(msg)
@@ -53,6 +58,29 @@ func ZapWithConfig(conf zap.Config, opts ...zap.Option) Option {
 // GetInternalZapLogger Gets internal SugaredLogger instance
 func (z Zap) GetInternalZapLogger() *zap.SugaredLogger {
 	return z.log
+}
+
+// NewContext will add Zap inside context
+func (z Zap) NewContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, loggerCtxKey, z)
+}
+
+// WithFields will add Zap Fields to logger in Context
+func WithFields(ctx context.Context, fields ...zap.Field) context.Context {
+	return context.WithValue(ctx, loggerCtxKey, Zap{
+		// Error when not Desugaring when adding fields: github.com/ipfs/go-log/issues/85
+		log:  FromContext(ctx).GetInternalZapLogger().Desugar().With(fields...).Sugar(),
+		conf: FromContext(ctx).conf,
+	})
+}
+
+// FromContext will help in fetching back zap logger from context
+func FromContext(ctx context.Context) Zap {
+	if ctxLogger, ok := ctx.Value(loggerCtxKey).(Zap); ok {
+		return ctxLogger
+	}
+
+	return Zap{}
 }
 
 func ZapWithNoop() Option {
