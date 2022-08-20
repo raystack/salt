@@ -17,9 +17,12 @@ import (
 func SetRefCmd(root *cobra.Command) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "reference",
-		Short: "Show command reference",
+		Short: "Comprehensive reference of all commands",
 		Long:  referenceLong(root),
 		Run:   referenceHelpFn(),
+		Annotations: map[string]string{
+			"group": "help",
+		},
 	}
 	cmd.SetHelpFunc(referenceHelpFn())
 	return cmd

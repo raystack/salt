@@ -3,8 +3,13 @@ package cmdx
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
+
+	"github.com/muesli/termenv"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // IsCmdErr returns true if erorr is cobra command error.
@@ -66,4 +71,24 @@ func indent(s, indent string) string {
 		return s
 	}
 	return lineRE.ReplaceAllLiteralString(s, indent)
+}
+
+func dirExists(path string) bool {
+	f, err := os.Stat(path)
+	return err == nil && f.IsDir()
+}
+
+func fileExist(filename string) bool {
+	_, err := os.Stat(filename)
+	return err == nil
+}
+
+func toTitle(text string) string {
+	heading := cases.Title(language.Und).String(text)
+	return heading
+}
+
+func bold(text string) termenv.Style {
+	h := termenv.String(text).Bold()
+	return h
 }

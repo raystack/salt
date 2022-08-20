@@ -8,6 +8,20 @@ import (
 	"github.com/spf13/pflag"
 )
 
+const (
+	USAGE     = "Usage"
+	CORECMD   = "Core commands"
+	HELPCMD   = "Help topics"
+	OTHERCMD  = "Other commands"
+	FLAGS     = "Flags"
+	IFLAGS    = "Inherited flags"
+	ARGUMENTS = "Arguments"
+	EXAMPLES  = "Examples"
+	ENVS      = "Environment variables"
+	LEARN     = "Learn more"
+	FEEDBACK  = "Feedback"
+)
+
 // SetHelp sets a custom help and usage function.
 // It allows to group commands in different sections
 // based on cobra commands annotations.
@@ -58,31 +72,32 @@ func rootHelpFunc(command *cobra.Command, args []string) {
 	}
 
 	coreCommands := []string{}
-	otherCommands := map[string][]string{}
-	additionalCommands := []string{}
+	groupCommands := map[string][]string{}
+	helpCommands := []string{}
+	otherCommands := []string{}
 
 	for _, c := range command.Commands() {
-		if c.Short == "" {
+		if c.Short == "" || c.Hidden {
 			continue
 		}
-		if c.Hidden {
-			continue
-		}
+		s := rpad(c.Name(), c.NamePadding()+3) + c.Short
 
-		s := rpad(c.Name(), c.NamePadding()) + c.Short
-		if _, ok := c.Annotations["group:core"]; ok {
+		g, ok := c.Annotations["group"]
+		if ok && g == "core" {
 			coreCommands = append(coreCommands, s)
-		} else if g, ok := c.Annotations["group:other"]; ok {
-			otherCommands[g] = append(otherCommands[g], s)
+		} else if ok && g == "help" {
+			helpCommands = append(helpCommands, s)
+		} else if ok && g != "" {
+			groupCommands[g] = append(groupCommands[g], s)
 		} else {
-			additionalCommands = append(additionalCommands, s)
+			otherCommands = append(otherCommands, s)
 		}
 	}
 
 	// If there are no core and other commands, assume everything is a core command
-	if len(coreCommands) == 0 && len(otherCommands) == 0 {
-		coreCommands = additionalCommands
-		additionalCommands = []string{}
+	if len(coreCommands) == 0 && len(groupCommands) == 0 {
+		coreCommands = otherCommands
+		otherCommands = []string{}
 	}
 
 	type helpEntry struct {
@@ -101,57 +116,57 @@ func rootHelpFunc(command *cobra.Command, args []string) {
 		helpEntries = append(helpEntries, helpEntry{"", text})
 	}
 
-	helpEntries = append(helpEntries, helpEntry{"USAGE", command.UseLine()})
+	helpEntries = append(helpEntries, helpEntry{USAGE, command.UseLine()})
 
 	if len(coreCommands) > 0 {
-		helpEntries = append(helpEntries, helpEntry{"CORE COMMANDS", strings.Join(coreCommands, "\n")})
+		helpEntries = append(helpEntries, helpEntry{CORECMD, strings.Join(coreCommands, "\n")})
 	}
 
-	for name, cmds := range otherCommands {
+	for name, cmds := range groupCommands {
 		if len(cmds) > 0 {
-			helpEntries = append(helpEntries, helpEntry{strings.ToUpper(name) + " COMMANDS", strings.Join(cmds, "\n")})
+			helpEntries = append(helpEntries, helpEntry{fmt.Sprint(toTitle(name) + " commands"), strings.Join(cmds, "\n")})
 		}
 	}
 
-	if len(additionalCommands) > 0 {
-		helpEntries = append(helpEntries, helpEntry{"ADDITIONAL COMMANDS", strings.Join(additionalCommands, "\n")})
+	if len(otherCommands) > 0 {
+		helpEntries = append(helpEntries, helpEntry{OTHERCMD, strings.Join(otherCommands, "\n")})
+	}
+
+	if len(helpCommands) > 0 {
+		helpEntries = append(helpEntries, helpEntry{HELPCMD, strings.Join(helpCommands, "\n")})
 	}
 
 	flagUsages := command.LocalFlags().FlagUsages()
 	if flagUsages != "" {
-		helpEntries = append(helpEntries, helpEntry{"FLAGS", dedent(flagUsages)})
+		helpEntries = append(helpEntries, helpEntry{FLAGS, dedent(flagUsages)})
 	}
 
 	inheritedFlagUsages := command.InheritedFlags().FlagUsages()
 	if inheritedFlagUsages != "" {
-		helpEntries = append(helpEntries, helpEntry{"INHERITED FLAGS", dedent(inheritedFlagUsages)})
+		helpEntries = append(helpEntries, helpEntry{IFLAGS, dedent(inheritedFlagUsages)})
 	}
 
 	if _, ok := command.Annotations["help:arguments"]; ok {
-		helpEntries = append(helpEntries, helpEntry{"ARGUMENTS", command.Annotations["help:arguments"]})
+		helpEntries = append(helpEntries, helpEntry{ARGUMENTS, command.Annotations["help:arguments"]})
 	}
 
 	if command.Example != "" {
-		helpEntries = append(helpEntries, helpEntry{"EXAMPLES", command.Example})
-	}
-
-	if _, ok := command.Annotations["help:environment"]; ok {
-		helpEntries = append(helpEntries, helpEntry{"ENVIRONMENT VARIABLES", command.Annotations["help:environment"]})
+		helpEntries = append(helpEntries, helpEntry{EXAMPLES, command.Example})
 	}
 
 	if _, ok := command.Annotations["help:learn"]; ok {
-		helpEntries = append(helpEntries, helpEntry{"LEARN MORE", command.Annotations["help:learn"]})
+		helpEntries = append(helpEntries, helpEntry{LEARN, command.Annotations["help:learn"]})
 	}
 
 	if _, ok := command.Annotations["help:feedback"]; ok {
-		helpEntries = append(helpEntries, helpEntry{"FEEDBACK", command.Annotations["help:feedback"]})
+		helpEntries = append(helpEntries, helpEntry{FEEDBACK, command.Annotations["help:feedback"]})
 	}
 
 	out := command.OutOrStdout()
 	for _, e := range helpEntries {
 		if e.Title != "" {
 			// If there is a title, add indentation to each line in the body
-			fmt.Fprintln(out, e.Title)
+			fmt.Fprintln(out, bold(e.Title))
 			fmt.Fprintln(out, indent(strings.Trim(e.Body, "\r\n"), "  "))
 		} else {
 			// If there is no title print the body as is
@@ -162,8 +177,6 @@ func rootHelpFunc(command *cobra.Command, args []string) {
 }
 
 // Display helpful error message in case subcommand name was mistyped.
-// This matches Cobra's behavior for root command, which Cobra
-// confusingly doesn't apply to nested commands.
 func nestedSuggestFunc(command *cobra.Command, arg string) {
 	command.Printf("unknown command %q for %q\n", arg, command.CommandPath())
 
