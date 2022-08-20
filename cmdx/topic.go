@@ -4,21 +4,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// SetHelpTopicCommand sets the help topic command.
-// This should be added on the root command.
-// e.g. topic
-// map[string]string{
-//	"short": "short description",
-//	"long": "long description",
-//	"example": "example",
-// }
-func SetHelpTopic(title string, topic map[string]string) *cobra.Command {
+// SetHelpTopicCmd sets the help topic command.
+// This should be added on the root command. e.g.
+//
+//	topic := map[string]string{"short": "Env","long": "Environment","example": "example",}
+func SetHelpTopicCmd(title string, topic map[string]string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     title,
 		Short:   topic["short"],
 		Long:    topic["long"],
 		Example: topic["example"],
-		Hidden:  true,
+		Hidden:  false,
+		Annotations: map[string]string{
+			"group": "help",
+		},
 	}
 
 	cmd.SetHelpFunc(helpTopicHelpFunc)

@@ -19,9 +19,8 @@ const (
 	LOCAL_APP_DATA  = "LocalAppData"
 )
 
-// SetConfig allows to set a client config file.
-// It is used to load and save a config file
-// for command line clients.
+// SetConfig allows to set a client config file. It is used to
+// load and save a config file for command line clients.
 func SetConfig(app string) *Config {
 	return &Config{
 		filename: configFile(app),
@@ -99,14 +98,4 @@ func configDir(root string) string {
 	}
 
 	return path
-}
-
-func dirExists(path string) bool {
-	f, err := os.Stat(path)
-	return err == nil && f.IsDir()
-}
-
-func fileExist(filename string) bool {
-	_, err := os.Stat(filename)
-	return err == nil
 }
