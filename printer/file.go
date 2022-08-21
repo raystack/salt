@@ -9,21 +9,21 @@ import (
 
 // YAML prints the data as YAML.
 func YAML(data interface{}) error {
-	return Text(data, "yaml")
+	return File(data, "yaml")
 }
 
 // JSON prints the data as JSON.
 func JSON(data interface{}) error {
-	return Text(data, "json")
+	return File(data, "json")
 }
 
 // PrettyJSON prints the data as pretty JSON.
 func PrettyJSON(data interface{}) error {
-	return Text(data, "prettyjson")
+	return File(data, "prettyjson")
 }
 
-// Text prints the data for a given format
-func Text(data interface{}, format string) (err error) {
+// File prints the data for a given format
+func File(data interface{}, format string) (err error) {
 	var output []byte
 	switch format {
 	case "yaml":
