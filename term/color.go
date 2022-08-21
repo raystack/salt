@@ -57,86 +57,88 @@ func NewColorScheme() *ColorScheme {
 	}
 }
 
-func (c *ColorScheme) Bold(t string) string {
-	return termenv.String(t).Bold().String()
+var cs = NewColorScheme()
+
+func Bold(t ...string) string {
+	return termenv.String(t...).Bold().String()
 }
 
-func (c *ColorScheme) Boldf(t string, args ...interface{}) string {
-	return c.Bold(fmt.Sprintf(t, args...))
+func Boldf(t string, args ...interface{}) string {
+	return Bold(fmt.Sprintf(t, args...))
 }
 
-func (c *ColorScheme) Italic(t string) string {
-	return termenv.String(t).Italic().String()
+func Italic(t ...string) string {
+	return termenv.String(t...).Italic().String()
 }
 
-func (c *ColorScheme) Italicf(t string, args ...interface{}) string {
-	return c.Italic(fmt.Sprintf(t, args...))
+func Italicf(t string, args ...interface{}) string {
+	return Italic(fmt.Sprintf(t, args...))
 }
 
-func (c *ColorScheme) Green(t string) string {
-	return termenv.String(t).Foreground(c.theme.ColorGreen).String()
+func Green(t ...string) string {
+	return termenv.String(t...).Foreground(cs.theme.ColorGreen).String()
 }
 
-func (c *ColorScheme) Greenf(t string, args ...interface{}) string {
-	return c.Green(fmt.Sprintf(t, args...))
+func Greenf(t string, args ...interface{}) string {
+	return Green(fmt.Sprintf(t, args...))
 }
 
-func (c *ColorScheme) Yellow(t string) string {
-	return termenv.String(t).Foreground(c.theme.ColorYellow).String()
+func Yellow(t ...string) string {
+	return termenv.String(t...).Foreground(cs.theme.ColorYellow).String()
 }
 
-func (c *ColorScheme) Yellowf(t string, args ...interface{}) string {
-	return c.Yellow(fmt.Sprintf(t, args...))
+func Yellowf(t string, args ...interface{}) string {
+	return Yellow(fmt.Sprintf(t, args...))
 }
 
-func (c *ColorScheme) Cyan(t string) string {
-	return termenv.String(t).Foreground(c.theme.ColorCyan).String()
+func Cyan(t ...string) string {
+	return termenv.String(t...).Foreground(cs.theme.ColorCyan).String()
 }
 
-func (c *ColorScheme) Cyanf(t string, args ...interface{}) string {
-	return c.Cyan(fmt.Sprintf(t, args...))
+func Cyanf(t string, args ...interface{}) string {
+	return Cyan(fmt.Sprintf(t, args...))
 }
 
-func (c *ColorScheme) Red(t string) string {
-	return termenv.String(t).Foreground(c.theme.ColorRed).String()
+func Red(t ...string) string {
+	return termenv.String(t...).Foreground(cs.theme.ColorRed).String()
 }
 
-func (c *ColorScheme) Redf(t string, args ...interface{}) string {
-	return c.Red(fmt.Sprintf(t, args...))
+func Redf(t string, args ...interface{}) string {
+	return Red(fmt.Sprintf(t, args...))
 }
 
-func (c *ColorScheme) Grey(t string) string {
-	return termenv.String(t).Foreground(c.theme.ColorGrey).String()
+func Grey(t ...string) string {
+	return termenv.String(t...).Foreground(cs.theme.ColorGrey).String()
 }
 
-func (c *ColorScheme) Greyf(t string, args ...interface{}) string {
-	return c.Grey(fmt.Sprintf(t, args...))
+func Greyf(t string, args ...interface{}) string {
+	return Grey(fmt.Sprintf(t, args...))
 }
 
-func (c *ColorScheme) Blue(t string) string {
-	return termenv.String(t).Foreground(c.theme.ColorBlue).String()
+func Blue(t ...string) string {
+	return termenv.String(t...).Foreground(cs.theme.ColorBlue).String()
 }
 
-func (c *ColorScheme) Bluef(t string, args ...interface{}) string {
-	return c.Blue(fmt.Sprintf(t, args...))
+func Bluef(t string, args ...interface{}) string {
+	return Blue(fmt.Sprintf(t, args...))
 }
 
-func (c *ColorScheme) Magenta(t string) string {
-	return termenv.String(t).Foreground(c.theme.ColorMagenta).String()
+func Magenta(t ...string) string {
+	return termenv.String(t...).Foreground(cs.theme.ColorMagenta).String()
 }
 
-func (c *ColorScheme) Magentaf(t string, args ...interface{}) string {
-	return c.Magenta(fmt.Sprintf(t, args...))
+func Magentaf(t string, args ...interface{}) string {
+	return Magenta(fmt.Sprintf(t, args...))
 }
 
-func (c *ColorScheme) SuccessIcon() string {
-	return termenv.String("✓").Foreground(c.theme.ColorGreen).String()
+func SuccessIcon() string {
+	return termenv.String("✓").Foreground(cs.theme.ColorGreen).String()
 }
 
-func (c *ColorScheme) WarningIcon() string {
-	return termenv.String("!").Foreground(c.theme.ColorYellow).String()
+func WarningIcon() string {
+	return termenv.String("!").Foreground(cs.theme.ColorYellow).String()
 }
 
-func (c *ColorScheme) FailureIcon() string {
-	return termenv.String("✘").Foreground(c.theme.ColorRed).String()
+func FailureIcon() string {
+	return termenv.String("✘").Foreground(cs.theme.ColorRed).String()
 }
