@@ -69,17 +69,6 @@ func (c Client) WithTxn(ctx context.Context, txnOptions sql.TxOptions, txFunc fu
 	return err
 }
 
-// Execs is used for executing list of db query
-func (c *Client) Execs(ctx context.Context, queries []string) error {
-	for _, query := range queries {
-		_, err := c.DB.ExecContext(ctx, query)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 // Close closes the database connection
 func (c *Client) Close() error {
 	return c.DB.Close()
