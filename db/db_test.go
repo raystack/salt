@@ -14,7 +14,7 @@ import (
 
 const (
 	dialect  = "postgres"
-	user     = "postgres"
+	user     = "root"
 	password = "pass"
 	database = "postgres"
 	host     = "localhost"
@@ -30,11 +30,17 @@ func TestMain(m *testing.M) {
 
 	opts := dockertest.RunOptions{
 		Repository: "postgres",
-		Tag:        "13",
+		Tag:        "14",
 		Env: []string{
 			"POSTGRES_USER=" + user,
 			"POSTGRES_PASSWORD=" + password,
 			"POSTGRES_DB=" + database,
+		},
+		ExposedPorts: []string{"5432"},
+		PortBindings: map[docker.Port][]docker.PortBinding{
+			"5432": {
+				{HostIP: "0.0.0.0", HostPort: port},
+			},
 		},
 	}
 
@@ -45,6 +51,8 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalf("Could not start resource: %s", err.Error())
 	}
+
+	fmt.Println(resource.GetPort("5432/tcp"))
 
 	if err := resource.Expire(120); err != nil {
 		log.Fatalf("Could not expire resource: %s", err.Error())

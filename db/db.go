@@ -36,7 +36,6 @@ func (c Client) WithTimeout(ctx context.Context, op func(ctx context.Context) er
 	return op(ctxWithTimeout)
 }
 
-// Handling transactions: https://stackoverflow.com/a/23502629/8244298
 func (c Client) WithTxn(ctx context.Context, txnOptions sql.TxOptions, txFunc func(*sqlx.Tx) error) (err error) {
 	txn, err := c.BeginTxx(ctx, &txnOptions)
 	if err != nil {
