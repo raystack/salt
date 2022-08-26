@@ -5,10 +5,13 @@ go 1.16
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/MakeNowJust/heredoc v1.0.0
+	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
 	github.com/briandowns/spinner v1.18.0
+	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/charmbracelet/glamour v0.3.0
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/gorilla/mux v1.8.0
+	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.6.0
@@ -20,6 +23,7 @@ require (
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/muesli/termenv v0.9.0
 	github.com/olekukonko/tablewriter v0.0.5
+	github.com/ory/dockertest v3.3.5+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/schollz/progressbar/v3 v3.8.5
 	github.com/sirupsen/logrus v1.8.1

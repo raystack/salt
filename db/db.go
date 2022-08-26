@@ -26,7 +26,7 @@ func New(cfg Config) (*Client, error) {
 	db.SetMaxOpenConns(cfg.MaxOpenConns)
 	db.SetConnMaxLifetime(cfg.ConnMaxLifeTime)
 
-	return &Client{DB: db, queryTimeOut: cfg.MaxQueryTimeoutInMS}, err
+	return &Client{DB: db, queryTimeOut: cfg.MaxQueryTimeout}, err
 }
 
 func (c Client) WithTimeout(ctx context.Context, op func(ctx context.Context) error) (err error) {
