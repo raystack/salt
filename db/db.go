@@ -58,7 +58,6 @@ func (c Client) WithTxn(ctx context.Context, txnOptions sql.TxOptions, txFunc fu
 			} else {
 				err = fmt.Errorf("rollback: %w", err)
 			}
-			err = fmt.Errorf("rollback: %w", err)
 		} else {
 			err = txn.Commit()
 		}
