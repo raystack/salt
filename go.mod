@@ -3,6 +3,7 @@ module github.com/odpf/salt
 go 1.16
 
 require (
+	github.com/AlecAivazis/survey/v2 v2.3.5
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
