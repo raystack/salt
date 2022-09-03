@@ -132,13 +132,13 @@ func Magentaf(t string, args ...interface{}) string {
 }
 
 func SuccessIcon() string {
-	return termenv.String("✓").Foreground(cs.theme.ColorGreen).String()
+	return termenv.String("✓").String()
 }
 
 func WarningIcon() string {
-	return termenv.String("!").Foreground(cs.theme.ColorYellow).String()
+	return termenv.String("!").String()
 }
 
 func FailureIcon() string {
-	return termenv.String("✘").Foreground(cs.theme.ColorRed).String()
+	return termenv.String("✘").String()
 }
