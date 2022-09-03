@@ -10,7 +10,9 @@ require (
 	github.com/briandowns/spinner v1.18.0
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/charmbracelet/glamour v0.3.0
+	github.com/cli/safeexec v1.0.0
 	github.com/golang-migrate/migrate/v4 v4.15.2
+	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/gorilla/mux v1.8.0
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
