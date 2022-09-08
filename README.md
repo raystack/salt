@@ -14,11 +14,13 @@ To use, run the following command:
 go get github.com/odpf/salt
 ```
 
-## Audit
+## Pacakages
+
+### Audit
 
 Package for adding audit events in your applications.
 
-## Cmdx
+### Cmdx
 
 Cobra based cli helper which allows adding command groups, provides custom help and usage functions.
 
@@ -40,30 +42,30 @@ cmd.AddCommand(cmdx.SetHelpTopicCmd("auth", authHelp))
 cmd.AddCommand(cmdx.SetRefCmd(cmd))
 ```
 
-## Config
+### Config
 
 Viper abstractions which provides functions for loading config files for the application.
 
-## DB
+### DB
 
 Postgres based database abstractions for creating a client and running migrations.
 
-## Log
+### Log
 
 Logger for easy application loggging.
 
-## Printer
+### Printer
 
 Command line printer for CLI based applications.
 
-## Server
+### Server
 
 GRPC based server abstraction.
 
-## Term
+### Term
 
 Helper functions for working with terminal.
 
-## Version
+### Version
 
 Helper functions for fetching github latest and outdated releases.
