@@ -105,3 +105,7 @@ func ErrorIcon() {
 func InfoIcon() {
 	fmt.Print(term.Cyan("⛭"))
 }
+
+func Space() {
+	fmt.Print(" ")
+}

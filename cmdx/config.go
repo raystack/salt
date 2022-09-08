@@ -2,13 +2,14 @@ package cmdx
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
 
 	"github.com/mcuadros/go-defaults"
 	"github.com/odpf/salt/config"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 )
 
@@ -55,19 +56,34 @@ func (c *Config) Init(cfg interface{}) error {
 		os.MkdirAll(configDir("odpf"), 0700)
 	}
 
-	if err := ioutil.WriteFile(c.filename, data, 0655); err != nil {
+	if err := os.WriteFile(c.filename, data, 0655); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (c *Config) Read() (string, error) {
-	cfg, err := ioutil.ReadFile(c.filename)
+	cfg, err := os.ReadFile(c.filename)
 	return string(cfg), err
 }
 
 func (c *Config) Load(cfg interface{}) error {
 	loader := config.NewLoader(config.WithFile(c.filename))
+
+	if err := loader.Load(cfg); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Config) LoadWithCmdBindFlag(cmd *cobra.Command, cfg interface{}) error {
+	v := viper.New()
+	var options []config.LoaderOption
+	options = append(options, config.WithViper(v))
+	options = append(options, config.WithCobraBindFlags(cmd, cfg))
+	options = append(options, config.WithFile(c.filename))
+
+	loader := config.NewLoader(options...)
 
 	if err := loader.Load(cfg); err != nil {
 		return err
