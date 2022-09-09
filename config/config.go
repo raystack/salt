@@ -97,7 +97,6 @@ func WithCobraBindFlags(cmd *cobra.Command, cfg interface{}) LoaderOption {
 		for _, tag := range flagTags {
 			l.v.BindPFlag(tag, cmd.Flags().Lookup(tag))
 		}
-
 	}
 }
 
