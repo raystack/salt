@@ -9,7 +9,6 @@ import (
 	"github.com/mcuadros/go-defaults"
 	"github.com/odpf/salt/config"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 )
 
@@ -28,8 +27,17 @@ func SetConfig(app string) *Config {
 	}
 }
 
+type ConfigOpts func(c *Config)
+
+func CmdxWithFlags(cmd *cobra.Command, cfg interface{}) ConfigOpts {
+	return func(c *Config) {
+		c.loaderOpts = append(c.loaderOpts, config.WithCobraBindFlags(cmd, cfg))
+	}
+}
+
 type Config struct {
-	filename string
+	filename   string
+	loaderOpts []config.LoaderOption
 }
 
 func (c *Config) File() string {
@@ -67,23 +75,14 @@ func (c *Config) Read() (string, error) {
 	return string(cfg), err
 }
 
-func (c *Config) Load(cfg interface{}) error {
-	loader := config.NewLoader(config.WithFile(c.filename))
+func (c *Config) Load(cfg interface{}, configOpts ...ConfigOpts) error {
+	c.loaderOpts = []config.LoaderOption{config.WithFile(c.filename)}
 
-	if err := loader.Load(cfg); err != nil {
-		return err
+	for _, opt := range configOpts {
+		opt(c)
 	}
-	return nil
-}
 
-func (c *Config) LoadWithCmdBindFlag(cmd *cobra.Command, cfg interface{}) error {
-	v := viper.New()
-	var options []config.LoaderOption
-	options = append(options, config.WithViper(v))
-	options = append(options, config.WithCobraBindFlags(cmd, cfg))
-	options = append(options, config.WithFile(c.filename))
-
-	loader := config.NewLoader(options...)
+	loader := config.NewLoader(c.loaderOpts...)
 
 	if err := loader.Load(cfg); err != nil {
 		return err
