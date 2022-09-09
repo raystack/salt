@@ -19,6 +19,14 @@ const (
 	LOCAL_APP_DATA  = "LocalAppData"
 )
 
+type ConfigLoaderOpts func(c *Config)
+
+func WithFlags(cmd *cobra.Command) ConfigLoaderOpts {
+	return func(c *Config) {
+		c.boundedCmdWithFlag = cmd
+	}
+}
+
 // SetConfig allows to set a client config file. It is used to
 // load and save a config file for command line clients.
 func SetConfig(app string) *Config {
@@ -27,17 +35,9 @@ func SetConfig(app string) *Config {
 	}
 }
 
-type ConfigOpts func(c *Config)
-
-func CmdxWithFlags(cmd *cobra.Command, cfg interface{}) ConfigOpts {
-	return func(c *Config) {
-		c.loaderOpts = append(c.loaderOpts, config.WithCobraBindFlags(cmd, cfg))
-	}
-}
-
 type Config struct {
-	filename   string
-	loaderOpts []config.LoaderOption
+	filename           string
+	boundedCmdWithFlag *cobra.Command
 }
 
 func (c *Config) File() string {
@@ -75,14 +75,18 @@ func (c *Config) Read() (string, error) {
 	return string(cfg), err
 }
 
-func (c *Config) Load(cfg interface{}, configOpts ...ConfigOpts) error {
-	c.loaderOpts = []config.LoaderOption{config.WithFile(c.filename)}
-
-	for _, opt := range configOpts {
+func (c *Config) Load(cfg interface{}, opts ...ConfigLoaderOpts) error {
+	for _, opt := range opts {
 		opt(c)
 	}
 
-	loader := config.NewLoader(c.loaderOpts...)
+	loaderOpts := []config.LoaderOption{config.WithFile(c.filename)}
+
+	if c.boundedCmdWithFlag != nil {
+		loaderOpts = append(loaderOpts, config.WithCobraBindFlags(c.boundedCmdWithFlag, cfg))
+	}
+
+	loader := config.NewLoader(loaderOpts...)
 
 	if err := loader.Load(cfg); err != nil {
 		return err

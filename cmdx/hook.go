@@ -9,5 +9,6 @@ func SetClientHook(rootCmd *cobra.Command, applyFunc func(cmd *cobra.Command)) {
 		if c.Annotations != nil && c.Annotations["client"] == "true" {
 			applyFunc(c)
 		}
+		SetClientHook(rootCmd, applyFunc)
 	}
 }
