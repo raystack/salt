@@ -77,7 +77,7 @@ func TestZap(t *testing.T) {
 
 		zapper := log.NewZap(buildBufferedZapOption(bWriter, mockedTime, randomString(10)))
 		ctx := zapper.NewContext(context.Background())
-		contextualLog := log.FromContext(ctx)
+		contextualLog := log.ZapFromContext(ctx)
 		contextualLog.Info("hello", "wor", "ld")
 		bWriter.Flush()
 
@@ -90,9 +90,9 @@ func TestZap(t *testing.T) {
 
 		zapper := log.NewZap(buildBufferedZapOption(bWriter, mockedTime, randomString(10)))
 		ctx := zapper.NewContext(context.Background())
-		ctx = log.WithFields(ctx, zap.Int("one", 1))
-		ctx = log.WithFields(ctx, zap.String("two", "two"))
-		log.FromContext(ctx).Info("hello", "wor", "ld")
+		ctx = log.ZapContextWithFields(ctx, zap.Int("one", 1))
+		ctx = log.ZapContextWithFields(ctx, zap.String("two", "two"))
+		log.ZapFromContext(ctx).Info("hello", "wor", "ld")
 		bWriter.Flush()
 
 		assert.Equal(t, mockedTime.Format("2006-01-02T15:04:05.000Z0700")+"\tINFO\thello\t{\"one\": 1, \"two\": \"two\", \"wor\": \"ld\"}\n", b.String())
