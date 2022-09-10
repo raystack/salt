@@ -20,7 +20,7 @@ type Pager struct {
 	pagerProcess *os.Process
 }
 
-func New() *Pager {
+func NewPager() *Pager {
 	pagerCmd := os.Getenv("PAGER")
 	if pagerCmd == "" {
 		pagerCmd = "more"
