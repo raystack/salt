@@ -8,7 +8,7 @@ import (
 
 	"github.com/mcuadros/go-defaults"
 	"github.com/odpf/salt/config"
-	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v3"
 )
 
@@ -21,9 +21,9 @@ const (
 
 type ConfigLoaderOpts func(c *Config)
 
-func WithFlags(cmd *cobra.Command) ConfigLoaderOpts {
+func WithFlags(pfs *pflag.FlagSet) ConfigLoaderOpts {
 	return func(c *Config) {
-		c.boundedCmdWithFlag = cmd
+		c.boundedPFlags = pfs
 	}
 }
 
@@ -36,8 +36,8 @@ func SetConfig(app string) *Config {
 }
 
 type Config struct {
-	filename           string
-	boundedCmdWithFlag *cobra.Command
+	filename      string
+	boundedPFlags *pflag.FlagSet
 }
 
 func (c *Config) File() string {
@@ -82,8 +82,8 @@ func (c *Config) Load(cfg interface{}, opts ...ConfigLoaderOpts) error {
 
 	loaderOpts := []config.LoaderOption{config.WithFile(c.filename)}
 
-	if c.boundedCmdWithFlag != nil {
-		loaderOpts = append(loaderOpts, config.WithCobraBindFlags(c.boundedCmdWithFlag, cfg))
+	if c.boundedPFlags != nil {
+		loaderOpts = append(loaderOpts, config.WithBindPFlags(c.boundedPFlags, cfg))
 	}
 
 	loader := config.NewLoader(loaderOpts...)

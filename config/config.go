@@ -10,7 +10,7 @@ import (
 	"github.com/jeremywohl/flatten"
 	"github.com/mcuadros/go-defaults"
 	"github.com/mitchellh/mapstructure"
-	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -75,7 +75,7 @@ func WithType(in string) LoaderOption {
 	}
 }
 
-// WithCobraBindFlags binds cli flags to all `cmdx`
+// WithBindPFlags binds viper to pflags based on the
 // tags in the struct. Use tag `cmdx` to bind struct
 // field to cli flag.
 // e.g.
@@ -83,7 +83,7 @@ func WithType(in string) LoaderOption {
 //	type Config struct {
 //		Host string `yaml:"host" cmdx:"host"`
 //	}
-func WithCobraBindFlags(cmd *cobra.Command, cfg interface{}) LoaderOption {
+func WithBindPFlags(pfs *pflag.FlagSet, cfg interface{}) LoaderOption {
 	return func(l *Loader) {
 		reflectedCfg := reflect.TypeOf(cfg).Elem()
 
@@ -94,8 +94,10 @@ func WithCobraBindFlags(cmd *cobra.Command, cfg interface{}) LoaderOption {
 			}
 		}
 
-		for _, tag := range flagTags {
-			l.v.BindPFlag(tag, cmd.Flags().Lookup(tag))
+		if pfs != nil {
+			for _, tag := range flagTags {
+				l.v.BindPFlag(tag, pfs.Lookup(tag))
+			}
 		}
 	}
 }
