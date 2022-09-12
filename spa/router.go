@@ -6,25 +6,25 @@ import (
 	"net/http"
 )
 
-// RouterFS is the http filesystem which only serves files
+// router is the http filesystem which only serves files
 // and prevent the directory traversal.
-type RouterFS struct {
+type router struct {
 	index string
-	FS    http.FileSystem
+	fs    http.FileSystem
 }
 
 // Open inspects the URL path to locate a file within the static dir.
 // If a file is found, it will be served. If not, the file located at
 // the index path on the SPA handler will be served.
-func (r *RouterFS) Open(name string) (http.File, error) {
-	file, err := r.FS.Open(name)
+func (r *router) Open(name string) (http.File, error) {
+	file, err := r.fs.Open(name)
 
 	if err == nil {
 		return file, nil
 	}
 	// Serve index if file does not exist.
 	if errors.Is(err, fs.ErrNotExist) {
-		file, err := r.FS.Open(r.index)
+		file, err := r.fs.Open(r.index)
 		return file, err
 	}
 
