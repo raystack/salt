@@ -12,7 +12,11 @@ import (
 
 // Handler return a file server http handler for single page
 // application. This handler can be mounted on your mux server.
-func Handler(build embed.FS, dir string, index string) (http.Handler, error) {
+//
+// If gzip is set true, handler gzip the response body, for clients
+// which support it. Usually it also can be left to proxies like Nginx,
+// this method is useful when that's undesirable.
+func Handler(build embed.FS, dir string, index string, gzip bool) (http.Handler, error) {
 	fsys, err := fs.Sub(build, dir)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't create sub filesystem: %w", err)
@@ -27,16 +31,10 @@ func Handler(build embed.FS, dir string, index string) (http.Handler, error) {
 	}
 	router := &router{index: index, fs: http.FS(fsys)}
 
-	return http.FileServer(router), nil
-}
+	hlr := http.FileServer(router)
 
-// GZipHandler gzip the response body, for clients which support it
-// Usually it also can be left to proxies like Nginx, this method
-// is useful when that's undesirable.
-func GZipHandler(build embed.FS, dir string, index string) (http.Handler, error) {
-	handler, err := Handler(build, dir, index)
-	if err != nil {
-		return nil, err
+	if !gzip {
+		return hlr, nil
 	}
-	return gziphandler.GzipHandler(handler), nil
+	return gziphandler.GzipHandler(hlr), nil
 }
