@@ -17,7 +17,7 @@ func Init(build embed.FS, dir string, index string) (*SPA, error) {
 		panic(fmt.Errorf("couldn't create sub filesystem: %w", err))
 	}
 
-	_, err = fsys.Open("index.html")
+	_, err = fsys.Open(index)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			return nil, fmt.Errorf("ui is enabled but no index.html found: %w", err)
