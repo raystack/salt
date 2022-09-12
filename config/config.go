@@ -10,6 +10,7 @@ import (
 	"github.com/jeremywohl/flatten"
 	"github.com/mcuadros/go-defaults"
 	"github.com/mitchellh/mapstructure"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -71,6 +72,33 @@ func WithPath(in string) LoaderOption {
 func WithType(in string) LoaderOption {
 	return func(l *Loader) {
 		l.v.SetConfigType(in)
+	}
+}
+
+// WithBindPFlags binds viper to pflags based on the
+// tags in the struct. Use tag `cmdx` to bind struct
+// field to cli flag.
+// e.g.
+//
+//	type Config struct {
+//		Host string `yaml:"host" cmdx:"host"`
+//	}
+func WithBindPFlags(pfs *pflag.FlagSet, cfg interface{}) LoaderOption {
+	return func(l *Loader) {
+		reflectedCfg := reflect.TypeOf(cfg).Elem()
+
+		var flagTags = []string{}
+		for i := 0; i < reflectedCfg.NumField(); i++ {
+			if tag := reflectedCfg.Field(i).Tag.Get("cmdx"); tag != "" {
+				flagTags = append(flagTags, tag)
+			}
+		}
+
+		if pfs != nil {
+			for _, tag := range flagTags {
+				l.v.BindPFlag(tag, pfs.Lookup(tag))
+			}
+		}
 	}
 }
 
