@@ -13,11 +13,14 @@ type Option func(interface{})
 // Each log method must take first string as message and then one or
 // more key,value arguments.
 // For example:
-//     timeTaken := time.Duration(time.Second * 1)
-//     l.Debug("processed request", "time taken", timeTaken)
+//
+//	timeTaken := time.Duration(time.Second * 1)
+//	l.Debug("processed request", "time taken", timeTaken)
+//
 // here key should always be a `string` and value could be of any type as
 // long as it is printable.
-//     l.Info("processed request", "time taken", timeTaken, "started at", startedAt)
+//
+//	l.Info("processed request", "time taken", timeTaken, "started at", startedAt)
 type Logger interface {
 
 	// Debug level message with alternating key/value pairs
