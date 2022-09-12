@@ -15,11 +15,10 @@ import (
 func Handler(build embed.FS, dir string, index string) (http.Handler, error) {
 	fsys, err := fs.Sub(build, dir)
 	if err != nil {
-		panic(fmt.Errorf("couldn't create sub filesystem: %w", err))
+		return nil, fmt.Errorf("couldn't create sub filesystem: %w", err)
 	}
 
-	_, err = fsys.Open(index)
-	if err != nil {
+	if _, err = fsys.Open(index); err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			return nil, fmt.Errorf("ui is enabled but no index.html found: %w", err)
 		} else {
