@@ -8,22 +8,19 @@ import (
 )
 
 // Option values can be used with Serve() for customisation.
-type Option func(m *cmuxWrapper) error
+type Option func(m *muxServer) error
 
 // WithHTTP registers the http-server for use in Serve().
-func WithHTTP(server *http.Server) Option {
-	return func(m *cmuxWrapper) error {
-		if server == nil {
-			server = &http.Server{}
-		}
-		m.httpServer = server
+func WithHTTP(h http.Handler) Option {
+	return func(m *muxServer) error {
+		m.httpHandler = h
 		return nil
 	}
 }
 
 // WithGRPC registers the gRPC-server for use in Serve().
 func WithGRPC(server *grpc.Server) Option {
-	return func(m *cmuxWrapper) error {
+	return func(m *muxServer) error {
 		if server == nil {
 			server = grpc.NewServer()
 		}
@@ -34,8 +31,8 @@ func WithGRPC(server *grpc.Server) Option {
 
 // WithGracePeriod sets the wait duration for graceful shutdown.
 func WithGracePeriod(d time.Duration) Option {
-	return func(m *cmuxWrapper) error {
-		if d == 0 {
+	return func(m *muxServer) error {
+		if d <= 0 {
 			d = defaultGracePeriod
 		}
 		m.gracePeriod = d
