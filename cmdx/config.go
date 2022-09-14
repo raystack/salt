@@ -2,13 +2,13 @@ package cmdx
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
 
 	"github.com/mcuadros/go-defaults"
 	"github.com/odpf/salt/config"
+	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v3"
 )
 
@@ -19,6 +19,14 @@ const (
 	LOCAL_APP_DATA  = "LocalAppData"
 )
 
+type ConfigLoaderOpts func(c *Config)
+
+func WithFlags(pfs *pflag.FlagSet) ConfigLoaderOpts {
+	return func(c *Config) {
+		c.boundedPFlags = pfs
+	}
+}
+
 // SetConfig allows to set a client config file. It is used to
 // load and save a config file for command line clients.
 func SetConfig(app string) *Config {
@@ -28,7 +36,8 @@ func SetConfig(app string) *Config {
 }
 
 type Config struct {
-	filename string
+	filename      string
+	boundedPFlags *pflag.FlagSet
 }
 
 func (c *Config) File() string {
@@ -55,19 +64,29 @@ func (c *Config) Init(cfg interface{}) error {
 		os.MkdirAll(configDir("odpf"), 0700)
 	}
 
-	if err := ioutil.WriteFile(c.filename, data, 0655); err != nil {
+	if err := os.WriteFile(c.filename, data, 0655); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (c *Config) Read() (string, error) {
-	cfg, err := ioutil.ReadFile(c.filename)
+	cfg, err := os.ReadFile(c.filename)
 	return string(cfg), err
 }
 
-func (c *Config) Load(cfg interface{}) error {
-	loader := config.NewLoader(config.WithFile(c.filename))
+func (c *Config) Load(cfg interface{}, opts ...ConfigLoaderOpts) error {
+	for _, opt := range opts {
+		opt(c)
+	}
+
+	loaderOpts := []config.LoaderOption{config.WithFile(c.filename)}
+
+	if c.boundedPFlags != nil {
+		loaderOpts = append(loaderOpts, config.WithBindPFlags(c.boundedPFlags, cfg))
+	}
+
+	loader := config.NewLoader(loaderOpts...)
 
 	if err := loader.Load(cfg); err != nil {
 		return err
