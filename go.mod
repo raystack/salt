@@ -38,6 +38,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	go.buf.build/odpf/gw/odpf/proton v1.1.9
 	go.uber.org/zap v1.19.0
+	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 	golang.org/x/text v0.3.7
 	google.golang.org/grpc v1.45.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
