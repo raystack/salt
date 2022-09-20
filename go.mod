@@ -38,9 +38,12 @@ require (
 	github.com/stretchr/testify v1.7.0
 	go.buf.build/odpf/gw/odpf/proton v1.1.9
 	go.uber.org/zap v1.19.0
-	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
+	golang.org/x/net v0.0.0-20220919232410-f2f64ebce3c1
+	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1
 	golang.org/x/text v0.3.7
-	google.golang.org/grpc v1.45.0
+	google.golang.org/api v0.84.0
+	google.golang.org/grpc v1.47.0
+	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	gorm.io/datatypes v1.0.0
 	gorm.io/driver/postgres v1.0.8
