@@ -18,3 +18,5 @@
 .vscode
 expt/
 temp.env
+.DS_Store
+temp.env
