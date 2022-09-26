@@ -7,9 +7,10 @@ import (
 	"runtime"
 
 	"github.com/mcuadros/go-defaults"
-	"github.com/odpf/salt/config"
 	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v3"
+
+	"github.com/odpf/salt/config"
 )
 
 const (
@@ -51,28 +52,32 @@ func (c *Config) Defaults(cfg interface{}) {
 func (c *Config) Init(cfg interface{}) error {
 	defaults.SetDefaults(cfg)
 
+	if fileExist(c.filename) {
+		return errors.New("config file already exists")
+	}
+
+	return c.Write(cfg)
+}
+
+func (c *Config) Read() (string, error) {
+	cfg, err := os.ReadFile(c.filename)
+	return string(cfg), err
+}
+
+func (c *Config) Write(cfg interface{}) error {
 	data, err := yaml.Marshal(cfg)
 	if err != nil {
 		return err
 	}
 
-	if fileExist(c.filename) {
-		return errors.New("config file already exists")
-	}
-
 	if _, err := os.Stat(c.filename); os.IsNotExist(err) {
-		os.MkdirAll(configDir("odpf"), 0700)
+		_ = os.MkdirAll(configDir("odpf"), 0700)
 	}
 
 	if err := os.WriteFile(c.filename, data, 0655); err != nil {
 		return err
 	}
 	return nil
-}
-
-func (c *Config) Read() (string, error) {
-	cfg, err := os.ReadFile(c.filename)
-	return string(cfg), err
 }
 
 func (c *Config) Load(cfg interface{}, opts ...ConfigLoaderOpts) error {
