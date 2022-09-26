@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"context"
 	"crypto/rand"
 	_ "embed" // for embedded html
 	"encoding/base64"
@@ -56,7 +57,7 @@ func randomBytes(length int) ([]byte, error) {
 	}
 }
 
-func browserAuthzHandler(redirectURL, authCodeURL string) (code string, state string, err error) {
+func browserAuthzHandler(ctx context.Context, redirectURL, authCodeURL string) (code string, state string, err error) {
 	if err := openURL(authCodeURL); err != nil {
 		return "", "", err
 	}
@@ -66,14 +67,14 @@ func browserAuthzHandler(redirectURL, authCodeURL string) (code string, state st
 		return "", "", err
 	}
 
-	code, state, err = waitForCallback(fmt.Sprintf(":%s", u.Port()))
+	code, state, err = waitForCallback(ctx, fmt.Sprintf(":%s", u.Port()))
 	if err != nil {
 		return "", "", err
 	}
 	return code, state, nil
 }
 
-func waitForCallback(addr string) (code, state string, err error) {
+func waitForCallback(ctx context.Context, addr string) (code, state string, err error) {
 	var cb struct {
 		code  string
 		state string
@@ -101,8 +102,14 @@ func waitForCallback(addr string) (code, state string, err error) {
 	}
 
 	go func() {
-		<-stopCh
-		_ = srv.Close()
+		select {
+		case <-stopCh:
+			_ = srv.Close()
+
+		case <-ctx.Done():
+			cb.err = ctx.Err()
+			_ = srv.Close()
+		}
 	}()
 
 	if serveErr := srv.ListenAndServe(); serveErr != nil && !errors.Is(serveErr, http.ErrServerClosed) {
