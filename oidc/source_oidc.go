@@ -57,7 +57,7 @@ func (source *authHandlerSource) Token() (*oauth2.Token, error) {
 		oauth2.SetAuthURLParam(codeChallengeMethodKey, challengeMethod),
 	)
 
-	code, receivedState, err := browserAuthzHandler(source.config.RedirectURL, url)
+	code, receivedState, err := browserAuthzHandler(source.ctx, source.config.RedirectURL, url)
 	if err != nil {
 		return nil, err
 	} else if receivedState != actualState {
