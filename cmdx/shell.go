@@ -11,7 +11,7 @@ import (
 // bash, zsh, fish, and powershell. It should be added on the root
 // command and can be used as `completion bash` or `completion zsh`.
 func SetCompletionCmd(exec string) *cobra.Command {
-	var execs []string
+	var execs []interface{}
 	for i := 0; i < 12; i++ {
 		execs = append(execs, exec)
 	}
@@ -54,7 +54,7 @@ func SetCompletionCmd(exec string) *cobra.Command {
 		  PS> %s completion powershell > %s.ps1
 		  # and source this file from your PowerShell profile.
 		`+"```"+`
-	`, execs)
+	`, execs...)
 
 	return &cobra.Command{
 		Use:                   "completion [bash|zsh|fish|powershell]",
