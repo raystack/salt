@@ -2,7 +2,6 @@ package cmdx
 
 import (
 	"os"
-	"strings"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/spf13/cobra"
@@ -12,6 +11,10 @@ import (
 // bash, zsh, fish, and powershell. It should be added on the root
 // command and can be used as `completion bash` or `completion zsh`.
 func SetCompletionCmd(exec string) *cobra.Command {
+	var execs []string
+	for i := 0; i < 12; i++ {
+		execs = append(execs, exec)
+	}
 	summary := heredoc.Docf(`To load completions:
 		`+"```"+`
 		Bash:
@@ -51,7 +54,7 @@ func SetCompletionCmd(exec string) *cobra.Command {
 		  PS> %s completion powershell > %s.ps1
 		  # and source this file from your PowerShell profile.
 		`+"```"+`
-	`, strings.Split(strings.Repeat(exec, 12), " "))
+	`, execs)
 
 	return &cobra.Command{
 		Use:                   "completion [bash|zsh|fish|powershell]",
