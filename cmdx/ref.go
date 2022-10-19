@@ -53,11 +53,11 @@ func referenceLong(cmd *cobra.Command) string {
 
 func cmdRef(w io.Writer, cmd *cobra.Command, depth int) {
 	// Name + Description
-	fmt.Fprintf(w, "%s `%s`\n\n", strings.Repeat("#", depth), cmd.UseLine())
+	fmt.Fprintf(w, "%s "+"`"+"%s"+"`"+"\n\n", strings.Repeat("#", depth), cmd.UseLine())
 	fmt.Fprintf(w, "%s\n\n", cmd.Short)
 
 	if flagUsages := cmd.Flags().FlagUsages(); flagUsages != "" {
-		fmt.Fprintf(w, "```\n%s````\n\n", dedent(flagUsages))
+		fmt.Fprintf(w, "```"+"\n%s"+"```\n\n", dedent(flagUsages))
 	}
 
 	// Subcommands
