@@ -20,9 +20,9 @@ const (
 	LOCAL_APP_DATA  = "LocalAppData"
 )
 
-type ConfigLoaderOpts func(c *Config)
+type ConfigLoaderOpt func(c *Config)
 
-func WithFlags(pfs *pflag.FlagSet) ConfigLoaderOpts {
+func WithFlags(pfs *pflag.FlagSet) ConfigLoaderOpt {
 	return func(c *Config) {
 		c.boundedPFlags = pfs
 	}
@@ -80,7 +80,7 @@ func (c *Config) Write(cfg interface{}) error {
 	return nil
 }
 
-func (c *Config) Load(cfg interface{}, opts ...ConfigLoaderOpts) error {
+func (c *Config) Load(cfg interface{}, opts ...ConfigLoaderOpt) error {
 	for _, opt := range opts {
 		opt(c)
 	}
