@@ -15,36 +15,36 @@ import (
 // This should be added on the root command and can
 // be used as `help reference` or `reference help`.
 func SetRefCmd(root *cobra.Command) *cobra.Command {
-	var stylized bool
+	var isPlain bool
 	cmd := &cobra.Command{
 		Use:   "reference",
 		Short: "Comprehensive reference of all commands",
 		Long:  referenceLong(root),
-		Run:   referenceHelpFn(&stylized),
+		Run:   referenceHelpFn(&isPlain),
 		Annotations: map[string]string{
 			"group": "help",
 		},
 	}
-	cmd.SetHelpFunc(referenceHelpFn(&stylized))
-	cmd.Flags().BoolVarP(&stylized, "stylized", "s", true, "output with ansi color if true")
+	cmd.SetHelpFunc(referenceHelpFn(&isPlain))
+	cmd.Flags().BoolVarP(&isPlain, "plain", "p", true, "output in plain markdown (without ansi color)")
 	return cmd
 }
 
-func referenceHelpFn(stylized *bool) func(*cobra.Command, []string) {
+func referenceHelpFn(isPlain *bool) func(*cobra.Command, []string) {
 	return func(cmd *cobra.Command, args []string) {
 		var (
 			md  string
 			err error
 		)
 
-		if *stylized {
+		if *isPlain {
+			md = cmd.Long
+		} else {
 			md, err = printer.Markdown(cmd.Long)
 			if err != nil {
 				fmt.Println(err)
 				return
 			}
-		} else {
-			md = cmd.Long
 		}
 
 		fmt.Print(md)
