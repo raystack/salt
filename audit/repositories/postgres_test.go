@@ -2,96 +2,96 @@ package repositories_test
 
 import (
 	"context"
-	"database/sql"
-	"errors"
-	"regexp"
 	"testing"
+	"time"
 
-	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/jmoiron/sqlx/types"
 	"github.com/odpf/salt/audit"
 	"github.com/odpf/salt/audit/repositories"
+	"github.com/odpf/salt/log"
+	"github.com/ory/dockertest/v3"
 	"github.com/stretchr/testify/suite"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 type PostgresRepositoryTestSuite struct {
 	suite.Suite
 
-	dbMock     sqlmock.Sqlmock
-	dbConn     *sql.DB
-	repository *repositories.PostgresRepository
+	repository     *repositories.PostgresRepository
+	pool           *dockertest.Pool
+	dockerResource *dockertest.Resource
 }
 
 func TestPostgresRepository(t *testing.T) {
 	suite.Run(t, new(PostgresRepositoryTestSuite))
 }
 
-func (s *PostgresRepositoryTestSuite) setupTest() {
-	db, dbMock, err := sqlmock.New()
-	s.Require().NoError(err)
-	s.dbConn = db
-	s.dbMock = dbMock
-	gormDB, err := gorm.Open(postgres.New(postgres.Config{
-		Conn: db,
-	}), &gorm.Config{})
-	s.Require().NoError(err)
-
-	s.repository = repositories.NewPostgresRepository(gormDB)
+func (s *PostgresRepositoryTestSuite) SetupSuite() {
+	var err error
+	s.repository, s.pool, s.dockerResource, err = newTestRepository(log.NewLogrus())
+	if err != nil {
+		s.T().Fatal(err)
+	}
 }
 
-func (s *PostgresRepositoryTestSuite) cleanupTest() {
-	s.dbConn.Close()
+func (s *PostgresRepositoryTestSuite) TearDownSuite() {
+	if err := s.repository.DB().Close(); err != nil {
+		s.T().Fatal(err)
+	}
+	if err := purgeTestDocker(s.pool, s.dockerResource); err != nil {
+		s.T().Fatal(err)
+	}
 }
 
 func (s *PostgresRepositoryTestSuite) TestInit() {
 	s.Run("should migrate audit log model", func() {
-		s.setupTest()
-		defer s.cleanupTest()
-
-		s.dbMock.ExpectExec(regexp.QuoteMeta(`CREATE TABLE "audit_logs" ("timestamp" timestamptz,"action" text,"actor" text,"data" JSONB,"metadata" JSONB)`)).
-			WillReturnResult(sqlmock.NewResult(1, 1))
-
-		err := s.repository.Init(context.Background())
+		expoectedColumns := []string{
+			"timestamp", "action", "actor", "data", "metadata",
+		}
+		rows, err := s.repository.DB().Query("SELECT * FROM audit_logs")
 		s.NoError(err)
-		s.dbMock.ExpectationsWereMet()
-	})
 
-	s.Run("should return error if migrate returns error", func() {
-		s.setupTest()
-		defer s.cleanupTest()
+		defer rows.Close()
+		actualRows, err := rows.Columns()
+		s.NoError(err)
 
-		expectedError := errors.New("test error")
-		s.dbMock.ExpectExec(".*").WillReturnError(expectedError)
-
-		err := s.repository.Init(context.Background())
-		s.ErrorIs(err, expectedError)
-		s.dbMock.ExpectationsWereMet()
+		s.Equal(expoectedColumns, actualRows)
 	})
 }
 
 func (s *PostgresRepositoryTestSuite) TestInsert() {
 	s.Run("should insert record to db", func() {
-		s.setupTest()
-		defer s.cleanupTest()
-
-		l := &audit.Log{}
-
-		s.dbMock.ExpectBegin()
-		s.dbMock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "audit_logs" ("timestamp","action","actor","data","metadata") VALUES ($1,$2,$3,$4,$5)`)).
-			WithArgs(l.Timestamp, l.Action, l.Actor, `null`, `null`).
-			WillReturnResult(sqlmock.NewResult(1, 1))
-		s.dbMock.ExpectCommit()
+		l := &audit.Log{
+			Timestamp: time.Now(),
+			Action:    "test-action",
+			Actor:     "user@example.com",
+			Data:      types.JSONText(`{"test": "data"}`),
+			Metadata:  types.JSONText(`{"test": "metadata"}`),
+		}
 
 		err := s.repository.Insert(context.Background(), l)
+		s.Require().NoError(err)
+
+		rows, err := s.repository.DB().Query("SELECT * FROM audit_logs")
+		var actualResult repositories.AuditPostgresModel
+		for rows.Next() {
+			err := rows.Scan(&actualResult.Timestamp, &actualResult.Action, &actualResult.Actor, &actualResult.Data, &actualResult.Metadata)
+			s.Require().NoError(err)
+		}
+
 		s.NoError(err)
-		s.dbMock.ExpectationsWereMet()
+		s.NotNil(actualResult)
+		if diff := cmp.Diff(l.Timestamp, actualResult.Timestamp, cmpopts.EquateApproxTime(time.Microsecond)); diff != "" {
+			s.T().Errorf("result not match, diff: %v", diff)
+		}
+		s.Equal(l.Action, actualResult.Action)
+		s.Equal(l.Actor, actualResult.Actor)
+		s.Equal(l.Data, actualResult.Data)
+		s.Equal(l.Metadata, actualResult.Metadata)
 	})
 
 	s.Run("should return error if data marshaling returns error", func() {
-		s.setupTest()
-		defer s.cleanupTest()
-
 		l := &audit.Log{
 			Data: make(chan int),
 		}
@@ -101,9 +101,6 @@ func (s *PostgresRepositoryTestSuite) TestInsert() {
 	})
 
 	s.Run("should return error if metadata marshaling returns error", func() {
-		s.setupTest()
-		defer s.cleanupTest()
-
 		l := &audit.Log{
 			Metadata: map[string]interface{}{
 				"foo": make(chan int),
@@ -112,21 +109,5 @@ func (s *PostgresRepositoryTestSuite) TestInsert() {
 
 		err := s.repository.Insert(context.Background(), l)
 		s.EqualError(err, "marshaling metadata: json: unsupported type: chan int")
-	})
-
-	s.Run("should return error if db insert returns error", func() {
-		s.setupTest()
-		defer s.cleanupTest()
-
-		l := &audit.Log{}
-
-		expectedError := errors.New("test error")
-		s.dbMock.ExpectBegin()
-		s.dbMock.ExpectExec(".*").WillReturnError(expectedError)
-		s.dbMock.ExpectRollback()
-
-		err := s.repository.Insert(context.Background(), l)
-		s.ErrorIs(err, expectedError)
-		s.dbMock.ExpectationsWereMet()
 	})
 }

@@ -2,37 +2,44 @@ package repositories
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"time"
 
+	"github.com/jmoiron/sqlx/types"
 	"github.com/odpf/salt/audit"
-	"gorm.io/datatypes"
-	"gorm.io/gorm"
 )
 
-type auditPostgresModel struct {
-	Timestamp time.Time
-	Action    string
-	Actor     string
-	Data      datatypes.JSON
-	Metadata  datatypes.JSON
-}
-
-func (a auditPostgresModel) TableName() string {
-	return "audit_logs"
+type AuditPostgresModel struct {
+	Timestamp time.Time      `db:"timestamp"`
+	Action    string         `db:"action"`
+	Actor     string         `db:"actor"`
+	Data      types.JSONText `db:"data"`
+	Metadata  types.JSONText `db:"metadata"`
 }
 
 type PostgresRepository struct {
-	db *gorm.DB
+	db *sql.DB
 }
 
-func NewPostgresRepository(db *gorm.DB) *PostgresRepository {
+func NewPostgresRepository(db *sql.DB) *PostgresRepository {
 	return &PostgresRepository{db}
 }
 
+func (r *PostgresRepository) DB() *sql.DB {
+	return r.db
+}
+
 func (r *PostgresRepository) Init(ctx context.Context) error {
-	if err := r.db.WithContext(ctx).AutoMigrate(&auditPostgresModel{}); err != nil {
+	sql := `CREATE TABLE IF NOT EXISTS audit_logs (
+		timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+		action TEXT NOT NULL,
+		actor TEXT NOT NULL,
+		data JSONB NOT NULL,
+		metadata JSONB NOT NULL
+	);`
+	if _, err := r.db.ExecContext(ctx, sql); err != nil {
 		return fmt.Errorf("migrating audit model to postgres db: %w", err)
 	}
 	return nil
@@ -47,15 +54,15 @@ func (r *PostgresRepository) Insert(ctx context.Context, l *audit.Log) error {
 	if err != nil {
 		return fmt.Errorf("marshaling metadata: %w", err)
 	}
-	m := &auditPostgresModel{
+	m := &AuditPostgresModel{
 		Timestamp: l.Timestamp,
 		Action:    l.Action,
 		Actor:     l.Actor,
-		Data:      datatypes.JSON(data),
-		Metadata:  datatypes.JSON(metadata),
+		Data:      data,
+		Metadata:  metadata,
 	}
 
-	if err := r.db.WithContext(ctx).Create(m).Error; err != nil {
+	if _, err := r.db.ExecContext(ctx, "INSERT INTO audit_logs (timestamp, action, actor, data, metadata) VALUES ($1, $2, $3, $4, $5)", m.Timestamp, m.Action, m.Actor, m.Data, m.Metadata); err != nil {
 		return fmt.Errorf("inserting to db: %w", err)
 	}
 
