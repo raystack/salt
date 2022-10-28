@@ -74,7 +74,7 @@ func (s *PostgresRepositoryTestSuite) TestInsert() {
 		s.Require().NoError(err)
 
 		rows, err := s.repository.DB().Query("SELECT * FROM audit_logs")
-		var actualResult repositories.AuditPostgresModel
+		var actualResult repositories.AuditModel
 		for rows.Next() {
 			err := rows.Scan(&actualResult.Timestamp, &actualResult.Action, &actualResult.Actor, &actualResult.Data, &actualResult.Metadata)
 			s.Require().NoError(err)

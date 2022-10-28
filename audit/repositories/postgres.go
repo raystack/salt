@@ -11,7 +11,7 @@ import (
 	"github.com/odpf/salt/audit"
 )
 
-type AuditPostgresModel struct {
+type AuditModel struct {
 	Timestamp time.Time      `db:"timestamp"`
 	Action    string         `db:"action"`
 	Actor     string         `db:"actor"`
@@ -60,7 +60,7 @@ func (r *PostgresRepository) Insert(ctx context.Context, l *audit.Log) error {
 	if err != nil {
 		return fmt.Errorf("marshaling metadata: %w", err)
 	}
-	m := &AuditPostgresModel{
+	m := &AuditModel{
 		Timestamp: l.Timestamp,
 		Action:    l.Action,
 		Actor:     l.Actor,
