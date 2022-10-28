@@ -32,13 +32,19 @@ func (r *PostgresRepository) DB() *sql.DB {
 }
 
 func (r *PostgresRepository) Init(ctx context.Context) error {
-	sql := `CREATE TABLE IF NOT EXISTS audit_logs (
-		timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
-		action TEXT NOT NULL,
-		actor TEXT NOT NULL,
-		data JSONB NOT NULL,
-		metadata JSONB NOT NULL
-	);`
+	sql := `
+		CREATE TABLE IF NOT EXISTS audit_logs (
+			timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+			action TEXT NOT NULL,
+			actor TEXT NOT NULL,
+			data JSONB NOT NULL,
+			metadata JSONB NOT NULL
+		);
+
+		CREATE INDEX IF NOT EXISTS audit_logs_timestamp_idx ON audit_logs (timestamp);
+		CREATE INDEX IF NOT EXISTS audit_logs_action_idx ON audit_logs (action);
+		CREATE INDEX IF NOT EXISTS audit_logs_actor_idx ON audit_logs (actor);
+	`
 	if _, err := r.db.ExecContext(ctx, sql); err != nil {
 		return fmt.Errorf("migrating audit model to postgres db: %w", err)
 	}
