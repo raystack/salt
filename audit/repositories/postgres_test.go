@@ -66,8 +66,14 @@ func (s *PostgresRepositoryTestSuite) TestInsert() {
 			Timestamp: time.Now(),
 			Action:    "test-action",
 			Actor:     "user@example.com",
-			Data:      types.JSONText(`{"test": "data"}`),
-			Metadata:  types.JSONText(`{"test": "metadata"}`),
+			Data: types.NullJSONText{
+				JSONText: []byte(`{"test": "data"}`),
+				Valid:    true,
+			},
+			Metadata: types.NullJSONText{
+				JSONText: []byte(`{"test": "metadata"}`),
+				Valid:    true,
+			},
 		}
 
 		err := s.repository.Insert(context.Background(), l)
@@ -91,16 +97,16 @@ func (s *PostgresRepositoryTestSuite) TestInsert() {
 		s.Equal(l.Metadata, actualResult.Metadata)
 	})
 
-	s.Run("should return error if data marshaling returns error", func() {
+	s.Run("should return error if data marshalling returns error", func() {
 		l := &audit.Log{
 			Data: make(chan int),
 		}
 
 		err := s.repository.Insert(context.Background(), l)
-		s.EqualError(err, "marshaling data: json: unsupported type: chan int")
+		s.EqualError(err, "marshalling data: json: unsupported type: chan int")
 	})
 
-	s.Run("should return error if metadata marshaling returns error", func() {
+	s.Run("should return error if metadata marshalling returns error", func() {
 		l := &audit.Log{
 			Metadata: map[string]interface{}{
 				"foo": make(chan int),
@@ -108,6 +114,6 @@ func (s *PostgresRepositoryTestSuite) TestInsert() {
 		}
 
 		err := s.repository.Insert(context.Background(), l)
-		s.EqualError(err, "marshaling metadata: json: unsupported type: chan int")
+		s.EqualError(err, "marshalling metadata: json: unsupported type: chan int")
 	})
 }
