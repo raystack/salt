@@ -11,16 +11,13 @@ import (
 	"github.com/odpf/salt/audit"
 	"github.com/odpf/salt/audit/repositories"
 	"github.com/odpf/salt/log"
-	"github.com/ory/dockertest/v3"
 	"github.com/stretchr/testify/suite"
 )
 
 type PostgresRepositoryTestSuite struct {
 	suite.Suite
 
-	repository     *repositories.PostgresRepository
-	pool           *dockertest.Pool
-	dockerResource *dockertest.Resource
+	repository *repositories.PostgresRepository
 }
 
 func TestPostgresRepository(t *testing.T) {
@@ -29,34 +26,19 @@ func TestPostgresRepository(t *testing.T) {
 
 func (s *PostgresRepositoryTestSuite) SetupSuite() {
 	var err error
-	s.repository, s.pool, s.dockerResource, err = newTestRepository(log.NewLogrus())
+	repository, pool, dockerResource, err := newTestRepository(log.NewLogrus())
 	if err != nil {
 		s.T().Fatal(err)
 	}
-}
+	s.repository = repository
 
-func (s *PostgresRepositoryTestSuite) TearDownSuite() {
-	if err := s.repository.DB().Close(); err != nil {
-		s.T().Fatal(err)
-	}
-	if err := purgeTestDocker(s.pool, s.dockerResource); err != nil {
-		s.T().Fatal(err)
-	}
-}
-
-func (s *PostgresRepositoryTestSuite) TestInit() {
-	s.Run("should migrate audit log model", func() {
-		expoectedColumns := []string{
-			"timestamp", "action", "actor", "data", "metadata",
+	s.T().Cleanup(func() {
+		if err := s.repository.DB().Close(); err != nil {
+			s.T().Fatal(err)
 		}
-		rows, err := s.repository.DB().Query("SELECT * FROM audit_logs")
-		s.NoError(err)
-
-		defer rows.Close()
-		actualRows, err := rows.Columns()
-		s.NoError(err)
-
-		s.Equal(expoectedColumns, actualRows)
+		if err := purgeTestDocker(pool, dockerResource); err != nil {
+			s.T().Fatal(err)
+		}
 	})
 }
 
