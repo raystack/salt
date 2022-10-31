@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.5
-	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/authzed/authzed-go v0.7.0
@@ -13,6 +12,7 @@ require (
 	github.com/charmbracelet/glamour v0.3.0
 	github.com/cli/safeexec v1.0.0
 	github.com/golang-migrate/migrate/v4 v4.15.2
+	github.com/google/go-cmp v0.5.8
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
@@ -22,6 +22,7 @@ require (
 	github.com/hashicorp/go-version v1.3.0
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/jmoiron/sqlx v1.3.5
+	github.com/lib/pq v1.10.0
 	github.com/mattn/go-isatty v0.0.14
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/mitchellh/mapstructure v1.4.1
@@ -44,7 +45,4 @@ require (
 	google.golang.org/api v0.84.0
 	google.golang.org/grpc v1.49.0
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/datatypes v1.0.0
-	gorm.io/driver/postgres v1.0.8
-	gorm.io/gorm v1.21.4
 )
