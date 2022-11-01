@@ -1,4 +1,4 @@
-package dockertest
+package dockertestx
 
 import "github.com/ory/dockertest/v3"
 
