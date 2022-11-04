@@ -15,14 +15,14 @@ import (
 
 type dockerCortexOption func(dc *dockerCortex)
 
-// CortexWithDockerNetwork is an option to assign docker network
-func CortexWithDockerNetwork(network *docker.Network) dockerCortexOption {
+// CortexWithDockertestNetwork is an option to assign docker network
+func CortexWithDockertestNetwork(network *dockertest.Network) dockerCortexOption {
 	return func(dc *dockerCortex) {
 		dc.network = network
 	}
 }
 
-// CortexWithDockerNetwork is an option to assign version tag
+// CortexWithDockertestNetwork is an option to assign version tag
 // of a `quay.io/cortexproject/cortex` image
 func CortexWithVersionTag(versionTag string) dockerCortexOption {
 	return func(dc *dockerCortex) {
@@ -60,7 +60,7 @@ func CortexWithS3Endpoint(s3URL string) dockerCortexOption {
 }
 
 type dockerCortex struct {
-	network            *docker.Network
+	network            *dockertest.Network
 	pool               *dockertest.Pool
 	moduleName         string
 	alertManagerURL    string
@@ -117,12 +117,11 @@ func CreateCortex(opts ...dockerCortexOption) (*dockerCortex, error) {
 		ExposedPorts: []string{"9009/tcp"},
 		ExtraHosts: []string{
 			"cortex.siren_nginx_1:127.0.0.1",
-			"host.docker.internal:172.17.0.1",
 		},
 	}
 
 	if dc.network != nil {
-		runOpts.NetworkID = dc.network.ID
+		runOpts.NetworkID = dc.network.Network.ID
 	}
 
 	pwd, err := os.Getwd()

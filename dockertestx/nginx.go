@@ -36,8 +36,8 @@ func NginxWithHealthEndpoint(healthEndpoint string) dockerNginxOption {
 	}
 }
 
-// NginxWithDockerNetwork is an option to assign docker network
-func NginxWithDockerNetwork(network *docker.Network) dockerNginxOption {
+// NginxWithDockertestNetwork is an option to assign docker network
+func NginxWithDockertestNetwork(network *dockertest.Network) dockerNginxOption {
 	return func(dc *dockerNginx) {
 		dc.network = network
 	}
@@ -78,7 +78,7 @@ func NginxWithConfigVariables(cv map[string]string) dockerNginxOption {
 }
 
 type dockerNginx struct {
-	network            *docker.Network
+	network            *dockertest.Network
 	pool               *dockertest.Pool
 	exposedPort        string
 	internalHost       string
@@ -130,7 +130,7 @@ func CreateNginx(opts ...dockerNginxOption) (*dockerNginx, error) {
 	}
 
 	if dc.network != nil {
-		runOpts.NetworkID = dc.network.ID
+		runOpts.NetworkID = dc.network.Network.ID
 	}
 
 	var confString string

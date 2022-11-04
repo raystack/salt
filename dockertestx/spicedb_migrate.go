@@ -11,8 +11,8 @@ import (
 
 type dockerMigrateSpiceDBOption func(dmm *dockerMigrateSpiceDB)
 
-// MigrateSpiceDBWithDockerNetwork is an option to assign docker network
-func MigrateSpiceDBWithDockerNetwork(network *docker.Network) dockerMigrateSpiceDBOption {
+// MigrateSpiceDBWithDockertestNetwork is an option to assign docker network
+func MigrateSpiceDBWithDockertestNetwork(network *dockertest.Network) dockerMigrateSpiceDBOption {
 	return func(dm *dockerMigrateSpiceDB) {
 		dm.network = network
 	}
@@ -34,7 +34,7 @@ func MigrateSpiceDBWithDockerPool(pool *dockertest.Pool) dockerMigrateSpiceDBOpt
 }
 
 type dockerMigrateSpiceDB struct {
-	network    *docker.Network
+	network    *dockertest.Network
 	pool       *dockertest.Pool
 	versionTag string
 }
@@ -68,7 +68,7 @@ func MigrateSpiceDB(postgresConnectionURL string, opts ...dockerMigrateMinioOpti
 	}
 
 	if dm.network != nil {
-		runOpts.NetworkID = dm.network.ID
+		runOpts.NetworkID = dm.network.Network.ID
 	}
 
 	resource, err := dm.pool.RunWithOptions(runOpts, func(config *docker.HostConfig) {

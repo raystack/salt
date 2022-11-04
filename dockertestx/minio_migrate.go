@@ -14,8 +14,8 @@ const waitContainerTimeout = 60 * time.Second
 
 type dockerMigrateMinioOption func(dmm *dockerMigrateMinio)
 
-// MigrateMinioWithDockerNetwork is an option to assign docker network
-func MigrateMinioWithDockerNetwork(network *docker.Network) dockerMigrateMinioOption {
+// MigrateMinioWithDockertestNetwork is an option to assign docker network
+func MigrateMinioWithDockertestNetwork(network *dockertest.Network) dockerMigrateMinioOption {
 	return func(dm *dockerMigrateMinio) {
 		dm.network = network
 	}
@@ -37,7 +37,7 @@ func MigrateMinioWithDockerPool(pool *dockertest.Pool) dockerMigrateMinioOption 
 }
 
 type dockerMigrateMinio struct {
-	network    *docker.Network
+	network    *dockertest.Network
 	pool       *dockertest.Pool
 	versionTag string
 }
@@ -79,7 +79,7 @@ func MigrateMinio(minioHost string, bucketName string, opts ...dockerMigrateMini
 	}
 
 	if dm.network != nil {
-		runOpts.NetworkID = dm.network.ID
+		runOpts.NetworkID = dm.network.Network.ID
 	}
 
 	resource, err := dm.pool.RunWithOptions(runOpts, func(config *docker.HostConfig) {
