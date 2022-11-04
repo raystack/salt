@@ -115,7 +115,10 @@ func CreateCortex(opts ...dockerCortexOption) (*dockerCortex, error) {
 			fmt.Sprintf("-alertmanager.storage.s3.endpoint=%s", dc.s3URL),
 		},
 		ExposedPorts: []string{"9009/tcp"},
-		ExtraHosts:   []string{"cortex.siren_nginx_1:127.0.0.1"},
+		ExtraHosts: []string{
+			"cortex.siren_nginx_1:127.0.0.1",
+			"host.docker.internal:host-gateway",
+		},
 	}
 
 	if dc.network != nil {
