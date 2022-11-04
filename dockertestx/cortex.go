@@ -117,7 +117,7 @@ func CreateCortex(opts ...dockerCortexOption) (*dockerCortex, error) {
 		ExposedPorts: []string{"9009/tcp"},
 		ExtraHosts: []string{
 			"cortex.siren_nginx_1:127.0.0.1",
-			"host.docker.internal:host-gateway",
+			"host.docker.internal:172.17.0.1",
 		},
 	}
 
