@@ -11,8 +11,12 @@ import (
 // bash, zsh, fish, and powershell. It should be added on the root
 // command and can be used as `completion bash` or `completion zsh`.
 func SetCompletionCmd(exec string) *cobra.Command {
+	var execs []interface{}
+	for i := 0; i < 12; i++ {
+		execs = append(execs, exec)
+	}
 	summary := heredoc.Docf(`To load completions:
-		
+		`+"```"+`
 		Bash:
 
 		  $ source <(%s completion bash)
@@ -49,7 +53,8 @@ func SetCompletionCmd(exec string) *cobra.Command {
 		  # To load completions for every new session, run:
 		  PS> %s completion powershell > %s.ps1
 		  # and source this file from your PowerShell profile.
-	`, exec)
+		`+"```"+`
+	`, execs...)
 
 	return &cobra.Command{
 		Use:                   "completion [bash|zsh|fish|powershell]",
