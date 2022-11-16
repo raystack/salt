@@ -1,4 +1,4 @@
-package dockertest
+package dockertestx
 
 import (
 	"fmt"
@@ -25,8 +25,8 @@ func PostgresWithLogger(logger log.Logger) dockerPostgresOption {
 	}
 }
 
-// PostgresWithDockerNetwork is an option to assign docker network
-func PostgresWithDockerNetwork(network *docker.Network) dockerPostgresOption {
+// PostgresWithDockertestNetwork is an option to assign docker network
+func PostgresWithDockertestNetwork(network *dockertest.Network) dockerPostgresOption {
 	return func(dpg *dockerPostgres) {
 		dpg.network = network
 	}
@@ -63,7 +63,7 @@ func PostgresWithDockerPool(pool *dockertest.Pool) dockerPostgresOption {
 
 type dockerPostgres struct {
 	logger             log.Logger
-	network            *docker.Network
+	network            *dockertest.Network
 	pool               *dockertest.Pool
 	username           string
 	password           string
@@ -123,7 +123,7 @@ func CreatePostgres(opts ...dockerPostgresOption) (*dockerPostgres, error) {
 	}
 
 	if dpg.network != nil {
-		runOpts.NetworkID = dpg.network.ID
+		runOpts.NetworkID = dpg.network.Network.ID
 	}
 
 	dpg.dockertestResource, err = dpg.pool.RunWithOptions(

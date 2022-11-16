@@ -1,4 +1,4 @@
-package dockertest
+package dockertestx
 
 import (
 	"fmt"
@@ -18,8 +18,8 @@ const (
 
 type dockerMinioOption func(dm *dockerMinio)
 
-// MinioWithDockerNetwork is an option to assign docker network
-func MinioWithDockerNetwork(network *docker.Network) dockerMinioOption {
+// MinioWithDockertestNetwork is an option to assign docker network
+func MinioWithDockertestNetwork(network *dockertest.Network) dockerMinioOption {
 	return func(dm *dockerMinio) {
 		dm.network = network
 	}
@@ -41,7 +41,7 @@ func MinioWithDockerPool(pool *dockertest.Pool) dockerMinioOption {
 }
 
 type dockerMinio struct {
-	network             *docker.Network
+	network             *dockertest.Network
 	pool                *dockertest.Pool
 	rootUser            string
 	rootPassword        string
@@ -103,7 +103,7 @@ func CreateMinio(opts ...dockerMinioOption) (*dockerMinio, error) {
 	}
 
 	if dm.network != nil {
-		runOpts.NetworkID = dm.network.ID
+		runOpts.NetworkID = dm.network.Network.ID
 	}
 
 	dm.dockertestResource, err = dm.pool.RunWithOptions(

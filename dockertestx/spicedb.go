@@ -1,4 +1,4 @@
-package dockertest
+package dockertestx
 
 import (
 	"context"
@@ -30,8 +30,8 @@ func SpiceDBWithLogLevel(logLevel string) dockerSpiceDBOption {
 	}
 }
 
-// SpiceDBWithDockerNetwork is an option to assign docker network
-func SpiceDBWithDockerNetwork(network *docker.Network) dockerSpiceDBOption {
+// SpiceDBWithDockertestNetwork is an option to assign docker network
+func SpiceDBWithDockertestNetwork(network *dockertest.Network) dockerSpiceDBOption {
 	return func(dsp *dockerSpiceDB) {
 		dsp.network = network
 	}
@@ -60,7 +60,7 @@ func SpiceDBWithPreSharedKey(preSharedKey string) dockerSpiceDBOption {
 }
 
 type dockerSpiceDB struct {
-	network            *docker.Network
+	network            *dockertest.Network
 	pool               *dockertest.Pool
 	preSharedKey       string
 	versionTag         string
@@ -110,7 +110,7 @@ func CreateSpiceDB(postgresConnectionURL string, opts ...dockerSpiceDBOption) (*
 	}
 
 	if dsp.network != nil {
-		runOpts.NetworkID = dsp.network.ID
+		runOpts.NetworkID = dsp.network.Network.ID
 	}
 
 	dsp.dockertestResource, err = dsp.pool.RunWithOptions(

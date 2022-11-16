@@ -1,4 +1,4 @@
-# dockertest
+# dockertestx
 
 This package is an abstraction of several dockerized data storages using `ory/dockertest` to bootstrap a specific dockerized instance.
 
@@ -44,7 +44,7 @@ if err != nil {
 // create postgres instance
 pgDocker, err := dockertest.CreatePostgres(
     dockertest.PostgresWithDockerPool(pool),
-    dockertest.PostgresWithDockerNetwork(network),
+    dockertest.PostgresWithDockertestNetwork(network),
     dockertest.PostgresWithDetail(
         pgUser, pgPass, pgDBName,
     ),
@@ -56,12 +56,12 @@ connString := pgDocker.GetInternalConnString()
 // create spice db instance
 spiceDocker, err := dockertest.CreateSpiceDB(connString,
     dockertest.SpiceDBWithDockerPool(pool),
-    dockertest.SpiceDBWithDockerNetwork(network),
+    dockertest.SpiceDBWithDockertestNetwork(network),
 )
 
 if err := dockertest.MigrateSpiceDB(connString,
     dockertest.MigrateSpiceDBWithDockerPool(pool),
-    dockertest.MigrateSpiceDBWithDockerNetwork(network),
+    dockertest.MigrateSpiceDBWithDockertestNetwork(network),
 ); err != nil {
     return err
 }
