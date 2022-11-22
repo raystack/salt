@@ -22,11 +22,12 @@ require (
 	github.com/hashicorp/go-version v1.3.0
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/jmoiron/sqlx v1.3.5
-	github.com/lib/pq v1.10.0
+	github.com/lib/pq v1.10.2
 	github.com/mattn/go-isatty v0.0.14
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/muesli/termenv v0.9.0
+	github.com/newrelic/go-agent/v3/integrations/nrpq v1.1.1
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/ory/dockertest/v3 v3.9.1
 	github.com/pkg/errors v0.9.1

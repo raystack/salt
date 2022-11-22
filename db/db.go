@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	_ "github.com/newrelic/go-agent/v3/integrations/nrpq"
 	"github.com/pkg/errors"
 )
 
