@@ -30,14 +30,19 @@ func New(cfg Config) (*Client, error) {
 }
 
 // NewWithDB creates a new sqlx database client with passed sql.DB instance
-func NewWithDB(sqlDB *sql.DB, cfg Config) *Client {
+func NewWithDB(sqlDB *sql.DB, cfg Config) (*Client, error) {
 	db := sqlx.NewDb(sqlDB, cfg.Driver)
 
 	db.SetMaxIdleConns(cfg.MaxIdleConns)
 	db.SetMaxOpenConns(cfg.MaxOpenConns)
 	db.SetConnMaxLifetime(cfg.ConnMaxLifeTime)
 
-	return &Client{DB: db, queryTimeOut: cfg.MaxQueryTimeout}
+	if err := db.Ping(); err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	return &Client{DB: db, queryTimeOut: cfg.MaxQueryTimeout}, nil
 }
 
 func (c Client) WithTimeout(ctx context.Context, op func(ctx context.Context) error) (err error) {
