@@ -27,6 +27,7 @@ require (
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/muesli/termenv v0.9.0
+	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/ory/dockertest/v3 v3.9.1
 	github.com/pkg/errors v0.9.1
@@ -39,7 +40,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	go.buf.build/odpf/gw/odpf/proton v1.1.9
 	go.uber.org/zap v1.19.0
-	golang.org/x/net v0.0.0-20220919232410-f2f64ebce3c1
+	golang.org/x/net v0.0.0-20220919232410-f2f64ebce3c1 // indirect
 	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1
 	golang.org/x/text v0.3.7
 	google.golang.org/api v0.84.0

@@ -3,90 +3,71 @@ package mux
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
-	"net/http"
-	"strings"
+	"net"
 	"time"
 
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
-	"google.golang.org/grpc"
+	"github.com/oklog/run"
 )
 
 const (
 	defaultGracePeriod = 10 * time.Second
-	grpcRequestMarker  = "application/grpc"
 )
 
-// Serve starts a TCP listener and serves the registered protocol servers and blocks
-// until server exits. Context can be cancelled to perform graceful shutdown.
-// Use WithHTTP() and WithGRPC() to register protocol servers.
-func Serve(ctx context.Context, listenAddr string, opts ...Option) error {
-	var mux muxServer
+// Serve starts TCP listeners and serves the registered protocol servers of the
+// given serveTarget(s) and blocks until the servers exit. Context can be
+// cancelled to perform graceful shutdown.
+func Serve(ctx context.Context, opts ...Option) error {
+	mux := muxServer{gracePeriod: defaultGracePeriod}
 	for _, opt := range opts {
 		if err := opt(&mux); err != nil {
 			return err
 		}
 	}
-	if mux.httpHandler == nil && mux.grpcServer == nil {
-		return errors.New("at-least one of http & grpc server must be set")
+
+	if len(mux.targets) == 0 {
+		return errors.New("mux serve: at least one serve target must be set")
 	}
-	return mux.Serve(ctx, listenAddr)
+
+	return mux.Serve(ctx)
 }
 
 type muxServer struct {
-	httpHandler http.Handler
-	grpcServer  *grpc.Server
+	targets     []serveTarget
 	gracePeriod time.Duration
 }
 
-func (pmux *muxServer) Serve(baseCtx context.Context, addr string) error {
-	ctx, cancel := context.WithCancel(baseCtx)
-	defer cancel()
-
-	httpServer := &http.Server{
-		Addr:    addr,
-		Handler: h2c.NewHandler(pmux.muxedHandler(), &http2.Server{}),
-	}
-
-	go func() {
-		err := httpServer.ListenAndServe()
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Printf("[ERROR] server exited with error: %v", err)
-
-			// force-cancel the context so that graceful shutdown sequence exits as well.
-			cancel()
+func (mux *muxServer) Serve(ctx context.Context) error {
+	var g run.Group
+	for _, t := range mux.targets {
+		l, err := net.Listen("tcp", t.Address())
+		if err != nil {
+			return fmt.Errorf("mux serve: %w", err)
 		}
-	}()
 
-	<-ctx.Done()
+		t := t // redeclare to avoid referring to updated value inside closures.
+		g.Add(func() error {
+			err := t.Serve(l)
+			if err != nil {
+				log.Print("[ERROR] Serve:", err)
+			}
+			return err
+		}, func(error) {
+			ctx, cancel := context.WithTimeout(context.Background(), mux.gracePeriod)
+			defer cancel()
 
-	// context has been cancelled (due to cancelled base-context or due to
-	// server exit).
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), pmux.gracePeriod)
-	defer cancel()
-
-	err := httpServer.Shutdown(shutdownCtx)
-
-	if pmux.grpcServer != nil {
-		pmux.grpcServer.GracefulStop()
-	}
-	return err
-}
-
-func (pmux *muxServer) muxedHandler() http.Handler {
-	// if only one of gRPC and HTTP are set, no need to multiplex.
-	if pmux.grpcServer == nil {
-		return pmux.httpHandler
-	} else if pmux.httpHandler == nil {
-		return pmux.grpcServer
+			if err := t.Shutdown(ctx); err != nil {
+				log.Print("[ERROR] Shutdown server gracefully:", err)
+			}
+		})
 	}
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), grpcRequestMarker) {
-			pmux.grpcServer.ServeHTTP(w, r)
-		} else {
-			pmux.httpHandler.ServeHTTP(w, r)
-		}
+	g.Add(func() error {
+		<-ctx.Done()
+		return ctx.Err()
+	}, func(error) {
 	})
+
+	return g.Run()
 }
