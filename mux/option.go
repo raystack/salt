@@ -10,21 +10,20 @@ import (
 // Option values can be used with Serve() for customisation.
 type Option func(m *muxServer) error
 
-// WithHTTP registers the http-server for use in Serve().
-func WithHTTP(h http.Handler) Option {
+func WithHTTPTarget(addr string, srv *http.Server) Option {
+	srv.Addr = addr
 	return func(m *muxServer) error {
-		m.httpHandler = h
+		m.targets = append(m.targets, httpServeTarget{Server: srv})
 		return nil
 	}
 }
 
-// WithGRPC registers the gRPC-server for use in Serve().
-func WithGRPC(server *grpc.Server) Option {
+func WithGRPCTarget(addr string, srv *grpc.Server) Option {
 	return func(m *muxServer) error {
-		if server == nil {
-			server = grpc.NewServer()
-		}
-		m.grpcServer = server
+		m.targets = append(m.targets, gRPCServeTarget{
+			Addr:   addr,
+			Server: srv,
+		})
 		return nil
 	}
 }
