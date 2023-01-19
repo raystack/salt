@@ -32,6 +32,13 @@ func PostgresWithDockertestNetwork(network *dockertest.Network) dockerPostgresOp
 	}
 }
 
+// PostgresWithDockertestResourceExpiry is an option to assign docker resource expiry time
+func PostgresWithDockertestResourceExpiry(expiryInSeconds uint) dockerPostgresOption {
+	return func(dpg *dockerPostgres) {
+		dpg.expiryInSeconds = expiryInSeconds
+	}
+}
+
 // PostgresWithDetail is an option to assign custom details
 // like username, password, and database name
 func PostgresWithDetail(
@@ -71,6 +78,7 @@ type dockerPostgres struct {
 	versionTag         string
 	connStringInternal string
 	connStringExternal string
+	expiryInSeconds    uint
 	dockertestResource *dockertest.Resource
 }
 
@@ -110,6 +118,10 @@ func CreatePostgres(opts ...dockerPostgresOption) (*dockerPostgres, error) {
 		dpg.versionTag = "12"
 	}
 
+	if dpg.expiryInSeconds == 0 {
+		dpg.expiryInSeconds = 120
+	}
+
 	runOpts := &dockertest.RunOptions{
 		Name:       name,
 		Repository: "postgres",
@@ -142,7 +154,7 @@ func CreatePostgres(opts ...dockerPostgresOption) (*dockerPostgres, error) {
 	dpg.connStringInternal = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dpg.username, dpg.password, name, "5432", dpg.dbName)
 	dpg.connStringExternal = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dpg.username, dpg.password, "localhost", pgPort, dpg.dbName)
 
-	if err = dpg.dockertestResource.Expire(120); err != nil {
+	if err = dpg.dockertestResource.Expire(dpg.expiryInSeconds); err != nil {
 		return nil, err
 	}
 
