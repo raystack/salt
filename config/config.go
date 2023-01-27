@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -29,7 +30,8 @@ func (err *ConfigFileNotFoundError) Unwrap() error {
 }
 
 type Loader struct {
-	v *viper.Viper
+	v    *viper.Viper
+	opts []viper.DecoderConfigOption
 }
 
 type LoaderOption func(*Loader)
@@ -120,10 +122,24 @@ func WithEnvKeyReplacer(old string, new string) LoaderOption {
 	}
 }
 
+// WithDecoderConfigOption sets the decoder config options for
+// viper. See https://pkg.go.dev/github.com/mitchellh/mapstructure#DecoderConfig
+// for more details
+func WithDecoderConfigOption(opts ...viper.DecoderConfigOption) LoaderOption {
+	return func(l *Loader) {
+		l.opts = append(l.opts, opts...)
+	}
+}
+
 // NewLoader returns a config loader with given LoaderOption(s)
 func NewLoader(options ...LoaderOption) *Loader {
 	loader := &Loader{
 		v: getViperWithDefaults(),
+		opts: []viper.DecoderConfigOption{
+			viper.DecodeHook(
+				StringToJsonFunc(),
+			),
+		},
 	}
 
 	for _, option := range options {
@@ -167,7 +183,7 @@ func (l *Loader) Load(config interface{}) error {
 	// set defaults using the default struct tag
 	defaults.SetDefaults(config)
 
-	if err := l.v.Unmarshal(config); err != nil {
+	if err := l.v.Unmarshal(config, l.opts...); err != nil {
 		return fmt.Errorf("unable to load config to struct: %v", err)
 	}
 
@@ -216,4 +232,22 @@ func getFlattenedStructKeys(config interface{}) ([]string, error) {
 	}
 
 	return keys, nil
+}
+
+// StringToJsonFunc is a mapstructure.DecodeHookFunc that converts a string to a interface{}
+// if the string is valid json. This is useful for unmarshaling json strings into a map.
+// For example, if you have a struct with a field of type map[string]string like labels or annotations,
+func StringToJsonFunc() mapstructure.DecodeHookFunc {
+	return func(f, t reflect.Type, data interface{}) (interface{}, error) {
+		// if type is string and can be parsed as json, parse it
+		if f.Kind() == reflect.String && t.Kind() == reflect.Map {
+			if f.Kind() == reflect.String && t.Kind() == reflect.Map {
+				var m map[string]interface{}
+				if err := json.Unmarshal([]byte(data.(string)), &m); err == nil {
+					return m, nil
+				}
+			}
+		}
+		return data, nil
+	}
 }
