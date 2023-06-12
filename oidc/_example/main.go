@@ -9,7 +9,7 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 
-	"github.com/odpf/salt/oidc"
+	"github.com/raystack/salt/oidc"
 )
 
 func main() {

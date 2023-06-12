@@ -10,14 +10,14 @@ import (
 	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v3"
 
-	"github.com/odpf/salt/config"
+	"github.com/raystack/salt/config"
 )
 
 const (
-	ODPF_CONFIG_DIR = "ODPF_CONFIG_DIR"
-	XDG_CONFIG_HOME = "XDG_CONFIG_HOME"
-	APP_DATA        = "AppData"
-	LOCAL_APP_DATA  = "LocalAppData"
+	RAYSTACK_CONFIG_DIR = "RAYSTACK_CONFIG_DIR"
+	XDG_CONFIG_HOME     = "XDG_CONFIG_HOME"
+	APP_DATA            = "AppData"
+	LOCAL_APP_DATA      = "LocalAppData"
 )
 
 type ConfigLoaderOpt func(c *Config)
@@ -71,7 +71,7 @@ func (c *Config) Write(cfg interface{}) error {
 	}
 
 	if _, err := os.Stat(c.filename); os.IsNotExist(err) {
-		_ = os.MkdirAll(configDir("odpf"), 0700)
+		_ = os.MkdirAll(configDir("raystack"), 0700)
 	}
 
 	if err := os.WriteFile(c.filename, data, 0655); err != nil {
@@ -101,12 +101,12 @@ func (c *Config) Load(cfg interface{}, opts ...ConfigLoaderOpt) error {
 
 func configFile(app string) string {
 	file := app + ".yml"
-	return filepath.Join(configDir("odpf"), file)
+	return filepath.Join(configDir("raystack"), file)
 }
 
 func configDir(root string) string {
 	var path string
-	if a := os.Getenv(ODPF_CONFIG_DIR); a != "" {
+	if a := os.Getenv(RAYSTACK_CONFIG_DIR); a != "" {
 		path = a
 	} else if b := os.Getenv(XDG_CONFIG_HOME); b != "" {
 		path = filepath.Join(b, root)

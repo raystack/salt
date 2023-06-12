@@ -8,9 +8,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/jmoiron/sqlx/types"
-	"github.com/odpf/salt/audit"
-	"github.com/odpf/salt/audit/repositories"
-	"github.com/odpf/salt/log"
+	"github.com/raystack/salt/audit"
+	"github.com/raystack/salt/audit/repositories"
+	"github.com/raystack/salt/log"
 	"github.com/stretchr/testify/suite"
 )
 

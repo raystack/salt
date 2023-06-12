@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
-	"github.com/odpf/salt/term"
+	"github.com/raystack/salt/term"
 )
 
 type Indicator struct {

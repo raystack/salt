@@ -8,7 +8,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/odpf/salt/log"
+	"github.com/raystack/salt/log"
 
 	"github.com/stretchr/testify/assert"
 )

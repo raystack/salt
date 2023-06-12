@@ -1,4 +1,4 @@
-module github.com/odpf/salt
+module github.com/raystack/salt
 
 go 1.16
 
@@ -38,7 +38,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.8.1
 	github.com/stretchr/testify v1.8.0
-	go.buf.build/odpf/gw/odpf/proton v1.1.9
+	go.buf.build/raystack/gw/raystack/proton v1.1.9
 	go.uber.org/zap v1.19.0
 	golang.org/x/net v0.0.0-20220919232410-f2f64ebce3c1 // indirect
 	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1

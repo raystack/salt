@@ -7,10 +7,10 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
-	"github.com/odpf/salt/audit/repositories"
-	"github.com/odpf/salt/log"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
+	"github.com/raystack/salt/audit/repositories"
+	"github.com/raystack/salt/log"
 )
 
 func newTestRepository(logger log.Logger) (*repositories.PostgresRepository, *dockertest.Pool, *dockertest.Resource, error) {

@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/odpf/salt/db"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
+	"github.com/raystack/salt/db"
 	"github.com/stretchr/testify/assert"
 )
 

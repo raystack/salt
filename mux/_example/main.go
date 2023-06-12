@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/odpf/salt/common"
-	"github.com/odpf/salt/mux"
-	commonv1 "go.buf.build/odpf/gw/odpf/proton/odpf/common/v1"
+	"github.com/raystack/salt/common"
+	"github.com/raystack/salt/mux"
+	commonv1 "go.buf.build/raystack/gw/raystack/proton/raystack/common/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

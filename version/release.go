@@ -23,7 +23,7 @@ type Info struct {
 
 // ReleaseInfo fetches details related to provided release URL
 // releaseURL should point to a specific version
-// for example: https://api.github.com/repos/odpf/optimus/releases/latest
+// for example: https://api.github.com/repos/raystack/optimus/releases/latest
 func ReleaseInfo(releaseURL string) (*Info, error) {
 	httpClient := http.Client{
 		Timeout: ReleaseInfoTimeout,
@@ -32,7 +32,7 @@ func ReleaseInfo(releaseURL string) (*Info, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create request")
 	}
-	req.Header.Set("User-Agent", "odpf/salt")
+	req.Header.Set("User-Agent", "raystack/salt")
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to reach releaseURL: %s", releaseURL)

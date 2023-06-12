@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
-	"github.com/odpf/salt/version"
+	"github.com/raystack/salt/version"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -98,7 +98,7 @@ func TestUpdateNotice(t *testing.T) {
 		res, err := version.IsCurrentLatest("v0.0.1", info.Version)
 		assert.Nil(t, err)
 		assert.True(t, res)
-		s := version.UpdateNotice("v0.0.1", "odpf/optimus")
+		s := version.UpdateNotice("v0.0.1", "raystack/optimus")
 		assert.NotEqual(t, "v0.0.1", s)
 	})
 }

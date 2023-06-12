@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/salt/audit"
-	"github.com/odpf/salt/audit/mocks"
+	"github.com/raystack/salt/audit"
+	"github.com/raystack/salt/audit/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )

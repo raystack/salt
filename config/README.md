@@ -11,7 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/odpf/salt/config"
+	"github.com/raystack/salt/config"
 )
 
 type Config struct {
@@ -56,12 +56,12 @@ In the above program a YAML file or environment variables can be used to configu
 ```yaml
 port: 9000
 db:
-    port: 5432
-    host: db-host-yaml
+  port: 5432
+  host: db-host-yaml
 new_relic:
-    enabled: true
-    app_name: config-test-yaml
-    license: ____LICENSE_STRING_OF_40_CHARACTERS_____
+  enabled: true
+  app_name: config-test-yaml
+  license: ____LICENSE_STRING_OF_40_CHARACTERS_____
 log_level: debug
 ```
 
@@ -82,5 +82,6 @@ or a mix of both.
 **Configs set in environment will override the ones set as default and in yaml file.**
 
 ## TODO
- - function to print/return config keys in yaml path and env format with defaults as helper
- - add support for flags
+
+- function to print/return config keys in yaml path and env format with defaults as helper
+- add support for flags

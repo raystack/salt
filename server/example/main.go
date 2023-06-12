@@ -11,9 +11,9 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	"github.com/odpf/salt/common"
-	"github.com/odpf/salt/server"
-	commonv1 "go.buf.build/odpf/gw/odpf/proton/odpf/common/v1"
+	"github.com/raystack/salt/common"
+	"github.com/raystack/salt/server"
+	commonv1 "go.buf.build/raystack/gw/raystack/proton/raystack/common/v1"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
