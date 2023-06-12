@@ -11,16 +11,10 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	"github.com/raystack/salt/common"
 	"github.com/raystack/salt/server"
-	commonv1 "go.buf.build/raystack/gw/raystack/proton/raystack/common/v1"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
-
-var Server = &commonv1.Version{
-	Version: "v1.0.2",
-}
 
 var GRPCMiddlewaresInterceptor = grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 	grpc_recovery.UnaryServerInterceptor(),
@@ -54,7 +48,6 @@ func httpS(httpPort, gatewayClientPort int) {
 	if err != nil {
 		panic(err)
 	}
-	gw.RegisterHandler(ctx, commonv1.RegisterCommonServiceHandlerFromEndpoint)
 
 	s.SetGateway("/api", gw)
 	s.RegisterHandler("/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -80,10 +73,6 @@ func grpcS(grpcPort int) {
 		panic(err)
 	}
 
-	s.RegisterService(&commonv1.CommonService_ServiceDesc,
-		common.New(Server),
-	)
-
 	go s.Serve()
 	<-ctx.Done()
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Second*10)
@@ -108,17 +97,12 @@ func muxS(muxPort int) {
 	if err != nil {
 		panic(err)
 	}
-	gw.RegisterHandler(ctx, commonv1.RegisterCommonServiceHandlerFromEndpoint)
 
 	s.SetGateway("/api", gw)
 
 	s.RegisterHandler("/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "pong")
 	}))
-
-	s.RegisterService(&commonv1.CommonService_ServiceDesc,
-		common.New(Server),
-	)
 
 	go s.Serve()
 	<-ctx.Done()

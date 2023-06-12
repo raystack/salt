@@ -11,7 +11,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/raystack/salt/common"
 	"github.com/raystack/salt/mux"
-	commonv1 "go.buf.build/raystack/gw/raystack/proton/raystack/common/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -22,14 +21,9 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 
-	commonSvc := SlowCommonService{common.New(&commonv1.Version{Version: "0.0.1"})}
-	commonv1.RegisterCommonServiceServer(grpcServer, commonSvc)
 	reflection.Register(grpcServer)
 
 	grpcGateway := runtime.NewServeMux()
-	if err := commonv1.RegisterCommonServiceHandlerServer(ctx, grpcGateway, commonSvc); err != nil {
-		panic(err)
-	}
 
 	httpMux := http.NewServeMux()
 	httpMux.Handle("/api/", http.StripPrefix("/api", grpcGateway))
