@@ -137,7 +137,11 @@ func NewLoader(options ...LoaderOption) *Loader {
 		v: getViperWithDefaults(),
 		opts: []viper.DecoderConfigOption{
 			viper.DecodeHook(
-				StringToJsonFunc(),
+				mapstructure.ComposeDecodeHookFunc(
+					mapstructure.StringToTimeDurationHookFunc(),
+					mapstructure.StringToSliceHookFunc(","), // default delimiter
+					StringToJsonFunc(),
+				),
 			),
 		},
 	}
@@ -234,8 +238,8 @@ func getFlattenedStructKeys(config interface{}) ([]string, error) {
 	return keys, nil
 }
 
-// StringToJsonFunc is a mapstructure.DecodeHookFunc that converts a string to a interface{}
-// if the string is valid json. This is useful for unmarshaling json strings into a map.
+// StringToJsonFunc is a mapstructure.DecodeHookFunc that converts a string to an interface{}
+// if the string is valid json. This is useful for unmarshalling json strings into a map.
 // For example, if you have a struct with a field of type map[string]string like labels or annotations,
 func StringToJsonFunc() mapstructure.DecodeHookFunc {
 	return func(f, t reflect.Type, data interface{}) (interface{}, error) {
