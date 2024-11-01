@@ -28,6 +28,12 @@ func WithFlags(pfs *pflag.FlagSet) ConfigLoaderOpt {
 	}
 }
 
+func WithLoaderOptions(opts ...config.LoaderOption) ConfigLoaderOpt {
+	return func(c *Config) {
+		c.loaderOpts = append(c.loaderOpts, opts...)
+	}
+}
+
 // SetConfig allows to set a client config file. It is used to
 // load and save a config file for command line clients.
 func SetConfig(app string) *Config {
@@ -39,6 +45,7 @@ func SetConfig(app string) *Config {
 type Config struct {
 	filename      string
 	boundedPFlags *pflag.FlagSet
+	loaderOpts    []config.LoaderOption
 }
 
 func (c *Config) File() string {
@@ -90,6 +97,7 @@ func (c *Config) Load(cfg interface{}, opts ...ConfigLoaderOpt) error {
 	if c.boundedPFlags != nil {
 		loaderOpts = append(loaderOpts, config.WithBindPFlags(c.boundedPFlags, cfg))
 	}
+	loaderOpts = append(loaderOpts, c.loaderOpts...)
 
 	loader := config.NewLoader(loaderOpts...)
 
