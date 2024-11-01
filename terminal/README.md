@@ -10,7 +10,7 @@ The `terminal` package provides a collection of utilities to manage terminal int
 - **CI Detection**: Identify if the program is running in a Continuous Integration (CI) environment.
 - **Homebrew Utilities**: Check for Homebrew installation and verify binary paths.
 - **Browser Launching**: Open URLs in the default web browser, with cross-platform support.
-- 
+
 ## Installation
 
 To include this package in your Go project, use:
@@ -95,7 +95,7 @@ if terminal.IsCI() {
 Use `IsCI` to check if the program is running in a CI environment.
 
 ```go
-if termutil.IsCI() {
+if terminal.IsCI() {
     fmt.Println("Running in a Continuous Integration environment.")
 } else {
     fmt.Println("Not running in a CI environment.")
@@ -107,7 +107,7 @@ if termutil.IsCI() {
 Use `HasHomebrew` to check if Homebrew is installed on the system.
 
 ```go
-if termuinal.HasHomebrew() {
+if terminal.HasHomebrew() {
     fmt.Println("Homebrew is installed!")
 } else {
     fmt.Println("Homebrew is not installed.")
