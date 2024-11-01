@@ -1,10 +1,10 @@
 output:
-  format: line-number
+  formats: line-number
 linters:
   enable-all: false
   disable-all: true
   enable:
-    - vet
+    - govet
     - goimports
     - thelper
     - tparallel

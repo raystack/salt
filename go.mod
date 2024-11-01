@@ -2,8 +2,6 @@ module github.com/raystack/salt
 
 go 1.22
 
-toolchain go1.23.2
-
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/MakeNowJust/heredoc v1.0.0
