@@ -22,10 +22,11 @@ import (
 )
 
 type OpenTelemetryConfig struct {
-	Enabled                bool          `yaml:"enabled" mapstructure:"enabled" default:"false"`
-	CollectorAddr          string        `yaml:"collector_addr" mapstructure:"collector_addr" default:"localhost:4317"`
-	PeriodicReadInterval   time.Duration `yaml:"periodic_read_interval" mapstructure:"periodic_read_interval" default:"1s"`
-	TraceSampleProbability float64       `yaml:"trace_sample_probability" mapstructure:"trace_sample_probability" default:"1"`
+	Enabled                      bool          `yaml:"enabled" mapstructure:"enabled" default:"false"`
+	CollectorAddr                string        `yaml:"collector_addr" mapstructure:"collector_addr" default:"localhost:4317"`
+	PeriodicReadInterval         time.Duration `yaml:"periodic_read_interval" mapstructure:"periodic_read_interval" default:"1s"`
+	TraceSampleProbability       float64       `yaml:"trace_sample_probability" mapstructure:"trace_sample_probability" default:"1"`
+	VerboseResourceLabelsEnabled bool          `yaml:"verbose_resource_labels_enabled" mapstructure:"verbose_resource_labels_enabled" default:"false"`
 }
 
 func initOTLP(ctx context.Context, cfg Config, logger log.Logger) (func(), error) {
@@ -33,19 +34,24 @@ func initOTLP(ctx context.Context, cfg Config, logger log.Logger) (func(), error
 		logger.Info("OpenTelemetry monitoring is disabled.")
 		return noOp, nil
 	}
-	res, err := resource.New(ctx,
+	resourceOptions := []resource.Option{
 		resource.WithFromEnv(),
-		resource.WithTelemetrySDK(),
-		resource.WithOS(),
-		resource.WithHost(),
-		resource.WithProcess(),
-		resource.WithProcessRuntimeName(),
-		resource.WithProcessRuntimeVersion(),
 		resource.WithAttributes(
 			semconv.ServiceName(cfg.AppName),
 			semconv.ServiceVersion(cfg.AppVersion),
 		),
-	)
+	}
+	if cfg.OpenTelemetry.VerboseResourceLabelsEnabled {
+		resourceOptions = append(resourceOptions,
+			resource.WithTelemetrySDK(),
+			resource.WithOS(),
+			resource.WithHost(),
+			resource.WithProcess(),
+			resource.WithProcessRuntimeName(),
+			resource.WithProcessRuntimeVersion(),
+		)
+	}
+	res, err := resource.New(ctx, resourceOptions...)
 	if err != nil {
 		return nil, fmt.Errorf("create resource: %w", err)
 	}
