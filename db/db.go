@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -14,10 +15,17 @@ type Client struct {
 	*sqlx.DB
 	queryTimeOut time.Duration
 	cfg          Config
+	host         string
 }
 
 // NewClient creates a new sqlx database client
 func New(cfg Config) (*Client, error) {
+	dbURL, err := url.Parse(cfg.URL)
+	if err != nil {
+		return nil, err
+	}
+	host := dbURL.Host
+
 	db, err := sqlx.Connect(cfg.Driver, cfg.URL)
 	if err != nil {
 		return nil, err
@@ -27,7 +35,7 @@ func New(cfg Config) (*Client, error) {
 	db.SetMaxOpenConns(cfg.MaxOpenConns)
 	db.SetConnMaxLifetime(cfg.ConnMaxLifeTime)
 
-	return &Client{DB: db, queryTimeOut: cfg.MaxQueryTimeout, cfg: cfg}, err
+	return &Client{DB: db, queryTimeOut: cfg.MaxQueryTimeout, cfg: cfg, host: host}, err
 }
 
 func (c Client) WithTimeout(ctx context.Context, op func(ctx context.Context) error) (err error) {
@@ -71,6 +79,11 @@ func (c Client) WithTxn(ctx context.Context, txnOptions sql.TxOptions, txFunc fu
 // ConnectionURL fetch the database connection url
 func (c *Client) ConnectionURL() string {
 	return c.cfg.URL
+}
+
+// Host fetch the database host information
+func (c *Client) Host() string {
+	return c.host
 }
 
 // Close closes the database connection
