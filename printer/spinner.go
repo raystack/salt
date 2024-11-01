@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
-	"github.com/raystack/salt/term"
+	"github.com/raystack/salt/terminal"
 )
 
 type Indicator struct {
@@ -20,7 +20,7 @@ func (s *Indicator) Stop() {
 
 func Spin(label string) *Indicator {
 	set := spinner.CharSets[11]
-	if !term.IsTTY() {
+	if !terminal.IsTTY() {
 		return &Indicator{}
 	}
 	s := spinner.New(set, 120*time.Millisecond, spinner.WithColor("fgCyan"))

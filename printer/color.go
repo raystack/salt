@@ -1,4 +1,4 @@
-package term
+package printer
 
 import (
 	"fmt"
@@ -59,20 +59,20 @@ func NewColorScheme() *ColorScheme {
 
 var cs = NewColorScheme()
 
-func Bold(t ...string) string {
+func bold(t ...string) string {
 	return termenv.String(t...).Bold().String()
 }
 
-func Boldf(t string, args ...interface{}) string {
-	return Bold(fmt.Sprintf(t, args...))
+func boldf(t string, args ...interface{}) string {
+	return bold(fmt.Sprintf(t, args...))
 }
 
-func Italic(t ...string) string {
+func italic(t ...string) string {
 	return termenv.String(t...).Italic().String()
 }
 
-func Italicf(t string, args ...interface{}) string {
-	return Italic(fmt.Sprintf(t, args...))
+func italicf(t string, args ...interface{}) string {
+	return italic(fmt.Sprintf(t, args...))
 }
 
 func Green(t ...string) string {
@@ -129,14 +129,6 @@ func Magenta(t ...string) string {
 
 func Magentaf(t string, args ...interface{}) string {
 	return Magenta(fmt.Sprintf(t, args...))
-}
-
-func SuccessIcon() string {
-	return termenv.String("✓").String()
-}
-
-func WarningIcon() string {
-	return termenv.String("!").String()
 }
 
 func FailureIcon() string {

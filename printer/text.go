@@ -2,108 +2,106 @@ package printer
 
 import (
 	"fmt"
-
-	"github.com/raystack/salt/term"
 )
 
 func Success(t ...string) {
-	fmt.Print(term.Green(t...))
+	fmt.Print(Green(t...))
 }
 
 func Successln(t ...string) {
-	fmt.Println(term.Green(t...))
+	fmt.Println(Green(t...))
 }
 
 func Successf(t string, args ...interface{}) {
-	fmt.Print(term.Greenf(t, args...))
+	fmt.Print(Greenf(t, args...))
 }
 
 func Warning(t ...string) {
-	fmt.Print(term.Yellow(t...))
+	fmt.Print(Yellow(t...))
 }
 
 func Warningln(t ...string) {
-	fmt.Println(term.Yellow(t...))
+	fmt.Println(Yellow(t...))
 }
 
 func Warningf(t string, args ...interface{}) {
-	fmt.Print(term.Yellowf(t, args...))
+	fmt.Print(Yellowf(t, args...))
 }
 
 func Error(t ...string) {
-	fmt.Print(term.Red(t...))
+	fmt.Print(Red(t...))
 }
 
 func Errorln(t ...string) {
-	fmt.Println(term.Red(t...))
+	fmt.Println(Red(t...))
 }
 
 func Errorf(t string, args ...interface{}) {
-	fmt.Print(term.Redf(t, args...))
+	fmt.Print(Redf(t, args...))
 }
 
 func Info(t ...string) {
-	fmt.Print(term.Cyan(t...))
+	fmt.Print(Cyan(t...))
 }
 
 func Infoln(t ...string) {
-	fmt.Println(term.Cyan(t...))
+	fmt.Println(Cyan(t...))
 }
 
 func Infof(t string, args ...interface{}) {
-	fmt.Print(term.Cyanf(t, args...))
+	fmt.Print(Cyanf(t, args...))
 }
 
 func Bold(t ...string) {
-	fmt.Print(term.Bold(t...))
+	fmt.Print(bold(t...))
 }
 
 func Boldln(t ...string) {
-	fmt.Println(term.Bold(t...))
+	fmt.Println(bold(t...))
 }
 
 func Boldf(t string, args ...interface{}) {
-	fmt.Print(term.Boldf(t, args...))
+	fmt.Print(boldf(t, args...))
 }
 
 func Italic(t ...string) {
-	fmt.Print(term.Italic(t...))
+	fmt.Print(italic(t...))
 }
 
 func Italicln(t ...string) {
-	fmt.Println(term.Italic(t...))
+	fmt.Println(italic(t...))
 }
 
 func Italicf(t string, args ...interface{}) {
-	fmt.Print(term.Italicf(t, args...))
+	fmt.Print(italicf(t, args...))
 }
 
 func Text(t ...string) {
-	fmt.Print(term.Grey(t...))
+	fmt.Print(Grey(t...))
 }
 
 func Textln(t ...string) {
-	fmt.Println(term.Grey(t...))
+	fmt.Println(Grey(t...))
 }
 
 func Textf(t string, args ...interface{}) {
-	fmt.Print(term.Greyf(t, args...))
+	fmt.Print(Greyf(t, args...))
 }
 
 func SuccessIcon() {
-	fmt.Print(term.Green("✓"))
+	fmt.Print(Green("✓"))
 }
 
 func WarningIcon() {
-	fmt.Print(term.Yellow("!"))
+	fmt.Print(Yellow("!"))
 }
 
 func ErrorIcon() {
-	fmt.Print(term.Red("✗"))
+	fmt.Print(Red("✗"))
 }
 
 func InfoIcon() {
-	fmt.Print(term.Cyan("⛭"))
+	fmt.Print(Cyan("⛭"))
 }
 
 func Space() {
