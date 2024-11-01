@@ -6,9 +6,18 @@ import (
 	"strings"
 )
 
-// IsUnderHomebrew checks whether the given binary is under the homebrew path.
-func IsUnderHomebrew(binpath string) bool {
-	if binpath == "" {
+// IsUnderHomebrew checks if a given binary path is managed under the Homebrew path.
+//
+// This function is useful to verify if a binary is installed via Homebrew
+// by comparing its location to the Homebrew binary directory.
+//
+// Parameters:
+//   - path: The path of the binary to check.
+//
+// Returns:
+//   - A boolean value indicating whether the binary is located under the Homebrew path.
+func IsUnderHomebrew(path string) bool {
+	if path == "" {
 		return false
 	}
 
@@ -23,10 +32,17 @@ func IsUnderHomebrew(binpath string) bool {
 	}
 
 	brewBinPrefix := filepath.Join(strings.TrimSpace(string(brewPrefixBytes)), "bin") + string(filepath.Separator)
-	return strings.HasPrefix(binpath, brewBinPrefix)
+	return strings.HasPrefix(path, brewBinPrefix)
 }
 
-// HasHomebrew check whether the user has installed brew
+// HasHomebrew checks if Homebrew is installed on the user's system.
+//
+// This function determines the presence of Homebrew by looking for the "brew"
+// executable in the system's PATH. It is useful to ensure Homebrew dependencies
+// can be managed before executing related commands.
+//
+// Returns:
+//   - A boolean value indicating whether Homebrew is installed.
 func HasHomebrew() bool {
 	_, err := exec.LookPath("brew")
 	return err == nil
