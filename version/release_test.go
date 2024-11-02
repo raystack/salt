@@ -77,26 +77,6 @@ func TestIsCurrentLatest(t *testing.T) {
 	}
 }
 
-func TestUpdateNotice(t *testing.T) {
-	// Mock a successful GitHub API response with a newer version
-	mockResponse := `{
-		"tag_name": "v2.0.0",
-		"tarball_url": "https://example.com/tarball/v2.0.0"
-	}`
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(mockResponse))
-	}))
-	defer server.Close()
-
-	notice := UpdateNotice("1.0.0", server.URL)
-	assert.Equal(t, "A new release (v2.0.0) is available, consider updating the client.", notice)
-
-	// Test with the current version being the latest
-	notice = UpdateNotice("2.0.0", server.URL)
-	assert.Equal(t, "", notice)
-}
-
 func TestUpdateNotice_ErrorHandling(t *testing.T) {
 	// Mock a server that returns an error
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

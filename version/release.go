@@ -54,7 +54,7 @@ func ReleaseInfo(releaseURL string) (*Info, error) {
 		}
 	}()
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.Wrapf(err, "failed to reach releaseURL: %s, status code: %d", releaseURL, resp.StatusCode)
+		return nil, fmt.Errorf("failed to reach releaseURL: %s, status code: %d", releaseURL, resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)
