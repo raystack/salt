@@ -10,12 +10,21 @@ import (
 	"github.com/NYTimes/gziphandler"
 )
 
-// Handler return a file server http handler for single page
-// application. This handler can be mounted on your mux server.
+// Handler returns an HTTP handler for serving a Single Page Application (SPA).
 //
-// If gzip is set true, handler gzip the response body, for clients
-// which support it. Usually it also can be left to proxies like Nginx,
-// this method is useful when that's undesirable.
+// The handler serves static files from the specified directory in the embedded
+// file system and falls back to serving the index file if a requested file is not found.
+// This is useful for client-side routing in SPAs.
+//
+// Parameters:
+//   - build: An embedded file system containing the build assets.
+//   - dir: The directory within the embedded file system where the static files are located.
+//   - index: The name of the index file (usually "index.html").
+//   - gzip: If true, the response body will be compressed using gzip for clients that support it.
+//
+// Returns:
+//   - An http.Handler that serves the SPA and optional gzip compression.
+//   - An error if the file system or index file cannot be initialized.
 func Handler(build embed.FS, dir string, index string, gzip bool) (http.Handler, error) {
 	fsys, err := fs.Sub(build, dir)
 	if err != nil {
