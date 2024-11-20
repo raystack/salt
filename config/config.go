@@ -15,203 +15,165 @@ import (
 	"github.com/spf13/viper"
 )
 
-// ConfigFileNotFoundError is returned when the config file is not found
-// Viper will load from env or defaults
+// ConfigFileNotFoundError indicates that the configuration file was not found.
+// In this case, Viper will attempt to load configurations from environment variables or defaults.
 type ConfigFileNotFoundError struct {
-	err error
+	Err error
 }
 
-func (err ConfigFileNotFoundError) Error() string {
-	return fmt.Sprintf("unable to find config file, loading from env and defaults: %v", err.err)
+// Error returns the error message for ConfigFileNotFoundError.
+func (e ConfigFileNotFoundError) Error() string {
+	return fmt.Sprintf("config file not found, falling back to environment and defaults: %v", e.Err)
 }
 
-func (err *ConfigFileNotFoundError) Unwrap() error {
-	return err.err
+// Unwrap provides compatibility for error unwrapping.
+func (e *ConfigFileNotFoundError) Unwrap() error {
+	return e.Err
 }
 
+// Loader is responsible for managing configuration loading and decoding.
 type Loader struct {
-	v    *viper.Viper
-	opts []viper.DecoderConfigOption
+	viperInstance *viper.Viper
+	decoderOpts   []viper.DecoderConfigOption
 }
 
+// LoaderOption defines a functional option for configuring a Loader instance.
 type LoaderOption func(*Loader)
 
-// WithViper sets the given viper instance for loading configs
-// instead of the default configured one
-func WithViper(in *viper.Viper) LoaderOption {
+// WithViper allows using a custom Viper instance.
+func WithViper(v *viper.Viper) LoaderOption {
 	return func(l *Loader) {
-		l.v = in
+		l.viperInstance = v
 	}
 }
 
-// WithFile explicitly defines the path, name and extension
-// of the config file
+// WithFile specifies an explicit configuration file path.
 func WithFile(file string) LoaderOption {
 	return func(l *Loader) {
-		l.v.SetConfigFile(file)
+		l.viperInstance.SetConfigFile(file)
 	}
 }
 
-// WithName sets the file name of the config file without
-// the extension
-func WithName(in string) LoaderOption {
+// WithName sets the base name of the configuration file (excluding extension).
+func WithName(name string) LoaderOption {
 	return func(l *Loader) {
-		l.v.SetConfigName(in)
+		l.viperInstance.SetConfigName(name)
 	}
 }
 
-// WithPath adds config path to search the config file in,
-// can be used multiple times to add multiple paths to search
-func WithPath(in string) LoaderOption {
+// WithPath adds a directory to search for the configuration file.
+// Can be called multiple times to add multiple paths.
+func WithPath(path string) LoaderOption {
 	return func(l *Loader) {
-		l.v.AddConfigPath(in)
+		l.viperInstance.AddConfigPath(path)
 	}
 }
 
-// WithType sets the type of the configuration e.g. "json",
-// "yaml", "hcl"
-// Also used for the extension of the file
-func WithType(in string) LoaderOption {
+// WithType specifies the configuration file format (e.g., "yaml", "json").
+func WithType(fileType string) LoaderOption {
 	return func(l *Loader) {
-		l.v.SetConfigType(in)
+		l.viperInstance.SetConfigType(fileType)
 	}
 }
 
-// WithBindPFlags binds viper to pflags based on the
-// tags in the struct. Use tag `cmdx` to bind struct
-// field to cli flag.
-// e.g.
-//
-//	type Config struct {
-//		Host string `yaml:"host" cmdx:"host"`
-//	}
-func WithBindPFlags(pfs *pflag.FlagSet, cfg interface{}) LoaderOption {
+// WithBindPFlags binds command-line flags to the configuration based on struct tags (`cmdx`).
+func WithBindPFlags(flagSet *pflag.FlagSet, config interface{}) LoaderOption {
 	return func(l *Loader) {
-		reflectedCfg := reflect.TypeOf(cfg).Elem()
-
-		var flagTags = []string{}
-		for i := 0; i < reflectedCfg.NumField(); i++ {
-			if tag := reflectedCfg.Field(i).Tag.Get("cmdx"); tag != "" {
-				flagTags = append(flagTags, tag)
-			}
-		}
-
-		if pfs != nil {
-			for _, tag := range flagTags {
-				l.v.BindPFlag(tag, pfs.Lookup(tag))
+		structType := reflect.TypeOf(config).Elem()
+		for i := 0; i < structType.NumField(); i++ {
+			if tag := structType.Field(i).Tag.Get("cmdx"); tag != "" {
+				l.viperInstance.BindPFlag(tag, flagSet.Lookup(tag))
 			}
 		}
 	}
 }
 
-// WithEnvPrefix sets the prefix for keys when checking for configs
-// in environment variables. Internally concatenates with keys
-// with `_` in between
-func WithEnvPrefix(in string) LoaderOption {
+// WithEnvPrefix sets a prefix for environment variable keys.
+func WithEnvPrefix(prefix string) LoaderOption {
 	return func(l *Loader) {
-		l.v.SetEnvPrefix(in)
+		l.viperInstance.SetEnvPrefix(prefix)
 	}
 }
 
-// WithEnvKeyReplacer sets the `old` string to be replaced with
-// the `new` string environmental variable to a key that does
-// not match it.
-func WithEnvKeyReplacer(old string, new string) LoaderOption {
+// WithEnvKeyReplacer customizes key transformation for environment variables.
+func WithEnvKeyReplacer(old, new string) LoaderOption {
 	return func(l *Loader) {
-		l.v.SetEnvKeyReplacer(strings.NewReplacer(old, new))
+		l.viperInstance.SetEnvKeyReplacer(strings.NewReplacer(old, new))
 	}
 }
 
-// WithDecoderConfigOption sets the decoder config options for
-// viper. See https://pkg.go.dev/github.com/mitchellh/mapstructure#DecoderConfig
-// for more details
+// WithDecoderConfigOption sets custom decoding options for the configuration loader.
 func WithDecoderConfigOption(opts ...viper.DecoderConfigOption) LoaderOption {
 	return func(l *Loader) {
-		l.opts = append(l.opts, opts...)
+		l.decoderOpts = append(l.decoderOpts, opts...)
 	}
 }
 
-// NewLoader returns a config loader with given LoaderOption(s)
+// NewLoader initializes a Loader instance with the specified options.
 func NewLoader(options ...LoaderOption) *Loader {
 	loader := &Loader{
-		v: getViperWithDefaults(),
-		opts: []viper.DecoderConfigOption{
+		viperInstance: defaultViperInstance(),
+		decoderOpts: []viper.DecoderConfigOption{
 			viper.DecodeHook(
 				mapstructure.ComposeDecodeHookFunc(
 					mapstructure.StringToTimeDurationHookFunc(),
-					mapstructure.StringToSliceHookFunc(","), // default delimiter
+					mapstructure.StringToSliceHookFunc(","),
 					StringToJsonFunc(),
 				),
 			),
 		},
 	}
-
-	for _, option := range options {
-		option(loader)
+	for _, opt := range options {
+		opt(loader)
 	}
 	return loader
 }
 
-// Load loads configuration into the given mapstructure (https://github.com/mitchellh/mapstructure)
-// from a config.yaml file and overrides with any values set in env variables
+// Load populates the provided config struct with values from the configuration sources.
 func (l *Loader) Load(config interface{}) error {
-	if err := verifyParamIsPtrToStructElsePanic(config); err != nil {
+	if err := validateStructPtr(config); err != nil {
 		return err
 	}
 
-	l.v.AutomaticEnv()
+	l.viperInstance.AutomaticEnv()
 
-	var werr error
-
-	if err := l.v.ReadInConfig(); err != nil {
-		var pathErr = new(fs.PathError)
+	if err := l.viperInstance.ReadInConfig(); err != nil {
+		var pathErr *fs.PathError
 		if errors.As(err, &pathErr) || errors.As(err, &viper.ConfigFileNotFoundError{}) {
-			werr = ConfigFileNotFoundError{err}
-		} else {
-			return fmt.Errorf("unable to read config file: %w", err)
+			return ConfigFileNotFoundError{Err: err}
 		}
+		return fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	configKeys, err := getFlattenedStructKeys(config)
+	keys, err := extractFlattenedKeys(config)
 	if err != nil {
-		return fmt.Errorf("unable to get all config keys from struct: %v", err)
+		return fmt.Errorf("failed to extract config keys: %w", err)
 	}
 
-	// Bind each conf fields from struct to environment vars
-	for key := range configKeys {
-		if err := l.v.BindEnv(configKeys[key]); err != nil {
-			return fmt.Errorf("unable to bind env keys: %v", err)
-		}
+	for _, key := range keys {
+		l.viperInstance.BindEnv(key)
 	}
 
-	// set defaults using the default struct tag
 	defaults.SetDefaults(config)
 
-	if err := l.v.Unmarshal(config, l.opts...); err != nil {
-		return fmt.Errorf("unable to load config to struct: %v", err)
-	}
-
-	if werr != nil {
-		return werr
+	if err := l.viperInstance.Unmarshal(config, l.decoderOpts...); err != nil {
+		return fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
 	return nil
 }
 
-func verifyParamIsPtrToStructElsePanic(param interface{}) error {
-	value := reflect.ValueOf(param)
-	if value.Kind() != reflect.Ptr {
-		return fmt.Errorf("require ptr to a struct for Load. Got %v", value.Kind())
-	} else {
-		value = reflect.Indirect(value)
-		if value.Kind() != reflect.Struct {
-			return fmt.Errorf("require ptr to a struct for Load. got ptr to %v", value.Kind())
-		}
+// validateStructPtr ensures the provided value is a pointer to a struct.
+func validateStructPtr(value interface{}) error {
+	val := reflect.ValueOf(value)
+	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Struct {
+		return errors.New("Load requires a pointer to a struct")
 	}
 	return nil
 }
 
-func getViperWithDefaults() *viper.Viper {
+// defaultViperInstance initializes a Viper instance with default settings.
+func defaultViperInstance() *viper.Viper {
 	v := viper.New()
 	v.SetConfigName("config")
 	v.SetConfigType("yaml")
@@ -219,37 +181,30 @@ func getViperWithDefaults() *viper.Viper {
 	return v
 }
 
-func getFlattenedStructKeys(config interface{}) ([]string, error) {
+// extractFlattenedKeys retrieves all keys from the struct in a flattened format.
+func extractFlattenedKeys(config interface{}) ([]string, error) {
 	var structMap map[string]interface{}
 	if err := mapstructure.Decode(config, &structMap); err != nil {
 		return nil, err
 	}
-
-	flat, err := flatten.Flatten(structMap, "", flatten.DotStyle)
+	flatMap, err := flatten.Flatten(structMap, "", flatten.DotStyle)
 	if err != nil {
 		return nil, err
 	}
-
-	keys := make([]string, 0, len(flat))
-	for k := range flat {
+	keys := make([]string, 0, len(flatMap))
+	for k := range flatMap {
 		keys = append(keys, k)
 	}
-
 	return keys, nil
 }
 
-// StringToJsonFunc is a mapstructure.DecodeHookFunc that converts a string to an interface{}
-// if the string is valid json. This is useful for unmarshalling json strings into a map.
-// For example, if you have a struct with a field of type map[string]string like labels or annotations,
+// StringToJsonFunc is a decode hook for parsing JSON strings into maps.
 func StringToJsonFunc() mapstructure.DecodeHookFunc {
-	return func(f, t reflect.Type, data interface{}) (interface{}, error) {
-		// if type is string and can be parsed as json, parse it
+	return func(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
 		if f.Kind() == reflect.String && t.Kind() == reflect.Map {
-			if f.Kind() == reflect.String && t.Kind() == reflect.Map {
-				var m map[string]interface{}
-				if err := json.Unmarshal([]byte(data.(string)), &m); err == nil {
-					return m, nil
-				}
+			var result map[string]interface{}
+			if err := json.Unmarshal([]byte(data.(string)), &result); err == nil {
+				return result, nil
 			}
 		}
 		return data, nil

@@ -1,87 +1,131 @@
-# config
+# Config Package
 
-This package is an wrapper over viper with opinionated defaults that allows loading config from a yaml file and environment variables.
+The `config` package simplifies configuration management in Go projects by integrating multiple sources (files, environment variables, flags) and decoding them into structured Go objects. It provides defaults, overrides, and extensibility for various use cases.
+
+## Features
+
+- **Flexible Sources**: Load configuration from files (YAML, JSON, etc.), environment variables, and command-line flags.
+- **Defaults and Overrides**: Apply default values, with support for environment variable and flag-based overrides.
+- **Powerful Decoding**: Decode nested structures, custom types, and JSON strings into Go structs.
+- **Customizable**: Configure behavior with options like file paths, environment variable prefixes, and key replacers.
+
+## Installation
+
+Install the package using:
+
+```bash
+go get github.com/raystack/salt/config
+```
 
 ## Usage
+
+### 1. Basic Configuration Loading
+
+Define your configuration struct:
+
+```go
+type Config struct {
+    Host string `yaml:"host" default:"localhost"`
+    Port int    `yaml:"port" default:"8080"`
+}
+```
+
+Load the configuration:
 
 ```go
 package main
 
 import (
-	"encoding/json"
-	"fmt"
+    "fmt"
+    "github.com/raystack/salt/config"
+)
 
-	"github.com/raystack/salt/config"
+func main() {
+    var cfg Config
+    loader := config.NewLoader(
+        config.WithFile("config.yaml"),
+        config.WithEnvPrefix("MYAPP"),
+    )
+    if err := loader.Load(&cfg); err != nil {
+        fmt.Println("Error loading configuration:", err)
+        return
+    }
+    fmt.Printf("Configuration: %+v
+", cfg)
+}
+```
+
+### 2. Using Command-Line Flags
+
+Define your flags and bind them to the configuration struct:
+
+```go
+import (
+    "github.com/spf13/pflag"
+    "github.com/yourusername/config"
 )
 
 type Config struct {
-	Port     int            `mapstructure:"port" default:"8080"`
-	DB       DBConfig       `mapstructure:"db"`
-	NewRelic NewRelicConfig `mapstructure:"new_relic"`
-	LogLevel string         `mapstructure:"log_level" default:"info"`
-}
-
-type DBConfig struct {
-	Port int    `mapstructure:"port" default:"5432"`
-	Host string `mapstructure:"host" default:"localhost"`
-}
-
-type NewRelicConfig struct {
-	Enabled bool   `mapstructure:"enabled" default:"false"`
-	AppName string `mapstructure:"app_name" default:"test-app"`
-	License string `mapstructure:"license"`
+    Host string `yaml:"host" cmdx:"host"`
+    Port int    `yaml:"port" cmdx:"port"`
 }
 
 func main() {
-	var c Config
-	l := config.NewLoader(
-		// config.WithViper(viper.New()), // default
-		// config.WithName("config"), // default
-		// config.WithType("yaml"), // default
-		// config.WithEnvKeyReplacer(".", "_"), // default
-		config.WithPath("$HOME/.test"),
-		config.WithEnvPrefix("CONFIG"),
-	)
+    var cfg Config
 
-	if err := l.Load(&c); err != nil { // pass pointer to the struct into which you want to load config
-		panic(err)
-	}
-	s, _ := json.MarshalIndent(c, "", "  ") // spaces: 2 | tabs: 1 😛
-	fmt.Println(string(s))
+    pflags := pflag.NewFlagSet("example", pflag.ExitOnError)
+    pflags.String("host", "localhost", "Server host")
+    pflags.Int("port", 8080, "Server port")
+    pflags.Parse([]string{"--host", "127.0.0.1", "--port", "9090"})
+
+    loader := config.NewLoader(
+        config.WithFile("config.yaml"),
+        config.WithBindPFlags(pflags, &cfg),
+    )
+    if err := loader.Load(&cfg); err != nil {
+        fmt.Println("Error loading configuration:", err)
+        return
+    }
+    fmt.Printf("Configuration: %+v
+", cfg)
 }
 ```
 
-In the above program a YAML file or environment variables can be used to configure.
+### 3. Environment Variable Overrides
 
-```yaml
-port: 9000
-db:
-  port: 5432
-  host: db-host-yaml
-new_relic:
-  enabled: true
-  app_name: config-test-yaml
-  license: ____LICENSE_STRING_OF_40_CHARACTERS_____
-log_level: debug
+Override configuration values using environment variables:
+
+```go
+loader := config.NewLoader(
+    config.WithEnvPrefix("MYAPP"),
+)
 ```
 
-or
+Set environment variables like `MYAPP_HOST` or `MYAPP_PORT` to override `host` and `port` values.
 
-```sh
-export CONFIG_PORT=9001
-export CONFIG_DB_PORT=5432
-export CONFIG_DB_HOST=db-host-env
-export CONFIG_NEW_RELIC_ENABLED=true
-export CONFIG_NEW_RELIC_APP_NAME=config-test-env
-export CONFIG_NEW_RELIC_LICENSE=____LICENSE_STRING_OF_40_CHARACTERS_____
-export CONFIG_LOG_LEVEL=debug
-```
+## Advanced Features
 
-or a mix of both.
+- **Custom Decode Hooks**: Parse custom formats like JSON strings into maps.
+- **Error Handling**: Handles missing files gracefully and provides detailed error messages.
+- **Multiple Config Paths**: Search for configuration files in multiple directories using `WithPath`.
 
-**Configs set in environment will override the ones set as default and in yaml file.**
+## API Reference
 
-## TODO
+### Loader Options
 
-- function to print/return config keys in yaml path and env format with defaults as helper
-- add support for flags
+- `WithFile(file string)`: Set the explicit file path for the configuration file.
+- `WithPath(path string)`: Add directories to search for configuration files.
+- `WithName(name string)`: Set the name of the configuration file (without extension).
+- `WithType(type string)`: Set the file type (e.g., "json", "yaml").
+- `WithEnvPrefix(prefix string)`: Set a prefix for environment variables.
+- `WithBindPFlags(flagSet *pflag.FlagSet, config interface{})`: Bind CLI flags to configuration fields.
+
+### Custom Hooks
+
+- `StringToJsonFunc()`: Decode JSON strings into maps or other structures.
+
+### Struct Tags
+
+- `yaml`: Maps struct fields to YAML keys.
+- `default`: Specifies default values for struct fields.
+- `cmdx`: Binds struct fields to command-line flags.
