@@ -6,13 +6,15 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 )
 
+// Prompter defines an interface for user input interactions.
 type Prompter interface {
-	Select(string, string, []string) (int, error)
-	MultiSelect(string, string, []string) (int, error)
-	Input(string, string) (string, error)
-	Confirm(string, bool) (bool, error)
+	Select(message, defaultValue string, options []string) (int, error)
+	MultiSelect(message, defaultValue string, options []string) ([]int, error)
+	Input(message, defaultValue string) (string, error)
+	Confirm(message string, defaultValue bool) (bool, error)
 }
 
+// New creates and returns a new Prompter instance.
 func New() Prompter {
 	return &surveyPrompter{}
 }
@@ -20,54 +22,89 @@ func New() Prompter {
 type surveyPrompter struct {
 }
 
+// ask is a helper function to prompt the user and capture the response.
 func (p *surveyPrompter) ask(q survey.Prompt, response interface{}) error {
 	err := survey.AskOne(q, response)
-	if err == nil {
-		return nil
+	if err != nil {
+		return fmt.Errorf("prompt error: %w", err)
 	}
-	return fmt.Errorf("could not prompt: %w", err)
+	return nil
 }
 
-func (p *surveyPrompter) Select(message, defaultValue string, options []string) (result int, err error) {
-	q := &survey.Select{
+// Select prompts the user to select one option from a list.
+//
+// Parameters:
+//   - message: The prompt message to display.
+//   - defaultValue: The default selected value.
+//   - options: The list of options to display.
+//
+// Returns:
+//   - The index of the selected option.
+//   - An error, if any.
+func (p *surveyPrompter) Select(message, defaultValue string, options []string) (int, error) {
+	var result int
+	err := p.ask(&survey.Select{
 		Message:  message,
 		Default:  defaultValue,
 		Options:  options,
 		PageSize: 20,
-	}
-
-	err = p.ask(q, &result)
-
-	return
+	}, &result)
+	return result, err
 }
 
-func (p *surveyPrompter) MultiSelect(message, defaultValue string, options []string) (result int, err error) {
-	q := &survey.MultiSelect{
+// MultiSelect prompts the user to select multiple options from a list.
+//
+// Parameters:
+//   - message: The prompt message to display.
+//   - defaultValue: The default selected values.
+//   - options: The list of options to display.
+//
+// Returns:
+//   - A slice of indices representing the selected options.
+//   - An error, if any.
+func (p *surveyPrompter) MultiSelect(message, defaultValue string, options []string) ([]int, error) {
+	var result []int
+	err := p.ask(&survey.MultiSelect{
 		Message:  message,
 		Default:  defaultValue,
 		Options:  options,
 		PageSize: 20,
-	}
-
-	err = p.ask(q, &result)
-
-	return
+	}, &result)
+	return result, err
 }
 
-func (p *surveyPrompter) Input(prompt, defaultValue string) (result string, err error) {
-	err = p.ask(&survey.Input{
-		Message: prompt,
+// Input prompts the user for a text input.
+//
+// Parameters:
+//   - message: The prompt message to display.
+//   - defaultValue: The default input value.
+//
+// Returns:
+//   - The user's input as a string.
+//   - An error, if any.
+func (p *surveyPrompter) Input(message, defaultValue string) (string, error) {
+	var result string
+	err := p.ask(&survey.Input{
+		Message: message,
 		Default: defaultValue,
 	}, &result)
-
-	return
+	return result, err
 }
 
-func (p *surveyPrompter) Confirm(prompt string, defaultValue bool) (result bool, err error) {
-	err = p.ask(&survey.Confirm{
-		Message: prompt,
+// Confirm prompts the user for a yes/no confirmation.
+//
+// Parameters:
+//   - message: The prompt message to display.
+//   - defaultValue: The default confirmation value.
+//
+// Returns:
+//   - A boolean indicating the user's choice.
+//   - An error, if any.
+func (p *surveyPrompter) Confirm(message string, defaultValue bool) (bool, error) {
+	var result bool
+	err := p.ask(&survey.Confirm{
+		Message: message,
 		Default: defaultValue,
 	}, &result)
-
-	return
+	return result, err
 }
