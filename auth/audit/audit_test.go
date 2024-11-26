@@ -3,11 +3,11 @@ package audit_test
 import (
 	"context"
 	"errors"
+	audit2 "github.com/raystack/salt/auth/audit"
+	"github.com/raystack/salt/auth/audit/mocks"
 	"testing"
 	"time"
 
-	"github.com/raystack/salt/audit"
-	"github.com/raystack/salt/audit/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -18,24 +18,24 @@ type AuditTestSuite struct {
 	now time.Time
 
 	mockRepository *mocks.Repository
-	service        *audit.Service
+	service        *audit2.Service
 }
 
 func (s *AuditTestSuite) setupTest() {
 	s.mockRepository = new(mocks.Repository)
-	s.service = audit.New(
-		audit.WithMetadataExtractor(func(context.Context) map[string]interface{} {
+	s.service = audit2.New(
+		audit2.WithMetadataExtractor(func(context.Context) map[string]interface{} {
 			return map[string]interface{}{
 				"trace_id":    "test-trace-id",
 				"app_name":    "guardian_test",
 				"app_version": 1,
 			}
 		}),
-		audit.WithRepository(s.mockRepository),
+		audit2.WithRepository(s.mockRepository),
 	)
 
 	s.now = time.Now()
-	audit.TimeNow = func() time.Time {
+	audit2.TimeNow = func() time.Time {
 		return s.now
 	}
 }
@@ -48,7 +48,7 @@ func (s *AuditTestSuite) TestLog() {
 	s.Run("should insert to repository", func() {
 		s.setupTest()
 
-		s.mockRepository.On("Insert", mock.Anything, &audit.Log{
+		s.mockRepository.On("Insert", mock.Anything, &audit2.Log{
 			Timestamp: s.now,
 			Action:    "action",
 			Actor:     "user@example.com",
@@ -61,7 +61,7 @@ func (s *AuditTestSuite) TestLog() {
 		}).Return(nil)
 
 		ctx := context.Background()
-		ctx = audit.WithActor(ctx, "user@example.com")
+		ctx = audit2.WithActor(ctx, "user@example.com")
 		err := s.service.Log(ctx, "action", map[string]interface{}{"foo": "bar"})
 		s.NoError(err)
 	})
@@ -69,15 +69,15 @@ func (s *AuditTestSuite) TestLog() {
 	s.Run("actor extractor", func() {
 		s.Run("should use actor extractor if option given", func() {
 			expectedActor := "test-actor"
-			s.service = audit.New(
-				audit.WithActorExtractor(func(ctx context.Context) (string, error) {
+			s.service = audit2.New(
+				audit2.WithActorExtractor(func(ctx context.Context) (string, error) {
 					return expectedActor, nil
 				}),
-				audit.WithRepository(s.mockRepository),
+				audit2.WithRepository(s.mockRepository),
 			)
 
 			s.mockRepository.On("Insert", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-				log := args.Get(1).(*audit.Log)
+				log := args.Get(1).(*audit2.Log)
 				s.Equal(expectedActor, log.Actor)
 			}).Return(nil).Once()
 
@@ -87,8 +87,8 @@ func (s *AuditTestSuite) TestLog() {
 
 		s.Run("should return error if extractor returns error", func() {
 			expectedError := errors.New("test error")
-			s.service = audit.New(
-				audit.WithActorExtractor(func(ctx context.Context) (string, error) {
+			s.service = audit2.New(
+				audit2.WithActorExtractor(func(ctx context.Context) (string, error) {
 					return "", expectedError
 				}),
 			)
@@ -100,18 +100,18 @@ func (s *AuditTestSuite) TestLog() {
 
 	s.Run("metadata", func() {
 		s.Run("should pass empty trace id if extractor not found", func() {
-			s.service = audit.New(
-				audit.WithMetadataExtractor(func(ctx context.Context) map[string]interface{} {
+			s.service = audit2.New(
+				audit2.WithMetadataExtractor(func(ctx context.Context) map[string]interface{} {
 					return map[string]interface{}{
 						"app_name":    "guardian_test",
 						"app_version": 1,
 					}
 				}),
-				audit.WithRepository(s.mockRepository),
+				audit2.WithRepository(s.mockRepository),
 			)
 
 			s.mockRepository.On("Insert", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-				l := args.Get(1).(*audit.Log)
+				l := args.Get(1).(*audit2.Log)
 				s.IsType(map[string]interface{}{}, l.Metadata)
 
 				md := l.Metadata.(map[string]interface{})
@@ -125,13 +125,13 @@ func (s *AuditTestSuite) TestLog() {
 		})
 
 		s.Run("should append new metadata to existing one", func() {
-			s.service = audit.New(
-				audit.WithMetadataExtractor(func(ctx context.Context) map[string]interface{} {
+			s.service = audit2.New(
+				audit2.WithMetadataExtractor(func(ctx context.Context) map[string]interface{} {
 					return map[string]interface{}{
 						"existing": "foobar",
 					}
 				}),
-				audit.WithRepository(s.mockRepository),
+				audit2.WithRepository(s.mockRepository),
 			)
 
 			expectedMetadata := map[string]interface{}{
@@ -139,11 +139,11 @@ func (s *AuditTestSuite) TestLog() {
 				"new":      "foobar",
 			}
 			s.mockRepository.On("Insert", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-				log := args.Get(1).(*audit.Log)
+				log := args.Get(1).(*audit2.Log)
 				s.Equal(expectedMetadata, log.Metadata)
 			}).Return(nil).Once()
 
-			ctx, err := audit.WithMetadata(context.Background(), map[string]interface{}{
+			ctx, err := audit2.WithMetadata(context.Background(), map[string]interface{}{
 				"new": "foobar",
 			})
 			s.Require().NoError(err)

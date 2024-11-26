@@ -1,3 +1,11 @@
+# Mux
+
+`mux` package provides helpers for starting multiple servers. HTTP and gRPC
+servers are supported currently.
+
+## Usage
+
+```go
 package main
 
 import (
@@ -52,3 +60,4 @@ func (s SlowCommonService) GetVersion(ctx context.Context, req *commonv1.GetVers
 	}
 	return s.CommonService.GetVersion(ctx, req)
 }
+```

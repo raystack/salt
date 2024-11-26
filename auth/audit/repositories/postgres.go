@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/raystack/salt/auth/audit"
 	"time"
 
 	"github.com/jmoiron/sqlx/types"
-	"github.com/raystack/salt/audit"
 )
 
 type AuditModel struct {

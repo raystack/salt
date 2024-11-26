@@ -4,12 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/raystack/salt/auth/audit/repositories"
 	"time"
 
 	_ "github.com/lib/pq"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
-	"github.com/raystack/salt/audit/repositories"
 	"github.com/raystack/salt/log"
 )
 
