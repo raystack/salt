@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/goto/salt/log"
+	"github.com/raystack/salt/log"
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/contrib/samplers/probability/consistent"

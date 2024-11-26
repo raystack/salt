@@ -1,8 +1,9 @@
 package printer
 
 import (
-	"github.com/raystack/salt/cli/terminal"
 	"time"
+
+	"github.com/raystack/salt/cli/terminal"
 
 	"github.com/briandowns/spinner"
 )

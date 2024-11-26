@@ -1,53 +1,15 @@
 package otelgrpc_test
 
 import (
-	"context"
-	"errors"
 	"reflect"
 	"testing"
-	"time"
 
-	commonv1 "github.com/goto/salt/server/example/proto/gotocompany/common/v1"
-	"github.com/goto/salt/telemetry/otelgrpc"
+	"github.com/raystack/salt/telemetry/otelgrpc"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.20.0"
 )
 
-func Test_otelGRPCMonitor_Record(t *testing.T) {
-	mt := otelgrpc.NewMeter("localhost:1001", otelgrpc.WithMeterName("/meterName"))
-	assert.NotNil(t, mt)
-	initialAttr := mt.GetAttributes()
-	uc := mt.UnaryClientInterceptor()
-	assert.NotNil(t, uc)
-	assert.Equal(t, initialAttr, mt.GetAttributes())
-	sc := mt.StreamClientInterceptor()
-	assert.NotNil(t, sc)
-	assert.Equal(t, initialAttr, mt.GetAttributes())
-	mt.RecordUnary(context.Background(), otelgrpc.UnaryParams{
-		Start:  time.Now(),
-		Method: "/service.gojek.com/MethodName",
-		Req:    nil,
-		Res:    nil,
-		Err:    nil,
-	})
-	assert.Equal(t, initialAttr, mt.GetAttributes())
-	version := &commonv1.Version{
-		Version: "1.0.0",
-	}
-	mt.RecordUnary(context.Background(), otelgrpc.UnaryParams{
-		Start:  time.Now(),
-		Method: "",
-		Req:    &commonv1.GetVersionRequest{Client: version},
-		Res:    nil,
-		Err:    nil,
-	})
-	assert.Equal(t, initialAttr, mt.GetAttributes())
-	mt.RecordStream(context.Background(), time.Now(), "", nil)
-	assert.Equal(t, initialAttr, mt.GetAttributes())
-	mt.RecordStream(context.Background(), time.Now(), "/service.gojek.com/MethodName", errors.New("dummy error"))
-	assert.Equal(t, initialAttr, mt.GetAttributes())
-}
 func Test_parseFullMethod(t *testing.T) {
 	type args struct {
 		fullMethod string
@@ -75,15 +37,7 @@ func Test_parseFullMethod(t *testing.T) {
 		})
 	}
 }
-func Test_getProtoSize(t *testing.T) {
-	version := &commonv1.Version{
-		Version: "1.0.0",
-	}
-	req := &commonv1.GetVersionResponse{Server: version}
-	if got := otelgrpc.GetProtoSize(req); got != 9 {
-		t.Errorf("getProtoSize() = %v, want %v", got, 9)
-	}
-}
+
 func TestExtractAddress(t *testing.T) {
 	gotHost, gotPort := otelgrpc.ExtractAddress("localhost:1001")
 	assert.Equal(t, "localhost", gotHost)

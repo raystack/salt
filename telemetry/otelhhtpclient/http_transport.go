@@ -41,7 +41,7 @@ func NewHTTPTransport(baseTransport http.RoundTripper) http.RoundTripper {
 		baseTransport = http.DefaultTransport
 	}
 	icl := &httpTransport{roundTripper: baseTransport}
-	icl.createMeasures(otel.Meter("github.com/goto/salt/telemetry/otehttpclient"))
+	icl.createMeasures(otel.Meter("github.com/raystack/salt/telemetry/otehttpclient"))
 	return icl
 }
 func (tr *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {

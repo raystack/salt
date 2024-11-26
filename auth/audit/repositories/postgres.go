@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/raystack/salt/auth/audit"
 	"time"
+
+	"github.com/raystack/salt/auth/audit"
 
 	"github.com/jmoiron/sqlx/types"
 )

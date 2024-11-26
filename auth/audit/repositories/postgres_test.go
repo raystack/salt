@@ -2,10 +2,11 @@ package repositories_test
 
 import (
 	"context"
-	"github.com/raystack/salt/auth/audit"
-	"github.com/raystack/salt/auth/audit/repositories"
 	"testing"
 	"time"
+
+	"github.com/raystack/salt/auth/audit"
+	"github.com/raystack/salt/auth/audit/repositories"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"

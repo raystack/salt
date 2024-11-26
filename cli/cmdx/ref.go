@@ -3,9 +3,10 @@ package cmdx
 import (
 	"bytes"
 	"fmt"
-	"github.com/raystack/salt/cli/printer"
 	"io"
 	"strings"
+
+	"github.com/raystack/salt/cli/printer"
 
 	"github.com/spf13/cobra"
 )

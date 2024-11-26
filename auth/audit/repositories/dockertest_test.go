@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/raystack/salt/auth/audit/repositories"
 	"time"
+
+	"github.com/raystack/salt/auth/audit/repositories"
 
 	_ "github.com/lib/pq"
 	"github.com/ory/dockertest/v3"
