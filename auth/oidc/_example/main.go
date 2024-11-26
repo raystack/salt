@@ -2,14 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/raystack/salt/auth/oidc"
 	"log"
 	"os"
 	"strings"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-
-	"github.com/raystack/salt/oidc"
 )
 
 func main() {

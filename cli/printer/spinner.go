@@ -3,8 +3,9 @@ package printer
 import (
 	"time"
 
+	"github.com/raystack/salt/cli/terminal"
+
 	"github.com/briandowns/spinner"
-	"github.com/raystack/salt/terminal"
 )
 
 type Indicator struct {

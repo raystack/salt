@@ -4,8 +4,7 @@ package mocks
 
 import (
 	context "context"
-
-	audit "github.com/raystack/salt/audit"
+	"github.com/raystack/salt/auth/audit"
 
 	mock "github.com/stretchr/testify/mock"
 )

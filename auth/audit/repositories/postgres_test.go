@@ -5,11 +5,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/raystack/salt/auth/audit"
+	"github.com/raystack/salt/auth/audit/repositories"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/jmoiron/sqlx/types"
-	"github.com/raystack/salt/audit"
-	"github.com/raystack/salt/audit/repositories"
 	"github.com/raystack/salt/log"
 	"github.com/stretchr/testify/suite"
 )

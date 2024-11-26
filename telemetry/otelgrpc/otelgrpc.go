@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goto/salt/utils"
+	"github.com/raystack/salt/utils"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -30,7 +30,7 @@ type Meter struct {
 	attributes   []attribute.KeyValue
 }
 type MeterOpts struct {
-	meterName string `default:"github.com/goto/salt/telemetry/otelgrpc"`
+	meterName string `default:"github.com/raystack/salt/telemetry/otelgrpc"`
 }
 type Option func(*MeterOpts)
 

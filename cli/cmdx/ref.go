@@ -6,7 +6,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/raystack/salt/printer"
+	"github.com/raystack/salt/cli/printer"
+
 	"github.com/spf13/cobra"
 )
 

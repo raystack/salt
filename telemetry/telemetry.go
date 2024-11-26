@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/goto/salt/log"
+	"github.com/raystack/salt/log"
 )
 
 const gracePeriod = 5 * time.Second

@@ -1,10 +1,10 @@
 # salt
 
 [![GoDoc reference](https://img.shields.io/badge/godoc-reference-5272B4.svg)](https://godoc.org/github.com/raystack/salt)
-![test workflow](https://github.com/raystack/salt/actions/workflows/verify.yaml/badge.svg)
+![test workflow](https://github.com/raystack/salt/actions/workflows/test.yaml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/raystack/salt)](https://goreportcard.com/report/github.com/raystack/salt)
 
-Shared libraries used in the Raystack ecosystem. Use at your own risk. Breaking changes should be anticipated.
+Salt is a Golang utility library offering a variety of packages to simplify and enhance application development. It provides modular and reusable components for common tasks, including configuration management, CLI utilities, authentication, logging, and more.
 
 ## Installation
 
@@ -16,56 +16,50 @@ go get github.com/raystack/salt
 
 ## Pacakages
 
-### Audit
+### Configuration and Environment
+- **`config`**  
+  Utilities for managing application configurations using environment variables, files, or defaults.
 
-Package for adding audit events in your applications.
+### CLI Utilities
+- **`cli/cmdx`**  
+  Command execution and management tools.
 
-### Cmdx
+- **`cli/printer`**  
+  Utilities for formatting and printing output to the terminal.
 
-Cobra based cli helper which allows adding command groups, provides custom help and usage functions.
+- **`cli/prompt`**  
+  Interactive CLI prompts for user input.
 
-```
-var cmd = &cli.Command{
-	Use:   "exec <command> <subcommand> [flags]",
-	SilenceUsage:  true,
-	SilenceErrors: true,
-	Annotations: map[string]string{
-		"group": "core",
-		"help:learn": "Learn about the project",
-	},
-}
+- **`cli/terminal`**  
+  Terminal utilities for colors, cursor management, and formatting.
 
-cmdx.SetHelp(cmd)
-cmd.AddCommand(cmdx.SetCompletionCmd("exec"))
-cmd.AddCommand(cmdx.SetHelpTopicCmd("environment", envHelp))
-cmd.AddCommand(cmdx.SetHelpTopicCmd("auth", authHelp))
-cmd.AddCommand(cmdx.SetRefCmd(cmd))
-```
+- **`cli/version`**  
+  Utilities for displaying and managing CLI tool versions.
 
-### Config
+### Authentication and Security
+- **`auth/oidc`**  
+  Helpers for integrating OpenID Connect authentication flows.
 
-Viper abstractions which provides functions for loading config files for the application.
+- **`auth/audit`**  
+  Auditing tools for tracking security events and compliance.
 
-### DB
+### Server and Infrastructure
+- **`server`**  
+  Utilities for setting up and managing HTTP or RPC servers.
 
-Postgres based database abstractions for creating a client and running migrations.
+- **`db`**  
+  Helpers for database connections, migrations, and query execution.
 
-### Log
+- **`telemetry`**  
+  Observability tools for capturing application metrics and traces.
 
-Logger for easy application loggging.
+### Development and Testing
+- **`dockertestx`**  
+  Tools for creating and managing Docker-based testing environments.
 
-### Printer
+### Utilities
+- **`log`**  
+  Simplified logging utilities for structured and unstructured log messages.
 
-Command line printer for CLI based applications.
-
-### Server
-
-GRPC based server abstraction.
-
-### Term
-
-Helper functions for working with terminal.
-
-### Version
-
-Helper functions for fetching github latest and outdated releases.
+- **`utils`**  
+  General-purpose utility functions for common programming tasks.
