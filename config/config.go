@@ -15,19 +15,19 @@ import (
 	"github.com/spf13/viper"
 )
 
-// ConfigFileNotFoundError indicates that the configuration file was not found.
+// FileNotFoundError indicates that the configuration file was not found.
 // In this case, Viper will attempt to load configurations from environment variables or defaults.
-type ConfigFileNotFoundError struct {
+type FileNotFoundError struct {
 	Err error
 }
 
 // Error returns the error message for ConfigFileNotFoundError.
-func (e ConfigFileNotFoundError) Error() string {
+func (e FileNotFoundError) Error() string {
 	return fmt.Sprintf("config file not found, falling back to environment and defaults: %v", e.Err)
 }
 
 // Unwrap provides compatibility for error unwrapping.
-func (e *ConfigFileNotFoundError) Unwrap() error {
+func (e FileNotFoundError) Unwrap() error {
 	return e.Err
 }
 
@@ -140,7 +140,7 @@ func (l *Loader) Load(config interface{}) error {
 	if err := l.viperInstance.ReadInConfig(); err != nil {
 		var pathErr *fs.PathError
 		if errors.As(err, &pathErr) || errors.As(err, &viper.ConfigFileNotFoundError{}) {
-			return ConfigFileNotFoundError{Err: err}
+			return FileNotFoundError{Err: err}
 		}
 		return fmt.Errorf("failed to read config file: %w", err)
 	}
