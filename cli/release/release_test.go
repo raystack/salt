@@ -1,4 +1,4 @@
-package version
+package release
 
 import (
 	"net/http"
@@ -20,7 +20,7 @@ func TestReleaseInfo_Success(t *testing.T) {
 	}))
 	defer server.Close()
 
-	info, err := ReleaseInfo(server.URL)
+	info, err := FetchInfo(server.URL)
 	assert.NoError(t, err)
 	assert.Equal(t, "v1.2.3", info.Version)
 	assert.Equal(t, "https://example.com/tarball/v1.2.3", info.TarURL)
@@ -33,7 +33,7 @@ func TestReleaseInfo_Failure(t *testing.T) {
 	}))
 	defer server.Close()
 
-	info, err := ReleaseInfo(server.URL)
+	info, err := FetchInfo(server.URL)
 	assert.Error(t, err)
 	assert.Nil(t, info)
 }
@@ -46,13 +46,13 @@ func TestReleaseInfo_InvalidJSON(t *testing.T) {
 	}))
 	defer server.Close()
 
-	info, err := ReleaseInfo(server.URL)
+	info, err := FetchInfo(server.URL)
 	assert.Error(t, err)
 	assert.Nil(t, info)
 }
 
 func TestIsCurrentLatest(t *testing.T) {
-	// Test cases for version comparison
+	// Test cases for release comparison
 	tests := []struct {
 		currVersion   string
 		latestVersion string
@@ -67,7 +67,7 @@ func TestIsCurrentLatest(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result, err := IsCurrentLatest(test.currVersion, test.latestVersion)
+		result, err := CompareVersions(test.currVersion, test.latestVersion)
 		if test.shouldError {
 			assert.Error(t, err)
 		} else {
@@ -84,6 +84,6 @@ func TestUpdateNotice_ErrorHandling(t *testing.T) {
 	}))
 	defer server.Close()
 
-	notice := UpdateNotice("1.0.0", server.URL)
+	notice := CheckForUpdate("1.0.0", server.URL)
 	assert.Equal(t, "", notice)
 }

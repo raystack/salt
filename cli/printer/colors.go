@@ -8,56 +8,47 @@ import (
 
 var tp = termenv.EnvColorProfile()
 
-// Theme represents a color theme.
+// Theme defines a collection of colors for terminal outputs.
 type Theme struct {
-	ColorGreen   termenv.Color
-	ColorYellow  termenv.Color
-	ColorCyan    termenv.Color
-	ColorRed     termenv.Color
-	ColorGrey    termenv.Color
-	ColorBlue    termenv.Color
-	ColorMagenta termenv.Color
+	Green   termenv.Color
+	Yellow  termenv.Color
+	Cyan    termenv.Color
+	Red     termenv.Color
+	Grey    termenv.Color
+	Blue    termenv.Color
+	Magenta termenv.Color
 }
 
 var themes = map[string]Theme{
 	"light": {
-		ColorGreen:   tp.Color("#005F00"),
-		ColorYellow:  tp.Color("#FFAF00"),
-		ColorCyan:    tp.Color("#0087FF"),
-		ColorRed:     tp.Color("#D70000"),
-		ColorGrey:    tp.Color("#303030"),
-		ColorBlue:    tp.Color("#000087"),
-		ColorMagenta: tp.Color("#AF00FF"),
+		Green:   tp.Color("#005F00"),
+		Yellow:  tp.Color("#FFAF00"),
+		Cyan:    tp.Color("#0087FF"),
+		Red:     tp.Color("#D70000"),
+		Grey:    tp.Color("#303030"),
+		Blue:    tp.Color("#000087"),
+		Magenta: tp.Color("#AF00FF"),
 	},
 	"dark": {
-		ColorGreen:   tp.Color("#A8CC8C"),
-		ColorYellow:  tp.Color("#DBAB79"),
-		ColorCyan:    tp.Color("#66C2CD"),
-		ColorRed:     tp.Color("#E88388"),
-		ColorGrey:    tp.Color("#B9BFCA"),
-		ColorBlue:    tp.Color("#71BEF2"),
-		ColorMagenta: tp.Color("#D290E4"),
+		Green:   tp.Color("#A8CC8C"),
+		Yellow:  tp.Color("#DBAB79"),
+		Cyan:    tp.Color("#66C2CD"),
+		Red:     tp.Color("#E88388"),
+		Grey:    tp.Color("#B9BFCA"),
+		Blue:    tp.Color("#71BEF2"),
+		Magenta: tp.Color("#D290E4"),
 	},
 }
 
-// ColorScheme is a color scheme.
-type ColorScheme struct {
-	theme Theme
-}
-
-// NewColorScheme returns a new ColorScheme with the given theme.
-func NewColorScheme() *ColorScheme {
+// NewTheme initializes a Theme based on the terminal background (light or dark).
+func NewTheme() Theme {
 	if !termenv.HasDarkBackground() {
-		return &ColorScheme{
-			theme: themes["light"],
-		}
+		return themes["light"]
 	}
-	return &ColorScheme{
-		theme: themes["dark"],
-	}
+	return themes["dark"]
 }
 
-var cs = NewColorScheme()
+var theme = NewTheme()
 
 func bold(t ...string) string {
 	return termenv.String(t...).Bold().String()
@@ -76,7 +67,7 @@ func italicf(t string, args ...interface{}) string {
 }
 
 func Green(t ...string) string {
-	return termenv.String(t...).Foreground(cs.theme.ColorGreen).String()
+	return termenv.String(t...).Foreground(theme.Green).String()
 }
 
 func Greenf(t string, args ...interface{}) string {
@@ -84,7 +75,7 @@ func Greenf(t string, args ...interface{}) string {
 }
 
 func Yellow(t ...string) string {
-	return termenv.String(t...).Foreground(cs.theme.ColorYellow).String()
+	return termenv.String(t...).Foreground(theme.Yellow).String()
 }
 
 func Yellowf(t string, args ...interface{}) string {
@@ -92,7 +83,7 @@ func Yellowf(t string, args ...interface{}) string {
 }
 
 func Cyan(t ...string) string {
-	return termenv.String(t...).Foreground(cs.theme.ColorCyan).String()
+	return termenv.String(t...).Foreground(theme.Cyan).String()
 }
 
 func Cyanf(t string, args ...interface{}) string {
@@ -100,7 +91,7 @@ func Cyanf(t string, args ...interface{}) string {
 }
 
 func Red(t ...string) string {
-	return termenv.String(t...).Foreground(cs.theme.ColorRed).String()
+	return termenv.String(t...).Foreground(theme.Red).String()
 }
 
 func Redf(t string, args ...interface{}) string {
@@ -108,7 +99,7 @@ func Redf(t string, args ...interface{}) string {
 }
 
 func Grey(t ...string) string {
-	return termenv.String(t...).Foreground(cs.theme.ColorGrey).String()
+	return termenv.String(t...).Foreground(theme.Grey).String()
 }
 
 func Greyf(t string, args ...interface{}) string {
@@ -116,7 +107,7 @@ func Greyf(t string, args ...interface{}) string {
 }
 
 func Blue(t ...string) string {
-	return termenv.String(t...).Foreground(cs.theme.ColorBlue).String()
+	return termenv.String(t...).Foreground(theme.Blue).String()
 }
 
 func Bluef(t string, args ...interface{}) string {
@@ -124,7 +115,7 @@ func Bluef(t string, args ...interface{}) string {
 }
 
 func Magenta(t ...string) string {
-	return termenv.String(t...).Foreground(cs.theme.ColorMagenta).String()
+	return termenv.String(t...).Foreground(theme.Magenta).String()
 }
 
 func Magentaf(t string, args ...interface{}) string {

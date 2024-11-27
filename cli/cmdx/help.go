@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// Section Titles for Help Output
 const (
 	USAGE     = "Usage"
 	CORECMD   = "Core commands"
@@ -22,185 +23,176 @@ const (
 	FEEDBACK  = "Feedback"
 )
 
-// SetHelp sets a custom help and usage function.
-// It allows to group commands in different sections
-// based on cobra commands annotations.
+// SetHelp configures custom help and usage functions for a Cobra command.
+// It organizes commands into sections based on annotations and provides enhanced error handling.
 func SetHelp(cmd *cobra.Command) {
 	cmd.PersistentFlags().Bool("help", false, "Show help for command")
 
 	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
-		rootHelpFunc(cmd, args)
+		displayHelp(cmd, args)
 	})
-	cmd.SetUsageFunc(rootUsageFunc)
-	cmd.SetFlagErrorFunc(rootFlagErrorFunc)
+	cmd.SetUsageFunc(generateUsage)
+	cmd.SetFlagErrorFunc(handleFlagError)
 }
 
-func rootUsageFunc(command *cobra.Command) error {
-	command.Printf("Usage:  %s", command.UseLine())
+// generateUsage customizes the usage function for a command.
+func generateUsage(cmd *cobra.Command) error {
+	cmd.Printf("Usage:  %s\n", cmd.UseLine())
 
-	subcommands := command.Commands()
+	subcommands := cmd.Commands()
 	if len(subcommands) > 0 {
-		command.Print("\n\nAvailable commands:\n")
-		for _, c := range subcommands {
-			if c.Hidden {
-				continue
+		cmd.Print("\nAvailable commands:\n")
+		for _, subCmd := range subcommands {
+			if !subCmd.Hidden {
+				cmd.Printf("  %s\n", subCmd.Name())
 			}
-			command.Printf("  %s\n", c.Name())
 		}
-		return nil
 	}
 
-	flagUsages := command.LocalFlags().FlagUsages()
+	flagUsages := cmd.LocalFlags().FlagUsages()
 	if flagUsages != "" {
-		command.Println("\n\nFlags:")
-		command.Print(indent(dedent(flagUsages), "  "))
+		cmd.Println("\nFlags:")
+		cmd.Print(indent(dedent(flagUsages), "  "))
 	}
 	return nil
 }
 
-func rootFlagErrorFunc(cmd *cobra.Command, err error) error {
+// handleFlagError processes flag-related errors, including the special case of help flags.
+func handleFlagError(cmd *cobra.Command, err error) error {
 	if err == pflag.ErrHelp {
 		return err
 	}
 	return err
 }
 
-func rootHelpFunc(command *cobra.Command, args []string) {
-	if isRootCmd(command.Parent()) && len(args) >= 2 && args[1] != "--help" && args[1] != "-h" {
-		nestedSuggestFunc(command, args[1])
+// displayHelp generates a custom help message for a Cobra command.
+func displayHelp(cmd *cobra.Command, args []string) {
+	if isRootCommand(cmd.Parent()) && len(args) >= 2 && args[1] != "--help" && args[1] != "-h" {
+		showSuggestions(cmd, args[1])
 		return
 	}
 
-	coreCommands := []string{}
-	groupCommands := map[string][]string{}
-	helpCommands := []string{}
-	otherCommands := []string{}
+	helpEntries := buildHelpEntries(cmd)
+	printHelpEntries(cmd, helpEntries)
+}
 
-	for _, c := range command.Commands() {
+// buildHelpEntries constructs a structured help message for a command.
+func buildHelpEntries(cmd *cobra.Command) []helpEntry {
+	var coreCommands, helpCommands, otherCommands []string
+	groupCommands := map[string][]string{}
+
+	for _, c := range cmd.Commands() {
 		if c.Short == "" || c.Hidden {
 			continue
 		}
-		s := rpad(c.Name(), c.NamePadding()+3) + c.Short
 
-		g, ok := c.Annotations["group"]
-		if ok && g == "core" {
-			coreCommands = append(coreCommands, s)
-		} else if ok && g == "help" {
-			helpCommands = append(helpCommands, s)
-		} else if ok && g != "" {
-			groupCommands[g] = append(groupCommands[g], s)
+		entry := fmt.Sprintf("%s%s", rpad(c.Name(), c.NamePadding()+3), c.Short)
+		if group, ok := c.Annotations["group"]; ok {
+			switch group {
+			case "core":
+				coreCommands = append(coreCommands, entry)
+			case "help":
+				helpCommands = append(helpCommands, entry)
+			default:
+				groupCommands[group] = append(groupCommands[group], entry)
+			}
 		} else {
-			otherCommands = append(otherCommands, s)
+			otherCommands = append(otherCommands, entry)
 		}
 	}
 
-	// If there are no core and other commands, assume everything is a core command
+	// Treat all commands as core if no groups are specified
 	if len(coreCommands) == 0 && len(groupCommands) == 0 {
 		coreCommands = otherCommands
 		otherCommands = []string{}
 	}
 
-	type helpEntry struct {
-		Title string
-		Body  string
-	}
-
-	text := command.Long
-
-	if text == "" {
-		text = command.Short
-	}
-
 	helpEntries := []helpEntry{}
-	if text != "" {
+	if text := cmd.Long; text != "" {
 		helpEntries = append(helpEntries, helpEntry{"", text})
 	}
 
-	helpEntries = append(helpEntries, helpEntry{USAGE, command.UseLine()})
-
+	helpEntries = append(helpEntries, helpEntry{USAGE, cmd.UseLine()})
 	if len(coreCommands) > 0 {
 		helpEntries = append(helpEntries, helpEntry{CORECMD, strings.Join(coreCommands, "\n")})
 	}
-
-	for name, cmds := range groupCommands {
-		if len(cmds) > 0 {
-			helpEntries = append(helpEntries, helpEntry{fmt.Sprint(toTitle(name) + " commands"), strings.Join(cmds, "\n")})
-		}
+	for group, cmds := range groupCommands {
+		helpEntries = append(helpEntries, helpEntry{fmt.Sprintf("%s commands", toTitle(group)), strings.Join(cmds, "\n")})
 	}
-
 	if len(otherCommands) > 0 {
 		helpEntries = append(helpEntries, helpEntry{OTHERCMD, strings.Join(otherCommands, "\n")})
 	}
-
 	if len(helpCommands) > 0 {
 		helpEntries = append(helpEntries, helpEntry{HELPCMD, strings.Join(helpCommands, "\n")})
 	}
-
-	flagUsages := command.LocalFlags().FlagUsages()
-	if flagUsages != "" {
+	if flagUsages := cmd.LocalFlags().FlagUsages(); flagUsages != "" {
 		helpEntries = append(helpEntries, helpEntry{FLAGS, dedent(flagUsages)})
 	}
-
-	inheritedFlagUsages := command.InheritedFlags().FlagUsages()
-	if inheritedFlagUsages != "" {
+	if inheritedFlagUsages := cmd.InheritedFlags().FlagUsages(); inheritedFlagUsages != "" {
 		helpEntries = append(helpEntries, helpEntry{IFLAGS, dedent(inheritedFlagUsages)})
 	}
-
-	if _, ok := command.Annotations["help:arguments"]; ok {
-		helpEntries = append(helpEntries, helpEntry{ARGUMENTS, command.Annotations["help:arguments"]})
+	if argsAnnotation, ok := cmd.Annotations["help:arguments"]; ok {
+		helpEntries = append(helpEntries, helpEntry{ARGUMENTS, argsAnnotation})
+	}
+	if cmd.Example != "" {
+		helpEntries = append(helpEntries, helpEntry{EXAMPLES, cmd.Example})
+	}
+	if argsAnnotation, ok := cmd.Annotations["help:learn"]; ok {
+		helpEntries = append(helpEntries, helpEntry{LEARN, argsAnnotation})
 	}
 
-	if command.Example != "" {
-		helpEntries = append(helpEntries, helpEntry{EXAMPLES, command.Example})
+	if argsAnnotation, ok := cmd.Annotations["help:feedback"]; ok {
+		helpEntries = append(helpEntries, helpEntry{FEEDBACK, argsAnnotation})
 	}
+	return helpEntries
+}
 
-	if _, ok := command.Annotations["help:learn"]; ok {
-		helpEntries = append(helpEntries, helpEntry{LEARN, command.Annotations["help:learn"]})
-	}
-
-	if _, ok := command.Annotations["help:feedback"]; ok {
-		helpEntries = append(helpEntries, helpEntry{FEEDBACK, command.Annotations["help:feedback"]})
-	}
-
-	out := command.OutOrStdout()
-	for _, e := range helpEntries {
-		if e.Title != "" {
-			// If there is a title, add indentation to each line in the body
-			fmt.Fprintln(out, bold(e.Title))
-			fmt.Fprintln(out, indent(strings.Trim(e.Body, "\r\n"), "  "))
+// printHelpEntries displays help entries to the command's output.
+func printHelpEntries(cmd *cobra.Command, entries []helpEntry) {
+	out := cmd.OutOrStdout()
+	for _, entry := range entries {
+		if entry.Title != "" {
+			fmt.Fprintln(out, bold(entry.Title))
+			fmt.Fprintln(out, indent(strings.Trim(entry.Body, "\r\n"), "  "))
 		} else {
-			// If there is no title print the body as is
-			fmt.Println(e.Body)
+			fmt.Fprintln(out, entry.Body)
 		}
 		fmt.Fprintln(out)
 	}
 }
 
-// Display helpful error message in case subcommand name was mistyped.
-func nestedSuggestFunc(command *cobra.Command, arg string) {
-	command.Printf("unknown command %q for %q\n", arg, command.CommandPath())
+// showSuggestions displays suggestions for mistyped subcommands.
+func showSuggestions(cmd *cobra.Command, arg string) {
+	cmd.Printf("unknown command %q for %q\n", arg, cmd.CommandPath())
 
-	var candidates []string
+	var suggestions []string
 	if arg == "help" {
-		candidates = []string{"--help"}
+		suggestions = []string{"--help"}
 	} else {
-		if command.SuggestionsMinimumDistance <= 0 {
-			command.SuggestionsMinimumDistance = 2
+		if cmd.SuggestionsMinimumDistance <= 0 {
+			cmd.SuggestionsMinimumDistance = 2
 		}
-		candidates = command.SuggestionsFor(arg)
+		suggestions = cmd.SuggestionsFor(arg)
 	}
 
-	if len(candidates) > 0 {
-		command.Print("\nDid you mean this?\n")
-		for _, c := range candidates {
-			command.Printf("\t%s\n", c)
+	if len(suggestions) > 0 {
+		cmd.Println("\nDid you mean this?")
+		for _, suggestion := range suggestions {
+			cmd.Printf("  %s\n", suggestion)
 		}
 	}
 
-	command.Print("\n")
-	_ = rootUsageFunc(command)
+	cmd.Println()
+	_ = generateUsage(cmd)
 }
 
-func isRootCmd(command *cobra.Command) bool {
-	return command != nil && !command.HasParent()
+// isRootCommand checks if the given command is the root command.
+func isRootCommand(cmd *cobra.Command) bool {
+	return cmd != nil && !cmd.HasParent()
+}
+
+// Utility types and functions
+type helpEntry struct {
+	Title string
+	Body  string
 }

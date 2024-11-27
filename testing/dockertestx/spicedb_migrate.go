@@ -18,7 +18,7 @@ func MigrateSpiceDBWithDockertestNetwork(network *dockertest.Network) dockerMigr
 	}
 }
 
-// MigrateSpiceDBWithVersionTag is an option to assign version tag
+// MigrateSpiceDBWithVersionTag is an option to assign release tag
 // of a `quay.io/authzed/spicedb` image
 func MigrateSpiceDBWithVersionTag(versionTag string) dockerMigrateSpiceDBOption {
 	return func(dm *dockerMigrateSpiceDB) {

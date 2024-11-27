@@ -53,7 +53,7 @@ func PostgresWithDetail(
 	}
 }
 
-// PostgresWithVersionTag is an option to assign version tag
+// PostgresWithVersionTag is an option to assign release tag
 // of a `postgres` image
 func PostgresWithVersionTag(versionTag string) dockerPostgresOption {
 	return func(dpg *dockerPostgres) {

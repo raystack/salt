@@ -25,7 +25,7 @@ func MinioWithDockertestNetwork(network *dockertest.Network) dockerMinioOption {
 	}
 }
 
-// MinioWithVersionTag is an option to assign version tag
+// MinioWithVersionTag is an option to assign release tag
 // of a `quay.io/minio/minio` image
 func MinioWithVersionTag(versionTag string) dockerMinioOption {
 	return func(dm *dockerMinio) {

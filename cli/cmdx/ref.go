@@ -11,10 +11,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// SetRefCmd is used to generate the reference documentation
-// in markdown format for the command tree.
-// This should be added on the root command and can
-// be used as `help reference` or `reference help`.
+// SetRefCmd adds a `reference` command to the root command to generate
+// comprehensive reference documentation for the command tree.
+//
+// The `reference` command outputs the documentation in markdown format
+// and supports a `--plain` flag to control whether ANSI colors are used.
 func SetRefCmd(root *cobra.Command) *cobra.Command {
 	var isPlain bool
 	cmd := &cobra.Command{
@@ -31,39 +32,43 @@ func SetRefCmd(root *cobra.Command) *cobra.Command {
 	return cmd
 }
 
+// referenceHelpFn generates the output for the `reference` command.
+// It renders the documentation either as plain markdown or with ANSI color.
 func referenceHelpFn(isPlain *bool) func(*cobra.Command, []string) {
 	return func(cmd *cobra.Command, args []string) {
 		var (
-			md  string
-			err error
+			output string
+			err    error
 		)
 
 		if *isPlain {
-			md = cmd.Long
+			output = cmd.Long
 		} else {
-			md, err = printer.Markdown(cmd.Long)
+			output, err = printer.Markdown(cmd.Long)
 			if err != nil {
-				fmt.Println(err)
+				fmt.Println("Error generating markdown:", err)
 				return
 			}
 		}
 
-		fmt.Print(md)
+		fmt.Print(output)
 	}
 }
 
+// referenceLong generates the complete reference documentation
+// for the command tree in markdown format.
 func referenceLong(cmd *cobra.Command) string {
 	buf := bytes.NewBufferString(fmt.Sprintf("# %s reference\n\n", cmd.Name()))
 	for _, c := range cmd.Commands() {
 		if c.Hidden {
 			continue
 		}
-		cmdRef(buf, c, 2)
+		generateCommandReference(buf, c, 2)
 	}
 	return buf.String()
 }
 
-func cmdRef(w io.Writer, cmd *cobra.Command, depth int) {
+func generateCommandReference(w io.Writer, cmd *cobra.Command, depth int) {
 	// Name + Description
 	fmt.Fprintf(w, "%s `%s`\n\n", strings.Repeat("#", depth), cmd.UseLine())
 	fmt.Fprintf(w, "%s\n\n", cmd.Short)
@@ -77,6 +82,6 @@ func cmdRef(w io.Writer, cmd *cobra.Command, depth int) {
 		if c.Hidden {
 			continue
 		}
-		cmdRef(w, c, depth+1)
+		generateCommandReference(w, c, depth+1)
 	}
 }

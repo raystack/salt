@@ -21,7 +21,7 @@ func MigrateMinioWithDockertestNetwork(network *dockertest.Network) dockerMigrat
 	}
 }
 
-// MigrateMinioWithVersionTag is an option to assign version tag
+// MigrateMinioWithVersionTag is an option to assign release tag
 // of a `minio/mc` image
 func MigrateMinioWithVersionTag(versionTag string) dockerMigrateMinioOption {
 	return func(dm *dockerMigrateMinio) {

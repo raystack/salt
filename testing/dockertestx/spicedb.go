@@ -37,7 +37,7 @@ func SpiceDBWithDockertestNetwork(network *dockertest.Network) dockerSpiceDBOpti
 	}
 }
 
-// SpiceDBWithVersionTag is an option to assign version tag
+// SpiceDBWithVersionTag is an option to assign release tag
 // of a `quay.io/authzed/spicedb` image
 func SpiceDBWithVersionTag(versionTag string) dockerSpiceDBOption {
 	return func(dsp *dockerSpiceDB) {

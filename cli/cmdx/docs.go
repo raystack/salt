@@ -1,6 +1,7 @@
 package cmdx
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -8,18 +9,30 @@ import (
 	"github.com/spf13/cobra/doc"
 )
 
-// GenerateMarkdownTree generate cobra cmd commands tree as markdown file
-// rootOutputPath determines the folder where the markdown files are written
+// GenerateMarkdownTree generates a Markdown documentation tree for all commands
+// in the given Cobra command hierarchy.
+//
+// Parameters:
+//   - rootOutputPath: The root directory where the Markdown files will be generated.
+//   - cmd: The root Cobra command whose hierarchy will be documented.
+//
+// Returns:
+//   - An error if any part of the process (file creation, directory creation) fails.
+//
+// Example Usage:
+//
+//	rootCmd := &cobra.Command{Use: "mycli"}
+//	cmdx.GenerateMarkdownTree("./docs", rootCmd)
 func GenerateMarkdownTree(rootOutputPath string, cmd *cobra.Command) error {
 	dirFilePath := filepath.Join(rootOutputPath, cmd.Name())
-	if len(cmd.Commands()) != 0 {
-		if _, err := os.Stat(dirFilePath); os.IsNotExist(err) {
-			if err := os.Mkdir(dirFilePath, os.ModePerm); err != nil {
-				return err
-			}
+	if len(cmd.Commands()) > 0 {
+		if err := ensureDir(dirFilePath); err != nil {
+			return fmt.Errorf("failed to create directory for command %q: %w", cmd.Name(), err)
 		}
 		for _, subCmd := range cmd.Commands() {
-			GenerateMarkdownTree(dirFilePath, subCmd)
+			if err := GenerateMarkdownTree(dirFilePath, subCmd); err != nil {
+				return err
+			}
 		}
 	} else {
 		outFilePath := filepath.Join(rootOutputPath, cmd.Name())
@@ -29,11 +42,22 @@ func GenerateMarkdownTree(rootOutputPath string, cmd *cobra.Command) error {
 		if err != nil {
 			return err
 		}
+		defer f.Close()
 
 		return doc.GenMarkdownCustom(cmd, f, func(s string) string {
 			return filepath.Join(dirFilePath, s)
 		})
 	}
 
+	return nil
+}
+
+// ensureDir ensures that the given directory exists, creating it if necessary.
+func ensureDir(path string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if err := os.MkdirAll(path, os.ModePerm); err != nil {
+			return err
+		}
+	}
 	return nil
 }

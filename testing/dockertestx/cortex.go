@@ -22,7 +22,7 @@ func CortexWithDockertestNetwork(network *dockertest.Network) dockerCortexOption
 	}
 }
 
-// CortexWithDockertestNetwork is an option to assign version tag
+// CortexWithDockertestNetwork is an option to assign release tag
 // of a `quay.io/cortexproject/cortex` image
 func CortexWithVersionTag(versionTag string) dockerCortexOption {
 	return func(dc *dockerCortex) {

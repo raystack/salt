@@ -18,7 +18,7 @@ const (
 	metricClientRequestSize     = "http.client.request.size"
 	metricClientResponseSize    = "http.client.response.size"
 	attributeNetProtoName       = "network.protocol.name"
-	attributeNetProtoVersion    = "network.protocol.version"
+	attributeNetProtoVersion    = "network.protocol.release"
 	attributeServerPort         = "server.port"
 	attributeServerAddress      = "server.address"
 	attributeHTTPRoute          = "http.route"

@@ -43,7 +43,7 @@ func NginxWithDockertestNetwork(network *dockertest.Network) dockerNginxOption {
 	}
 }
 
-// NginxWithVersionTag is an option to assign version tag
+// NginxWithVersionTag is an option to assign release tag
 // of a `nginx` image
 func NginxWithVersionTag(versionTag string) dockerNginxOption {
 	return func(dc *dockerNginx) {

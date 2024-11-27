@@ -14,7 +14,7 @@ The `prompt` package simplifies interactive CLI input using the `survey` library
 Add the package to your Go project:
 
 ```bash
-go get github.com/raystack/salt/prompt
+go get github.com/raystack/salt/cli/prompt
 ```
 
 ## Usage
@@ -26,7 +26,7 @@ package main
 
 import (
     "fmt"
-    "github.com/raystack/salt/prompt"
+    "github.com/raystack/salt/cli/prompt"
 )
 
 func main() {

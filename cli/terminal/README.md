@@ -16,7 +16,7 @@ The `terminal` package provides a collection of utilities to manage terminal int
 To include this package in your Go project, use:
 
 ```bash
-go get github.com/raystack/salt
+go get github.com/raystack/salt/
 ```
 
 ## Usage
@@ -30,7 +30,7 @@ package main
 
 import (
     "fmt"
-    "github.com/raystack/salt/terminal"
+    "github.com/raystack/salt/cli/terminal"
 )
 
 func main() {
