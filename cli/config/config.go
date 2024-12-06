@@ -2,70 +2,65 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 
 	"github.com/mcuadros/go-defaults"
+	"github.com/raystack/salt/config"
 	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v3"
-
-	"github.com/raystack/salt/config"
 )
 
-// Environment variables for configuration paths
-const (
-	RaystackConfigDirEnv = "RAYSTACK_CONFIG_DIR"
-	XDGConfigHomeEnv     = "XDG_CONFIG_HOME"
-	AppDataEnv           = "AppData"
-)
+// Config represents the configuration structure.
+type Config struct {
+	path  string
+	flags *pflag.FlagSet
+}
 
-// ConfigLoaderOpt defines a functional option for configuring the Config object.
-type ConfigLoaderOpt func(c *Config)
+// New creates a new Config instance for the given application.
+func New(app string, opts ...Opts) (*Config, error) {
+	filePath, err := getConfigFilePath(app)
+	if err != nil {
+		return nil, fmt.Errorf("failed to determine config file path: %w", err)
+	}
+
+	cfg := &Config{path: filePath}
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
+	return cfg, nil
+}
+
+// Opts defines a functional option for configuring the Config object.
+type Opts func(c *Config)
 
 // WithFlags binds command-line flags to configuration values.
-func WithFlags(pfs *pflag.FlagSet) ConfigLoaderOpt {
+func WithFlags(pfs *pflag.FlagSet) Opts {
 	return func(c *Config) {
-		c.boundFlags = pfs
+		c.flags = pfs
 	}
 }
 
-// WithLoaderOptions adds custom loader options for configuration loading.
-func WithLoaderOptions(opts ...config.LoaderOption) ConfigLoaderOpt {
-	return func(c *Config) {
-		c.loaderOpts = append(c.loaderOpts, opts...)
+// Load reads the configuration file into the Config's Data map.
+func (c *Config) Load(cfg interface{}) error {
+	loaderOpts := []config.LoaderOption{config.WithFile(c.path)}
+
+	if c.flags != nil {
+		loaderOpts = append(loaderOpts, config.WithBindPFlags(c.flags, cfg))
 	}
-}
 
-// SetConfig initializes a new Config object for the specified application.
-func SetConfig(app string) *Config {
-	return &Config{
-		filename: configFile(app),
-	}
-}
-
-// Config manages the application's configuration file and related operations.
-type Config struct {
-	filename   string
-	boundFlags *pflag.FlagSet
-	loaderOpts []config.LoaderOption
-}
-
-// File returns the path to the configuration file.
-func (c *Config) File() string {
-	return c.filename
-}
-
-// Defaults populates the given configuration struct with default values.
-func (c *Config) Defaults(cfg interface{}) {
-	defaults.SetDefaults(cfg)
+	loader := config.NewLoader(loaderOpts...)
+	return loader.Load(cfg)
 }
 
 // Init initializes the configuration file with default values.
 func (c *Config) Init(cfg interface{}) error {
 	defaults.SetDefaults(cfg)
 
-	if fileExists(c.filename) {
+	if fileExists(c.path) {
 		return errors.New("configuration file already exists")
 	}
 
@@ -74,77 +69,65 @@ func (c *Config) Init(cfg interface{}) error {
 
 // Read reads the content of the configuration file as a string.
 func (c *Config) Read() (string, error) {
-	data, err := os.ReadFile(c.filename)
-	return string(data), err
+	data, err := os.ReadFile(c.path)
+	if err != nil {
+		return "", fmt.Errorf("failed to read configuration file: %w", err)
+	}
+	return string(data), nil
 }
 
-// Write writes the given configuration struct to the configuration file in YAML format.
+// Write writes the given struct to the configuration file in YAML format.
 func (c *Config) Write(cfg interface{}) error {
 	data, err := yaml.Marshal(cfg)
 	if err != nil {
+		return fmt.Errorf("failed to marshal configuration: %w", err)
+	}
+
+	if err := ensureDir(filepath.Dir(c.path)); err != nil {
 		return err
 	}
 
-	if _, err := os.Stat(c.filename); os.IsNotExist(err) {
-		_ = os.MkdirAll(configDir("raystack"), 0700)
-	}
-
-	if err := os.WriteFile(c.filename, data, 0655); err != nil {
-		return err
+	if err := os.WriteFile(c.path, data, 0655); err != nil {
+		return fmt.Errorf("failed to write configuration file: %w", err)
 	}
 	return nil
 }
 
-// Load loads the configuration from the file and applies the provided loader options.
-func (c *Config) Load(cfg interface{}, opts ...ConfigLoaderOpt) error {
-	for _, opt := range opts {
-		opt(c)
+// getConfigFile determines the full path to the configuration file for the application.
+func getConfigFilePath(app string) (string, error) {
+	dirPath := getConfigDir("raystack")
+	if err := ensureDir(dirPath); err != nil {
+		return "", err
 	}
-
-	loaderOpts := []config.LoaderOption{config.WithFile(c.filename)}
-
-	if c.boundFlags != nil {
-		loaderOpts = append(loaderOpts, config.WithBindPFlags(c.boundFlags, cfg))
-	}
-	loaderOpts = append(loaderOpts, c.loaderOpts...)
-
-	loader := config.NewLoader(loaderOpts...)
-
-	return loader.Load(cfg)
+	return filepath.Join(dirPath, app+".yml"), nil
 }
 
-// configFile determines the full path to the configuration file for the application.
-func configFile(app string) string {
-	filename := app + ".yml"
-	return filepath.Join(configDir("raystack"), filename)
-}
-
-// configDir determines the appropriate directory for storing configuration files.
-func configDir(root string) string {
-	var path string
-	if env := os.Getenv(RaystackConfigDirEnv); env != "" {
-		path = env
-	} else if env := os.Getenv(XDGConfigHomeEnv); env != "" {
-		path = filepath.Join(env, root)
-	} else if runtime.GOOS == "windows" {
-		if env := os.Getenv(AppDataEnv); env != "" {
-			path = filepath.Join(env, root)
-		}
-	} else {
+// getConfigDir determines the directory for storing configurations.
+func getConfigDir(root string) string {
+	switch {
+	case envSet("RAYSTACK_CONFIG_DIR"):
+		return filepath.Join(os.Getenv("RAYSTACK_CONFIG_DIR"), root)
+	case envSet("XDG_CONFIG_HOME"):
+		return filepath.Join(os.Getenv("XDG_CONFIG_HOME"), root)
+	case runtime.GOOS == "windows" && envSet("APPDATA"):
+		return filepath.Join(os.Getenv("APPDATA"), root)
+	default:
 		home, _ := os.UserHomeDir()
-		path = filepath.Join(home, ".config", root)
+		return filepath.Join(home, ".config", root)
 	}
-
-	if !dirExists(path) {
-		_ = os.MkdirAll(filepath.Dir(path), 0755)
-	}
-
-	return path
 }
 
-func dirExists(path string) bool {
-	f, err := os.Stat(path)
-	return err == nil && f.IsDir()
+// ensureDir ensures that the given directory exists.
+func ensureDir(dir string) error {
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("failed to create directory %q: %w", dir, err)
+	}
+	return nil
+}
+
+// envSet checks if an environment variable is set and non-empty.
+func envSet(key string) bool {
+	return os.Getenv(key) != ""
 }
 
 func fileExists(filename string) bool {

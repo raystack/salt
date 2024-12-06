@@ -167,7 +167,7 @@ func (l *Loader) Load(config interface{}) error {
 func validateStructPtr(value interface{}) error {
 	val := reflect.ValueOf(value)
 	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Struct {
-		return errors.New("Load requires a pointer to a struct")
+		return errors.New("load requires a pointer to a struct")
 	}
 	return nil
 }

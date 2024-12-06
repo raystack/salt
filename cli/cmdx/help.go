@@ -1,6 +1,7 @@
 package cmdx
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -66,7 +67,7 @@ func generateUsage(cmd *cobra.Command) error {
 
 // handleFlagError processes flag-related errors, including the special case of help flags.
 func handleFlagError(cmd *cobra.Command, err error) error {
-	if err == pflag.ErrHelp {
+	if errors.Is(err, pflag.ErrHelp) {
 		return err
 	}
 	return err
@@ -144,10 +145,12 @@ func buildHelpEntries(cmd *cobra.Command) []helpEntry {
 	if cmd.Example != "" {
 		helpEntries = append(helpEntries, helpEntry{EXAMPLES, cmd.Example})
 	}
+	if argsAnnotation, ok := cmd.Annotations["help:environment"]; ok {
+		helpEntries = append(helpEntries, helpEntry{ENVS, argsAnnotation})
+	}
 	if argsAnnotation, ok := cmd.Annotations["help:learn"]; ok {
 		helpEntries = append(helpEntries, helpEntry{LEARN, argsAnnotation})
 	}
-
 	if argsAnnotation, ok := cmd.Annotations["help:feedback"]; ok {
 		helpEntries = append(helpEntries, helpEntry{FEEDBACK, argsAnnotation})
 	}
