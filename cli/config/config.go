@@ -1,4 +1,4 @@
-package cmdx
+package config
 
 import (
 	"errors"
@@ -140,4 +140,14 @@ func configDir(root string) string {
 	}
 
 	return path
+}
+
+func dirExists(path string) bool {
+	f, err := os.Stat(path)
+	return err == nil && f.IsDir()
+}
+
+func fileExists(filename string) bool {
+	_, err := os.Stat(filename)
+	return err == nil
 }

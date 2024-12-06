@@ -12,8 +12,8 @@ import (
 const (
 	USAGE     = "Usage"
 	CORECMD   = "Core commands"
-	HELPCMD   = "Help topics"
 	OTHERCMD  = "Other commands"
+	HELPCMD   = "Help topics"
 	FLAGS     = "Flags"
 	IFLAGS    = "Inherited flags"
 	ARGUMENTS = "Arguments"
@@ -23,16 +23,23 @@ const (
 	FEEDBACK  = "Feedback"
 )
 
-// SetHelp configures custom help and usage functions for a Cobra command.
-// It organizes commands into sections based on annotations and provides enhanced error handling.
-func SetHelp(cmd *cobra.Command) {
-	cmd.PersistentFlags().Bool("help", false, "Show help for command")
+// SetCustomHelp configures a custom help function for the CLI.
+//
+// The custom help function organizes commands into sections and provides
+// detailed error messages for incorrect flag usage.
+//
+// Example:
+//
+//	manager := cmdx.NewManager(rootCmd)
+//	manager.SetCustomHelp()
+func (m *Manager) SetCustomHelp() {
+	m.RootCmd.PersistentFlags().Bool("help", false, "Show help for command")
 
-	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+	m.RootCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
 		displayHelp(cmd, args)
 	})
-	cmd.SetUsageFunc(generateUsage)
-	cmd.SetFlagErrorFunc(handleFlagError)
+	m.RootCmd.SetUsageFunc(generateUsage)
+	m.RootCmd.SetFlagErrorFunc(handleFlagError)
 }
 
 // generateUsage customizes the usage function for a command.

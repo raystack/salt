@@ -3,7 +3,6 @@ package cmdx
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 
@@ -51,16 +50,6 @@ func indent(s, indent string) string {
 		return s
 	}
 	return lineRE.ReplaceAllLiteralString(s, indent)
-}
-
-func dirExists(path string) bool {
-	f, err := os.Stat(path)
-	return err == nil && f.IsDir()
-}
-
-func fileExists(filename string) bool {
-	_, err := os.Stat(filename)
-	return err == nil
 }
 
 func toTitle(text string) string {
