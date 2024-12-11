@@ -5,13 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 
 	"github.com/go-playground/validator"
-	"github.com/jeremywohl/flatten"
 	"github.com/mcuadros/go-defaults"
-	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
@@ -71,6 +70,17 @@ func WithFlags(flags *pflag.FlagSet) Option {
 	}
 }
 
+// WithAppConfig sets up application-specific configuration file handling.
+func WithAppConfig(app string) Option {
+	return func(l *Loader) {
+		filePath, err := getConfigFilePath(app)
+		if err != nil {
+			panic(fmt.Errorf("failed to determine config file path: %w", err))
+		}
+		l.v.SetConfigFile(filePath)
+	}
+}
+
 // Load reads the configuration from the file, environment variables, and command-line flags,
 // and merges them into the provided configuration struct. It validates the configuration
 // using struct tags.
@@ -127,6 +137,30 @@ func (l *Loader) Load(config interface{}) error {
 	return nil
 }
 
+// Init initializes the configuration file with default values.
+func (l *Loader) Init(config interface{}) error {
+	defaults.SetDefaults(config)
+
+	path := l.v.ConfigFileUsed()
+	if fileExists(path) {
+		return errors.New("configuration file already exists")
+	}
+
+	data, err := yaml.Marshal(config)
+	if err != nil {
+		return fmt.Errorf("failed to marshal configuration: %w", err)
+	}
+
+	if err := ensureDir(filepath.Dir(path)); err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		return fmt.Errorf("failed to write configuration file: %w", err)
+	}
+	return nil
+}
+
 // Get retrieves a configuration value by key.
 func (l *Loader) Get(key string) interface{} {
 	return l.v.Get(key)
@@ -164,61 +198,4 @@ func (l *Loader) View() (string, error) {
 		return "", fmt.Errorf("failed to format configuration as JSON: %w", err)
 	}
 	return string(data), nil
-}
-
-// validateStructPtr ensures the provided value is a pointer to a struct.
-func validateStructPtr(value interface{}) error {
-	val := reflect.ValueOf(value)
-	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Struct {
-		return errors.New("load requires a pointer to a struct")
-	}
-	return nil
-}
-
-// extractFlattenedKeys retrieves all keys from the struct in a flattened format.
-func extractFlattenedKeys(config interface{}) ([]string, error) {
-	var structMap map[string]interface{}
-	if err := mapstructure.Decode(config, &structMap); err != nil {
-		return nil, err
-	}
-	flatMap, err := flatten.Flatten(structMap, "", flatten.DotStyle)
-	if err != nil {
-		return nil, err
-	}
-	keys := make([]string, 0, len(flatMap))
-	for k := range flatMap {
-		keys = append(keys, k)
-	}
-	return keys, nil
-}
-
-// bindFlags dynamically binds flags to configuration fields based on `cmdx` tags.
-func bindFlags(v *viper.Viper, flagSet *pflag.FlagSet, structType reflect.Type, parentKey string) error {
-	for i := 0; i < structType.NumField(); i++ {
-		field := structType.Field(i)
-		tag := field.Tag.Get("cmdx")
-		if tag == "" {
-			continue
-		}
-
-		if parentKey != "" {
-			tag = parentKey + "." + tag
-		}
-
-		if field.Type.Kind() == reflect.Struct {
-			// Recurse into nested structs
-			if err := bindFlags(v, flagSet, field.Type, tag); err != nil {
-				return err
-			}
-		} else {
-			flag := flagSet.Lookup(tag)
-			if flag == nil {
-				return fmt.Errorf("missing flag for tag: %s", tag)
-			}
-			if err := v.BindPFlag(tag, flag); err != nil {
-				return fmt.Errorf("failed to bind flag for tag: %s, error: %w", tag, err)
-			}
-		}
-	}
-	return nil
 }

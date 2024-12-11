@@ -301,3 +301,168 @@ func TestFlagsOnly(t *testing.T) {
 		t.Errorf("Expected LogLevel to be 'warn', got %s", cfg.LogLevel)
 	}
 }
+
+func TestLoader_SetAndGetSingleKey(t *testing.T) {
+	loader := config.NewLoader()
+
+	// Set a value
+	loader.Set("test.key", "testValue")
+	loader.Set("test.nested.key", 42)
+
+	value1 := loader.Get("test.key")
+	if value1 != "testValue" {
+		t.Errorf("Expected value for 'test.key' to be 'testValue', got %v", value1)
+	}
+
+	value2 := loader.Get("test.nested.key")
+	// Assert the value
+	if value2 != 42 {
+		t.Errorf("Expected value for 'test.nested.key' to be 42, got %v", value2)
+	}
+}
+
+func TestLoader_GetKeyFromConfigFile(t *testing.T) {
+	// Create a temporary configuration file
+	configFileContent := `
+server:
+  port: 8080
+  host: "example.com"
+log_level: "info"
+`
+	configFilePath := "./test_config.yaml"
+	if err := os.WriteFile(configFilePath, []byte(configFileContent), 0644); err != nil {
+		t.Fatalf("Failed to create test config file: %v", err)
+	}
+	defer os.Remove(configFilePath)
+
+	// Initialize Loader with the config file
+	loader := config.NewLoader(config.WithFile(configFilePath))
+
+	// Load the configuration
+	cfg := &Config{}
+	if err := loader.Load(cfg); err != nil {
+		t.Fatalf("Failed to load configuration: %v", err)
+	}
+
+	// Test retrieving keys using Get
+	if loader.Get("server.port") != 8080 {
+		t.Errorf("Expected 'server.port' to be 8080, got %v", loader.Get("server.port"))
+	}
+
+	if loader.Get("server.host") != "example.com" {
+		t.Errorf("Expected 'server.host' to be 'example.com', got %v", loader.Get("server.host"))
+	}
+
+	if loader.Get("log_level") != "info" {
+		t.Errorf("Expected 'log_level' to be 'info', got %v", loader.Get("log_level"))
+	}
+
+	// Test retrieving a key that doesn't exist
+	if loader.Get("nonexistent.key") != nil {
+		t.Errorf("Expected 'nonexistent.key' to be nil, got %v", loader.Get("nonexistent.key"))
+	}
+}
+
+func TestLoader_SetDoesNotPersistToFile(t *testing.T) {
+	// Create a temporary configuration file
+	configFileContent := `
+server:
+  port: 8080
+  host: "example.com"
+log_level: "info"
+`
+	configFilePath := "./test_config.yaml"
+	if err := os.WriteFile(configFilePath, []byte(configFileContent), 0644); err != nil {
+		t.Fatalf("Failed to create test config file: %v", err)
+	}
+	defer os.Remove(configFilePath)
+
+	// Initialize Loader with the config file
+	loader := config.NewLoader(config.WithFile(configFilePath))
+
+	// Load the configuration
+	cfg := &Config{}
+	if err := loader.Load(cfg); err != nil {
+		t.Fatalf("Failed to load configuration: %v", err)
+	}
+
+	// Set a new value for a key
+	loader.Set("server.port", 9090)
+
+	// Verify the in-memory value has been updated
+	if loader.Get("server.port") != 9090 {
+		t.Errorf("Expected 'server.port' to be 9090 in memory, got %v", loader.Get("server.port"))
+	}
+
+	// Reload the configuration from the file
+	newCfg := &Config{}
+	newLoader := config.NewLoader(config.WithFile(configFilePath))
+	if err := newLoader.Load(newCfg); err != nil {
+		t.Fatalf("Failed to reload configuration: %v", err)
+	}
+
+	// Verify the original file values are unchanged
+	if newLoader.Get("server.port") != 8080 {
+		t.Errorf("Expected 'server.port' to remain 8080 in file, got %v", newLoader.Get("server.port"))
+	}
+	if newLoader.Get("server.host") != "example.com" {
+		t.Errorf("Expected 'server.host' to remain 'example.com', got %v", newLoader.Get("server.host"))
+	}
+	if newLoader.Get("log_level") != "info" {
+		t.Errorf("Expected 'log_level' to remain 'info', got %v", newLoader.Get("log_level"))
+	}
+}
+
+func TestLoader_SetAndSavePersistToFile(t *testing.T) {
+	// Create a temporary configuration file
+	initialConfig := `
+server:
+  port: 8080
+  host: "example.com"
+log_level: "info"
+`
+	configFilePath := "./test_config.yaml"
+	if err := os.WriteFile(configFilePath, []byte(initialConfig), 0644); err != nil {
+		t.Fatalf("Failed to create test config file: %v", err)
+	}
+	defer os.Remove(configFilePath)
+
+	// Initialize Loader with the config file
+	loader := config.NewLoader(config.WithFile(configFilePath))
+
+	// Load the configuration
+	cfg := &Config{}
+	if err := loader.Load(cfg); err != nil {
+		t.Fatalf("Failed to load configuration: %v", err)
+	}
+
+	// Set new values for configuration keys
+	loader.Set("server.port", 9090)
+	loader.Set("server.host", "new-host.com")
+	loader.Set("log_level", "debug")
+
+	// Save the updated configuration to the file
+	if err := loader.Save(); err != nil {
+		t.Fatalf("Failed to save configuration: %v", err)
+	}
+
+	// Reload the configuration from the file into a new Loader
+	newLoader := config.NewLoader(config.WithFile(configFilePath))
+	newCfg := &Config{}
+	if err := newLoader.Load(newCfg); err != nil {
+		t.Fatalf("Failed to reload configuration: %v", err)
+	}
+
+	// Verify that the changes were persisted
+	if newLoader.Get("server.port") != 9090 {
+		t.Errorf("Expected 'server.port' to be 9090 in file, got %v", newLoader.Get("server.port"))
+	}
+
+	if newLoader.Get("server.host") != "new-host.com" {
+		t.Errorf("Expected 'server.host' to be 'new-host.com' in file, got %v", newLoader.Get("server.host"))
+	}
+
+	if newLoader.Get("log_level") != "debug" {
+		t.Errorf("Expected 'log_level' to be 'debug' in file, got %v", newLoader.Get("log_level"))
+	}
+}
