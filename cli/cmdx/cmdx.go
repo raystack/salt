@@ -1,8 +1,9 @@
 package cmdx
 
 import (
-	"github.com/spf13/cobra"
 	"strings"
+
+	"github.com/spf13/cobra"
 )
 
 // Commander manages and configures features for a CLI tool.

@@ -4,6 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"reflect"
+	"strings"
+
 	"github.com/go-playground/validator"
 	"github.com/jeremywohl/flatten"
 	"github.com/mcuadros/go-defaults"
@@ -11,9 +15,6 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
-	"os"
-	"reflect"
-	"strings"
 )
 
 // Loader is responsible for managing configuration

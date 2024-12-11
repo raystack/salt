@@ -1,12 +1,13 @@
 package config_test
 
 import (
-	"github.com/mcuadros/go-defaults"
-	"github.com/raystack/salt/config"
-	"github.com/spf13/pflag"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/mcuadros/go-defaults"
+	"github.com/raystack/salt/config"
+	"github.com/spf13/pflag"
 )
 
 type Config struct {
