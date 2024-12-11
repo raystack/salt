@@ -11,17 +11,17 @@ import (
 
 // Section Titles for Help Output
 const (
-	USAGE     = "Usage"
-	CORECMD   = "Core commands"
-	OTHERCMD  = "Other commands"
-	HELPCMD   = "Help topics"
-	FLAGS     = "Flags"
-	IFLAGS    = "Inherited flags"
-	ARGUMENTS = "Arguments"
-	EXAMPLES  = "Examples"
-	ENVS      = "Environment variables"
-	LEARN     = "Learn more"
-	FEEDBACK  = "Feedback"
+	usage     = "Usage"
+	corecmd   = "Core commands"
+	othercmd  = "Other commands"
+	helpcmd   = "Help topics"
+	flags     = "Flags"
+	iflags    = "Inherited flags"
+	arguments = "Arguments"
+	examples  = "Examples"
+	envs      = "Environment variables"
+	learn     = "Learn more"
+	feedback  = "Feedback"
 )
 
 // SetCustomHelp configures a custom help function for the CLI.
@@ -31,9 +31,9 @@ const (
 //
 // Example:
 //
-//	manager := cmdx.NewManager(rootCmd)
+//	manager := cmdx.NewCommander(rootCmd)
 //	manager.SetCustomHelp()
-func (m *Manager) SetCustomHelp() {
+func (m *Commander) SetCustomHelp() {
 	m.RootCmd.PersistentFlags().Bool("help", false, "Show help for command")
 
 	m.RootCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
@@ -120,39 +120,39 @@ func buildHelpEntries(cmd *cobra.Command) []helpEntry {
 		helpEntries = append(helpEntries, helpEntry{"", text})
 	}
 
-	helpEntries = append(helpEntries, helpEntry{USAGE, cmd.UseLine()})
+	helpEntries = append(helpEntries, helpEntry{usage, cmd.UseLine()})
 	if len(coreCommands) > 0 {
-		helpEntries = append(helpEntries, helpEntry{CORECMD, strings.Join(coreCommands, "\n")})
+		helpEntries = append(helpEntries, helpEntry{corecmd, strings.Join(coreCommands, "\n")})
 	}
 	for group, cmds := range groupCommands {
 		helpEntries = append(helpEntries, helpEntry{fmt.Sprintf("%s commands", toTitle(group)), strings.Join(cmds, "\n")})
 	}
 	if len(otherCommands) > 0 {
-		helpEntries = append(helpEntries, helpEntry{OTHERCMD, strings.Join(otherCommands, "\n")})
+		helpEntries = append(helpEntries, helpEntry{othercmd, strings.Join(otherCommands, "\n")})
 	}
 	if len(helpCommands) > 0 {
-		helpEntries = append(helpEntries, helpEntry{HELPCMD, strings.Join(helpCommands, "\n")})
+		helpEntries = append(helpEntries, helpEntry{helpcmd, strings.Join(helpCommands, "\n")})
 	}
 	if flagUsages := cmd.LocalFlags().FlagUsages(); flagUsages != "" {
-		helpEntries = append(helpEntries, helpEntry{FLAGS, dedent(flagUsages)})
+		helpEntries = append(helpEntries, helpEntry{flags, dedent(flagUsages)})
 	}
 	if inheritedFlagUsages := cmd.InheritedFlags().FlagUsages(); inheritedFlagUsages != "" {
-		helpEntries = append(helpEntries, helpEntry{IFLAGS, dedent(inheritedFlagUsages)})
+		helpEntries = append(helpEntries, helpEntry{iflags, dedent(inheritedFlagUsages)})
 	}
 	if argsAnnotation, ok := cmd.Annotations["help:arguments"]; ok {
-		helpEntries = append(helpEntries, helpEntry{ARGUMENTS, argsAnnotation})
+		helpEntries = append(helpEntries, helpEntry{arguments, argsAnnotation})
 	}
 	if cmd.Example != "" {
-		helpEntries = append(helpEntries, helpEntry{EXAMPLES, cmd.Example})
+		helpEntries = append(helpEntries, helpEntry{examples, cmd.Example})
 	}
 	if argsAnnotation, ok := cmd.Annotations["help:environment"]; ok {
-		helpEntries = append(helpEntries, helpEntry{ENVS, argsAnnotation})
+		helpEntries = append(helpEntries, helpEntry{envs, argsAnnotation})
 	}
 	if argsAnnotation, ok := cmd.Annotations["help:learn"]; ok {
-		helpEntries = append(helpEntries, helpEntry{LEARN, argsAnnotation})
+		helpEntries = append(helpEntries, helpEntry{learn, argsAnnotation})
 	}
 	if argsAnnotation, ok := cmd.Annotations["help:feedback"]; ok {
-		helpEntries = append(helpEntries, helpEntry{FEEDBACK, argsAnnotation})
+		helpEntries = append(helpEntries, helpEntry{feedback, argsAnnotation})
 	}
 	return helpEntries
 }

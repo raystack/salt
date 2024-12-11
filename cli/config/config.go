@@ -46,10 +46,10 @@ func WithFlags(pfs *pflag.FlagSet) Opts {
 
 // Load reads the configuration file into the Config's Data map.
 func (c *Config) Load(cfg interface{}) error {
-	loaderOpts := []config.LoaderOption{config.WithFile(c.path)}
+	loaderOpts := []config.Option{config.WithFile(c.path)}
 
 	if c.flags != nil {
-		loaderOpts = append(loaderOpts, config.WithBindPFlags(c.flags, cfg))
+		loaderOpts = append(loaderOpts, config.WithFlags(c.flags))
 	}
 
 	loader := config.NewLoader(loaderOpts...)

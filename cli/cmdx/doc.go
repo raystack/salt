@@ -59,8 +59,8 @@
 //	        },
 //	    }
 //
-//	    // Create the Manager with configurations
-//	    manager := cmdx.NewManager(
+//	    // Create the Commander with configurations
+//	    manager := cmdx.NewCommander(
 //	        rootCmd,
 //	        cmdx.WithTopics(helpTopics),
 //	        cmdx.WithHooks(hooks),

@@ -14,14 +14,14 @@ import (
 //
 // Example:
 //
-//	manager := cmdx.NewManager(rootCmd)
+//	manager := cmdx.NewCommander(rootCmd)
 //	manager.AddCompletionCommand()
 //
 // Usage:
 //
 //	$ mycli completion bash
 //	$ mycli completion zsh
-func (m *Manager) AddCompletionCommand() {
+func (m *Commander) AddCompletionCommand() {
 	summary := m.generateCompletionSummary(m.RootCmd.Use)
 
 	completionCmd := &cobra.Command{
@@ -38,7 +38,7 @@ func (m *Manager) AddCompletionCommand() {
 }
 
 // runCompletionCommand executes the appropriate shell completion generation logic.
-func (m *Manager) runCompletionCommand(cmd *cobra.Command, args []string) {
+func (m *Commander) runCompletionCommand(cmd *cobra.Command, args []string) {
 	switch args[0] {
 	case "bash":
 		cmd.Root().GenBashCompletion(os.Stdout)
@@ -52,7 +52,7 @@ func (m *Manager) runCompletionCommand(cmd *cobra.Command, args []string) {
 }
 
 // generateCompletionSummary creates the long description for the `completion` command.
-func (m *Manager) generateCompletionSummary(exec string) string {
+func (m *Commander) generateCompletionSummary(exec string) string {
 	var execs []interface{}
 	for i := 0; i < 12; i++ {
 		execs = append(execs, exec)

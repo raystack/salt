@@ -10,14 +10,14 @@ import (
 //
 // Help topics provide detailed information about specific subjects,
 // such as environment variables or configuration.
-func (m *Manager) AddHelpTopics() {
+func (m *Commander) AddHelpTopics() {
 	for _, topic := range m.Topics {
 		m.addHelpTopicCommand(topic)
 	}
 }
 
 // addHelpTopicCommand adds a single help topic command to the CLI.
-func (m *Manager) addHelpTopicCommand(topic HelpTopic) {
+func (m *Commander) addHelpTopicCommand(topic HelpTopic) {
 	helpCmd := &cobra.Command{
 		Use:     topic.Name,
 		Short:   topic.Short,
