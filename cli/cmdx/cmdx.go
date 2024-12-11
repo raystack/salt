@@ -63,7 +63,6 @@ func NewCommander(rootCmd *cobra.Command, options ...func(*Commander)) *Commande
 }
 
 // Init sets up the CLI features based on the Commander's configuration.
-//
 // It enables or disables features like custom help, reference documentation,
 // shell completion, help topics, and client hooks based on the Commander's settings.
 func (m *Commander) Init() {
@@ -103,7 +102,6 @@ func WithHooks(hooks []HookBehavior) func(*Commander) {
 }
 
 // IsCLIErr checks if the given error is related to a Cobra command error.
-//
 // This is useful for distinguishing between user errors (e.g., incorrect commands or flags)
 // and program errors, allowing the application to display appropriate messages.
 func IsCLIErr(err error) bool {
