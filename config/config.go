@@ -4,163 +4,166 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/fs"
+	"os"
 	"reflect"
 	"strings"
 
+	"github.com/go-playground/validator"
 	"github.com/jeremywohl/flatten"
 	"github.com/mcuadros/go-defaults"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
 )
 
-// FileNotFoundError indicates that the configuration file was not found.
-// In this case, Viper will attempt to load configurations from environment variables or defaults.
-type FileNotFoundError struct {
-	Err error
-}
-
-// Error returns the error message for ConfigFileNotFoundError.
-func (e FileNotFoundError) Error() string {
-	return fmt.Sprintf("config file not found, falling back to environment and defaults: %v", e.Err)
-}
-
-// Unwrap provides compatibility for error unwrapping.
-func (e FileNotFoundError) Unwrap() error {
-	return e.Err
-}
-
-// Loader is responsible for managing configuration loading and decoding.
+// Loader is responsible for managing configuration
 type Loader struct {
-	viperInstance *viper.Viper
-	decoderOpts   []viper.DecoderConfigOption
+	v     *viper.Viper
+	flags *pflag.FlagSet
 }
 
-// LoaderOption defines a functional option for configuring a Loader instance.
-type LoaderOption func(*Loader)
+// Option defines a functional option for configuring the Loader.
+type Option func(c *Loader)
 
-// WithViper allows using a custom Viper instance.
-func WithViper(v *viper.Viper) LoaderOption {
-	return func(l *Loader) {
-		l.viperInstance = v
-	}
-}
+// NewLoader creates a new Loader instance with the provided options.
+// It initializes Viper with defaults for YAML configuration files and environment variable handling.
+//
+// Example:
+//
+//	loader := config.NewLoader(
+//	    config.WithFile("./config.yaml"),
+//	    config.WithEnvPrefix("MYAPP"),
+//	)
+func NewLoader(options ...Option) *Loader {
+	v := viper.New()
 
-// WithFile specifies an explicit configuration file path.
-func WithFile(file string) LoaderOption {
-	return func(l *Loader) {
-		l.viperInstance.SetConfigFile(file)
-	}
-}
+	v.SetConfigName("config")
+	v.SetConfigType("yaml")
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	v.AutomaticEnv()
 
-// WithName sets the base name of the configuration file (excluding extension).
-func WithName(name string) LoaderOption {
-	return func(l *Loader) {
-		l.viperInstance.SetConfigName(name)
-	}
-}
-
-// WithPath adds a directory to search for the configuration file.
-// Can be called multiple times to add multiple paths.
-func WithPath(path string) LoaderOption {
-	return func(l *Loader) {
-		l.viperInstance.AddConfigPath(path)
-	}
-}
-
-// WithType specifies the configuration file format (e.g., "yaml", "json").
-func WithType(fileType string) LoaderOption {
-	return func(l *Loader) {
-		l.viperInstance.SetConfigType(fileType)
-	}
-}
-
-// WithBindPFlags binds command-line flags to the configuration based on struct tags (`cmdx`).
-func WithBindPFlags(flagSet *pflag.FlagSet, config interface{}) LoaderOption {
-	return func(l *Loader) {
-		structType := reflect.TypeOf(config).Elem()
-		for i := 0; i < structType.NumField(); i++ {
-			if tag := structType.Field(i).Tag.Get("cmdx"); tag != "" {
-				l.viperInstance.BindPFlag(tag, flagSet.Lookup(tag))
-			}
-		}
-	}
-}
-
-// WithEnvPrefix sets a prefix for environment variable keys.
-func WithEnvPrefix(prefix string) LoaderOption {
-	return func(l *Loader) {
-		l.viperInstance.SetEnvPrefix(prefix)
-	}
-}
-
-// WithEnvKeyReplacer customizes key transformation for environment variables.
-func WithEnvKeyReplacer(old, new string) LoaderOption {
-	return func(l *Loader) {
-		l.viperInstance.SetEnvKeyReplacer(strings.NewReplacer(old, new))
-	}
-}
-
-// WithDecoderConfigOption sets custom decoding options for the configuration loader.
-func WithDecoderConfigOption(opts ...viper.DecoderConfigOption) LoaderOption {
-	return func(l *Loader) {
-		l.decoderOpts = append(l.decoderOpts, opts...)
-	}
-}
-
-// NewLoader initializes a Loader instance with the specified options.
-func NewLoader(options ...LoaderOption) *Loader {
-	loader := &Loader{
-		viperInstance: defaultViperInstance(),
-		decoderOpts: []viper.DecoderConfigOption{
-			viper.DecodeHook(
-				mapstructure.ComposeDecodeHookFunc(
-					mapstructure.StringToTimeDurationHookFunc(),
-					mapstructure.StringToSliceHookFunc(","),
-					StringToJsonFunc(),
-				),
-			),
-		},
-	}
+	loader := &Loader{v: v}
 	for _, opt := range options {
 		opt(loader)
 	}
 	return loader
 }
 
-// Load populates the provided config struct with values from the configuration sources.
+// WithFile specifies the configuration file to use.
+func WithFile(configFilePath string) Option {
+	return func(l *Loader) {
+		l.v.SetConfigFile(configFilePath)
+	}
+}
+
+// WithEnvPrefix specifies a prefix for ENV variables.
+func WithEnvPrefix(prefix string) Option {
+	return func(l *Loader) {
+		l.v.SetEnvPrefix(prefix)
+	}
+}
+
+// WithFlags specifies a command-line flag set to bind dynamically based on `cmdx` tags.
+func WithFlags(flags *pflag.FlagSet) Option {
+	return func(l *Loader) {
+		l.flags = flags
+	}
+}
+
+// Load reads the configuration from the file, environment variables, and command-line flags,
+// and merges them into the provided configuration struct. It validates the configuration
+// using struct tags.
+//
+// The priority order is:
+//  1. Command-line flags
+//  2. Environment variables
+//  3. Configuration file
+//  4. Default values
 func (l *Loader) Load(config interface{}) error {
 	if err := validateStructPtr(config); err != nil {
 		return err
 	}
 
-	l.viperInstance.AutomaticEnv()
+	// Apply default values before reading configuration
+	defaults.SetDefaults(config)
 
-	if err := l.viperInstance.ReadInConfig(); err != nil {
-		var pathErr *fs.PathError
-		if errors.As(err, &pathErr) || errors.As(err, &viper.ConfigFileNotFoundError{}) {
-			return FileNotFoundError{Err: err}
+	// Bind flags dynamically using reflection on `cmdx` tags if a flag set is provided
+	if l.flags != nil {
+		if err := bindFlags(l.v, l.flags, reflect.TypeOf(config).Elem(), ""); err != nil {
+			return fmt.Errorf("failed to bind flags: %w", err)
 		}
-		return fmt.Errorf("failed to read config file: %w", err)
 	}
 
+	// Bind environment variables for all keys in the config
 	keys, err := extractFlattenedKeys(config)
 	if err != nil {
 		return fmt.Errorf("failed to extract config keys: %w", err)
 	}
-
 	for _, key := range keys {
-		l.viperInstance.BindEnv(key)
+		if err := l.v.BindEnv(key); err != nil {
+			return fmt.Errorf("failed to bind environment variable for key %q: %w", key, err)
+		}
 	}
 
-	defaults.SetDefaults(config)
+	// Attempt to read the configuration file
+	if err := l.v.ReadInConfig(); err != nil {
+		var configFileNotFoundError viper.ConfigFileNotFoundError
+		if errors.As(err, &configFileNotFoundError) {
+			fmt.Println("Warning: Config file not found. Falling back to defaults and environment variables.")
+		}
+	}
 
-	if err := l.viperInstance.Unmarshal(config, l.decoderOpts...); err != nil {
+	// Unmarshal the merged configuration into the provided struct
+	if err := l.v.Unmarshal(config); err != nil {
 		return fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
+	// Validate the resulting configuration
+	if err := validator.New().Struct(config); err != nil {
+		return fmt.Errorf("invalid configuration: %w", err)
+	}
+
 	return nil
+}
+
+// Get retrieves a configuration value by key.
+func (l *Loader) Get(key string) interface{} {
+	return l.v.Get(key)
+}
+
+// Set updates a configuration value in memory (not persisted to file).
+func (l *Loader) Set(key string, value interface{}) {
+	l.v.Set(key, value)
+}
+
+// Save writes the current configuration to the file specified during initialization.
+func (l *Loader) Save() error {
+	configFile := l.v.ConfigFileUsed()
+	if configFile == "" {
+		return errors.New("no configuration file specified for saving")
+	}
+
+	settings := l.v.AllSettings()
+	content, err := yaml.Marshal(settings)
+	if err != nil {
+		return fmt.Errorf("failed to marshal configuration: %w", err)
+	}
+
+	if err := os.WriteFile(configFile, content, 0644); err != nil {
+		return fmt.Errorf("failed to write configuration to file: %w", err)
+	}
+	return nil
+}
+
+// View returns the current configuration as a formatted JSON string.
+func (l *Loader) View() (string, error) {
+	settings := l.v.AllSettings()
+	data, err := json.MarshalIndent(settings, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("failed to format configuration as JSON: %w", err)
+	}
+	return string(data), nil
 }
 
 // validateStructPtr ensures the provided value is a pointer to a struct.
@@ -170,15 +173,6 @@ func validateStructPtr(value interface{}) error {
 		return errors.New("load requires a pointer to a struct")
 	}
 	return nil
-}
-
-// defaultViperInstance initializes a Viper instance with default settings.
-func defaultViperInstance() *viper.Viper {
-	v := viper.New()
-	v.SetConfigName("config")
-	v.SetConfigType("yaml")
-	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	return v
 }
 
 // extractFlattenedKeys retrieves all keys from the struct in a flattened format.
@@ -198,15 +192,33 @@ func extractFlattenedKeys(config interface{}) ([]string, error) {
 	return keys, nil
 }
 
-// StringToJsonFunc is a decode hook for parsing JSON strings into maps.
-func StringToJsonFunc() mapstructure.DecodeHookFunc {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
-		if f.Kind() == reflect.String && t.Kind() == reflect.Map {
-			var result map[string]interface{}
-			if err := json.Unmarshal([]byte(data.(string)), &result); err == nil {
-				return result, nil
+// bindFlags dynamically binds flags to configuration fields based on `cmdx` tags.
+func bindFlags(v *viper.Viper, flagSet *pflag.FlagSet, structType reflect.Type, parentKey string) error {
+	for i := 0; i < structType.NumField(); i++ {
+		field := structType.Field(i)
+		tag := field.Tag.Get("cmdx")
+		if tag == "" {
+			continue
+		}
+
+		if parentKey != "" {
+			tag = parentKey + "." + tag
+		}
+
+		if field.Type.Kind() == reflect.Struct {
+			// Recurse into nested structs
+			if err := bindFlags(v, flagSet, field.Type, tag); err != nil {
+				return err
+			}
+		} else {
+			flag := flagSet.Lookup(tag)
+			if flag == nil {
+				return fmt.Errorf("missing flag for tag: %s", tag)
+			}
+			if err := v.BindPFlag(tag, flag); err != nil {
+				return fmt.Errorf("failed to bind flag for tag: %s, error: %w", tag, err)
 			}
 		}
-		return data, nil
 	}
+	return nil
 }

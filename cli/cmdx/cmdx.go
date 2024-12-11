@@ -6,8 +6,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Manager manages and configures features for a CLI tool.
-type Manager struct {
+// Commander manages and configures features for a CLI tool.
+type Commander struct {
 	RootCmd    *cobra.Command
 	Help       bool           // Enable custom help.
 	Reference  bool           // Enable reference command.
@@ -32,19 +32,19 @@ type HookBehavior struct {
 	Behavior func(cmd *cobra.Command) // Function to apply to commands.
 }
 
-// NewManager creates a new CLI Manager using the provided root command and optional configurations.
+// NewCommander creates a new CLI Commander using the provided root command and optional configurations.
 //
 // Parameters:
 // - rootCmd: The root Cobra command for the CLI.
-// - options: Functional options for configuring the Manager.
+// - options: Functional options for configuring the Commander.
 //
 // Example:
 //
 //	rootCmd := &cobra.Command{Use: "mycli"}
-//	manager := cmdx.NewManager(rootCmd, cmdx.WithTopics(...), cmdx.WithHooks(...))
-func NewManager(rootCmd *cobra.Command, options ...func(*Manager)) *Manager {
-	// Create Manager with defaults
-	manager := &Manager{
+//	manager := cmdx.NewCommander(rootCmd, cmdx.WithTopics(...), cmdx.WithHooks(...))
+func NewCommander(rootCmd *cobra.Command, options ...func(*Commander)) *Commander {
+	// Create Commander with defaults
+	manager := &Commander{
 		RootCmd:    rootCmd,
 		Help:       true,  // Default enabled
 		Reference:  true,  // Default enabled
@@ -62,11 +62,11 @@ func NewManager(rootCmd *cobra.Command, options ...func(*Manager)) *Manager {
 	return manager
 }
 
-// Init sets up the CLI features based on the Manager's configuration.
+// Init sets up the CLI features based on the Commander's configuration.
 //
 // It enables or disables features like custom help, reference documentation,
-// shell completion, help topics, and client hooks based on the Manager's settings.
-func (m *Manager) Init() {
+// shell completion, help topics, and client hooks based on the Commander's settings.
+func (m *Commander) Init() {
 	if m.Help {
 		m.SetCustomHelp()
 	}
@@ -88,16 +88,16 @@ func (m *Manager) Init() {
 	}
 }
 
-// WithTopics sets the help topics for the Manager.
-func WithTopics(topics []HelpTopic) func(*Manager) {
-	return func(m *Manager) {
+// WithTopics sets the help topics for the Commander.
+func WithTopics(topics []HelpTopic) func(*Commander) {
+	return func(m *Commander) {
 		m.Topics = topics
 	}
 }
 
-// WithHooks sets the hook behaviors for the Manager.
-func WithHooks(hooks []HookBehavior) func(*Manager) {
-	return func(m *Manager) {
+// WithHooks sets the hook behaviors for the Commander.
+func WithHooks(hooks []HookBehavior) func(*Commander) {
+	return func(m *Commander) {
 		m.Hooks = hooks
 	}
 }
