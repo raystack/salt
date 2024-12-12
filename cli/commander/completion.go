@@ -1,4 +1,4 @@
-package cmdx
+package commander
 
 import (
 	"os"
@@ -7,21 +7,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// AddCompletionCommand adds a `completion` command to the CLI.
-//
-// The completion command generates shell completion scripts for Bash, Zsh,
-// Fish, and PowerShell.
-//
-// Example:
-//
-//	manager := cmdx.NewCommander(rootCmd)
-//	manager.AddCompletionCommand()
-//
+// addCompletionCommand adds a `completion` command to the CLI.
+// The `completion` command generates shell completion scripts
+// for Bash, Zsh, Fish, and PowerShell.
 // Usage:
 //
 //	$ mycli completion bash
 //	$ mycli completion zsh
-func (m *Commander) AddCompletionCommand() {
+func (m *Manager) addCompletionCommand() {
 	summary := m.generateCompletionSummary(m.RootCmd.Use)
 
 	completionCmd := &cobra.Command{
@@ -31,28 +24,25 @@ func (m *Commander) AddCompletionCommand() {
 		DisableFlagsInUseLine: true,
 		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
 		Args:                  cobra.ExactValidArgs(1),
-		Run:                   m.runCompletionCommand,
+		Run: func(cmd *cobra.Command, args []string) {
+			switch args[0] {
+			case "bash":
+				cmd.Root().GenBashCompletion(os.Stdout)
+			case "zsh":
+				cmd.Root().GenZshCompletion(os.Stdout)
+			case "fish":
+				cmd.Root().GenFishCompletion(os.Stdout, true)
+			case "powershell":
+				cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+			}
+		},
 	}
 
 	m.RootCmd.AddCommand(completionCmd)
 }
 
-// runCompletionCommand executes the appropriate shell completion generation logic.
-func (m *Commander) runCompletionCommand(cmd *cobra.Command, args []string) {
-	switch args[0] {
-	case "bash":
-		cmd.Root().GenBashCompletion(os.Stdout)
-	case "zsh":
-		cmd.Root().GenZshCompletion(os.Stdout)
-	case "fish":
-		cmd.Root().GenFishCompletion(os.Stdout, true)
-	case "powershell":
-		cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
-	}
-}
-
 // generateCompletionSummary creates the long description for the `completion` command.
-func (m *Commander) generateCompletionSummary(exec string) string {
+func (m *Manager) generateCompletionSummary(exec string) string {
 	var execs []interface{}
 	for i := 0; i < 12; i++ {
 		execs = append(execs, exec)

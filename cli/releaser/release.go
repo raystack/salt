@@ -1,4 +1,4 @@
-package release
+package releaser
 
 import (
 	"encoding/json"

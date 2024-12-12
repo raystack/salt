@@ -3,9 +3,8 @@ package printer
 import (
 	"time"
 
-	"github.com/raystack/salt/cli/terminal"
-
 	"github.com/briandowns/spinner"
+	"github.com/raystack/salt/cli/terminator"
 )
 
 // Indicator represents a terminal spinner used for indicating progress or ongoing operations.
@@ -51,7 +50,7 @@ func Spin(label string) *Indicator {
 	set := spinner.CharSets[11]
 
 	// Check if the terminal supports TTY; if not, return a no-op Indicator.
-	if !terminal.IsTTY() {
+	if !terminator.IsTTY() {
 		return &Indicator{}
 	}
 

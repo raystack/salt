@@ -2,7 +2,6 @@ package printer
 
 import (
 	"fmt"
-
 	"github.com/muesli/termenv"
 )
 
@@ -50,78 +49,76 @@ func NewTheme() Theme {
 
 var theme = NewTheme()
 
-func bold(t ...string) string {
-	return termenv.String(t...).Bold().String()
-}
-
-func boldf(t string, args ...interface{}) string {
-	return bold(fmt.Sprintf(t, args...))
-}
-
-func italic(t ...string) string {
-	return termenv.String(t...).Italic().String()
-}
-
-func italicf(t string, args ...interface{}) string {
-	return italic(fmt.Sprintf(t, args...))
+// formatColorize applies the given color to the formatted text.
+func formatColorize(color termenv.Color, t string, args ...interface{}) string {
+	return colorize(color, fmt.Sprintf(t, args...))
 }
 
 func Green(t ...string) string {
-	return termenv.String(t...).Foreground(theme.Green).String()
+	return colorize(theme.Green, t...)
 }
 
 func Greenf(t string, args ...interface{}) string {
-	return Green(fmt.Sprintf(t, args...))
+	return formatColorize(theme.Green, t, args...)
 }
 
 func Yellow(t ...string) string {
-	return termenv.String(t...).Foreground(theme.Yellow).String()
+	return colorize(theme.Yellow, t...)
 }
 
 func Yellowf(t string, args ...interface{}) string {
-	return Yellow(fmt.Sprintf(t, args...))
+	return formatColorize(theme.Yellow, t, args...)
 }
 
 func Cyan(t ...string) string {
-	return termenv.String(t...).Foreground(theme.Cyan).String()
+	return colorize(theme.Cyan, t...)
 }
 
 func Cyanf(t string, args ...interface{}) string {
-	return Cyan(fmt.Sprintf(t, args...))
+	return formatColorize(theme.Cyan, t, args...)
 }
 
 func Red(t ...string) string {
-	return termenv.String(t...).Foreground(theme.Red).String()
+	return colorize(theme.Red, t...)
 }
 
 func Redf(t string, args ...interface{}) string {
-	return Red(fmt.Sprintf(t, args...))
+	return formatColorize(theme.Red, t, args...)
 }
 
 func Grey(t ...string) string {
-	return termenv.String(t...).Foreground(theme.Grey).String()
+	return colorize(theme.Grey, t...)
 }
 
 func Greyf(t string, args ...interface{}) string {
-	return Grey(fmt.Sprintf(t, args...))
+	return formatColorize(theme.Grey, t, args...)
 }
 
 func Blue(t ...string) string {
-	return termenv.String(t...).Foreground(theme.Blue).String()
+	return colorize(theme.Blue, t...)
 }
 
 func Bluef(t string, args ...interface{}) string {
-	return Blue(fmt.Sprintf(t, args...))
+	return formatColorize(theme.Blue, t, args...)
 }
 
 func Magenta(t ...string) string {
-	return termenv.String(t...).Foreground(theme.Magenta).String()
+	return colorize(theme.Magenta, t...)
 }
 
 func Magentaf(t string, args ...interface{}) string {
-	return Magenta(fmt.Sprintf(t, args...))
+	return formatColorize(theme.Magenta, t, args...)
 }
 
-func FailureIcon() string {
-	return termenv.String("✘").String()
+func Icon(name string) string {
+	icons := map[string]string{"failure": "✘", "success": "✔", "info": "ℹ", "warning": "⚠"}
+	if icon, exists := icons[name]; exists {
+		return icon
+	}
+	return ""
+}
+
+// colorize applies the given color to the text.
+func colorize(color termenv.Color, t ...string) string {
+	return termenv.String(t...).Foreground(color).String()
 }

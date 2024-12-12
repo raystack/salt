@@ -1,4 +1,4 @@
-package cmdx
+package commander
 
 import (
 	"fmt"
@@ -6,18 +6,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// AddHelpTopics adds all configured help topics to the CLI.
+// addHelpTopics adds all configured help topics to the CLI.
 //
 // Help topics provide detailed information about specific subjects,
 // such as environment variables or configuration.
-func (m *Commander) AddHelpTopics() {
+func (m *Manager) addHelpTopics() {
 	for _, topic := range m.Topics {
 		m.addHelpTopicCommand(topic)
 	}
 }
 
 // addHelpTopicCommand adds a single help topic command to the CLI.
-func (m *Commander) addHelpTopicCommand(topic HelpTopic) {
+func (m *Manager) addHelpTopicCommand(topic HelpTopic) {
 	helpCmd := &cobra.Command{
 		Use:     topic.Name,
 		Short:   topic.Short,

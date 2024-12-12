@@ -1,4 +1,4 @@
-package cmdx
+package commander
 
 import (
 	"strings"
@@ -6,8 +6,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Commander manages and configures features for a CLI tool.
-type Commander struct {
+// Manager manages and configures features for a CLI tool.
+type Manager struct {
 	RootCmd    *cobra.Command
 	Help       bool           // Enable custom help.
 	Reference  bool           // Enable reference command.
@@ -32,19 +32,19 @@ type HookBehavior struct {
 	Behavior func(cmd *cobra.Command) // Function to apply to commands.
 }
 
-// NewCommander creates a new CLI Commander using the provided root command and optional configurations.
+// New creates a new CLI Manager using the provided root command and optional configurations.
 //
 // Parameters:
 // - rootCmd: The root Cobra command for the CLI.
-// - options: Functional options for configuring the Commander.
+// - options: Functional options for configuring the Manager.
 //
 // Example:
 //
 //	rootCmd := &cobra.Command{Use: "mycli"}
 //	manager := cmdx.NewCommander(rootCmd, cmdx.WithTopics(...), cmdx.WithHooks(...))
-func NewCommander(rootCmd *cobra.Command, options ...func(*Commander)) *Commander {
-	// Create Commander with defaults
-	manager := &Commander{
+func New(rootCmd *cobra.Command, options ...func(*Manager)) *Manager {
+	// Create Manager with defaults
+	manager := &Manager{
 		RootCmd:    rootCmd,
 		Help:       true,  // Default enabled
 		Reference:  true,  // Default enabled
@@ -62,49 +62,49 @@ func NewCommander(rootCmd *cobra.Command, options ...func(*Commander)) *Commande
 	return manager
 }
 
-// Init sets up the CLI features based on the Commander's configuration.
+// Init sets up the CLI features based on the Manager's configuration.
 // It enables or disables features like custom help, reference documentation,
-// shell completion, help topics, and client hooks based on the Commander's settings.
-func (m *Commander) Init() {
+// shell completion, help topics, and client hooks based on the Manager's settings.
+func (m *Manager) Init() {
 	if m.Help {
-		m.SetCustomHelp()
+		m.setCustomHelp()
 	}
 	if m.Reference {
-		m.AddReferenceCommand()
+		m.addReferenceCommand()
 	}
 	if m.Completion {
-		m.AddCompletionCommand()
+		m.addCompletionCommand()
 	}
 	if m.Docs {
-		m.AddMarkdownCommand("./docs")
+		m.addMarkdownCommand("./docs")
 	}
 	if len(m.Topics) > 0 {
-		m.AddHelpTopics()
+		m.addHelpTopics()
 	}
 
 	if len(m.Hooks) > 0 {
-		m.AddClientHooks()
+		m.addClientHooks()
 	}
 }
 
-// WithTopics sets the help topics for the Commander.
-func WithTopics(topics []HelpTopic) func(*Commander) {
-	return func(m *Commander) {
+// WithTopics sets the help topics for the Manager.
+func WithTopics(topics []HelpTopic) func(*Manager) {
+	return func(m *Manager) {
 		m.Topics = topics
 	}
 }
 
-// WithHooks sets the hook behaviors for the Commander.
-func WithHooks(hooks []HookBehavior) func(*Commander) {
-	return func(m *Commander) {
+// WithHooks sets the hook behaviors for the Manager.
+func WithHooks(hooks []HookBehavior) func(*Manager) {
+	return func(m *Manager) {
 		m.Hooks = hooks
 	}
 }
 
-// IsCLIErr checks if the given error is related to a Cobra command error.
+// IsCommandErr checks if the given error is related to a Cobra command error.
 // This is useful for distinguishing between user errors (e.g., incorrect commands or flags)
 // and program errors, allowing the application to display appropriate messages.
-func IsCLIErr(err error) bool {
+func IsCommandErr(err error) bool {
 	if err == nil {
 		return false
 	}
