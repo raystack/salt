@@ -1,4 +1,4 @@
-package cmdx
+package commander
 
 import (
 	"fmt"
@@ -9,9 +9,9 @@ import (
 	"github.com/spf13/cobra/doc"
 )
 
-// AddMarkdownCommand integrates a hidden `markdown` command into the root command.
+// addMarkdownCommand integrates a hidden `markdown` command into the root command.
 // This command generates a Markdown documentation tree for all commands in the hierarchy.
-func (m *Commander) AddMarkdownCommand(outputPath string) {
+func (m *Manager) addMarkdownCommand(outputPath string) {
 	markdownCmd := &cobra.Command{
 		Use:    "markdown",
 		Short:  "Generate Markdown documentation for all commands",
@@ -35,7 +35,7 @@ func (m *Commander) AddMarkdownCommand(outputPath string) {
 //
 // Returns:
 //   - An error if any part of the process (file creation, directory creation) fails.
-func (m *Commander) generateMarkdownTree(rootOutputPath string, cmd *cobra.Command) error {
+func (m *Manager) generateMarkdownTree(rootOutputPath string, cmd *cobra.Command) error {
 	dirFilePath := filepath.Join(rootOutputPath, cmd.Name())
 
 	// Handle subcommands by creating a directory and iterating through subcommands.

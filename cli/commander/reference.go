@@ -1,4 +1,4 @@
-package cmdx
+package commander
 
 import (
 	"bytes"
@@ -11,16 +11,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// AddReferenceCommand adds a `reference` command to the CLI.
-//
-// The reference command generates markdown documentation for all commands
+// addReferenceCommand adds a `reference` command to the CLI.
+// The `reference` command generates markdown documentation for all commands
 // in the CLI command tree.
-//
-// Example:
-//
-//	manager := cmdx.NewCommander(rootCmd)
-//	manager.AddReferenceCommand()
-func (m *Commander) AddReferenceCommand() {
+func (m *Manager) addReferenceCommand() {
 	var isPlain bool
 	refCmd := &cobra.Command{
 		Use:   "reference",
@@ -39,7 +33,7 @@ func (m *Commander) AddReferenceCommand() {
 
 // runReferenceCommand handles the output generation for the `reference` command.
 // It renders the documentation either as plain markdown or with ANSI color.
-func (m *Commander) runReferenceCommand(isPlain *bool) func(cmd *cobra.Command, args []string) {
+func (m *Manager) runReferenceCommand(isPlain *bool) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		var (
 			output string
@@ -62,7 +56,7 @@ func (m *Commander) runReferenceCommand(isPlain *bool) func(cmd *cobra.Command, 
 
 // generateReferenceMarkdown generates a complete markdown representation
 // of the command tree for the `reference` command.
-func (m *Commander) generateReferenceMarkdown() string {
+func (m *Manager) generateReferenceMarkdown() string {
 	buf := bytes.NewBufferString(fmt.Sprintf("# %s reference\n\n", m.RootCmd.Name()))
 	for _, c := range m.RootCmd.Commands() {
 		if c.Hidden {
@@ -75,7 +69,7 @@ func (m *Commander) generateReferenceMarkdown() string {
 
 // generateCommandReference recursively generates markdown for a given command
 // and its subcommands.
-func (m *Commander) generateCommandReference(w io.Writer, cmd *cobra.Command, depth int) {
+func (m *Manager) generateCommandReference(w io.Writer, cmd *cobra.Command, depth int) {
 	// Name + Description
 	fmt.Fprintf(w, "%s `%s`\n\n", strings.Repeat("#", depth), cmd.UseLine())
 	fmt.Fprintf(w, "%s\n\n", cmd.Short)
