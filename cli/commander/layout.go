@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/muesli/termenv"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-	"regexp"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"

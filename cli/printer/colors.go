@@ -2,6 +2,7 @@ package printer
 
 import (
 	"fmt"
+
 	"github.com/muesli/termenv"
 )
 
