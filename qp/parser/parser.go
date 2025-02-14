@@ -9,7 +9,6 @@ import (
 	"github.com/raystack/salt/utils"
 )
 
-var validTypes = []string{"number", "string", "bool", "datetime"}
 var validNumberOperations = []string{"eq", "neq", "gt", "gte", "lte"}
 var validStringOperations = []string{"eq", "neq", "like"}
 var validBoolOperations = []string{"eq", "neq"}
@@ -76,6 +75,7 @@ func ValidateQuery(q *Query, checkStruct interface{}) error {
 				return err
 			}
 		default:
+			return fmt.Errorf("type '%s' is not recognized", allowedDataType)
 		}
 
 		if !isValidOperator(filterItem) {
@@ -144,10 +144,6 @@ func searchKeyInsideStruct(keyName string, val reflect.Value) int {
 		}
 	}
 	return -1
-}
-
-func isValidTypes(t string) bool {
-	return utils.StringFoundInArray(t, validTypes)
 }
 
 // parse the tag schema which is of the format
