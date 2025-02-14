@@ -81,7 +81,6 @@ func ValidateQuery(q *Query, checkStruct interface{}) error {
 		if !isValidOperator(filterItem) {
 			return fmt.Errorf("value '%s' for key '%s' is valid string", filterItem.Operator, filterItem.Name)
 		}
-
 	}
 
 	err := validateGroupByKeys(q, val)
@@ -89,7 +88,6 @@ func ValidateQuery(q *Query, checkStruct interface{}) error {
 		return err
 	}
 	return validateSortKey(q, val)
-
 }
 
 func validateNumberType(filterItem Filter) error {
