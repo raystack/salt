@@ -3,10 +3,9 @@ package rql
 import (
 	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 	"time"
-
-	"github.com/raystack/salt/utils"
 )
 
 var validNumberOperations = []string{"eq", "neq", "gt", "gte", "lte"}
@@ -165,13 +164,13 @@ func getDataTypeOfField(tagString string) string {
 func isValidOperator(filterItem Filter) bool {
 	switch filterItem.dataType {
 	case "number":
-		return utils.StringFoundInArray(filterItem.Operator, validNumberOperations)
+		return slices.Contains(validNumberOperations, filterItem.Operator)
 	case "datetime":
-		return utils.StringFoundInArray(filterItem.Operator, validDatetimeOperations)
+		return slices.Contains(validDatetimeOperations, filterItem.Operator)
 	case "string":
-		return utils.StringFoundInArray(filterItem.Operator, validStringOperations)
+		return slices.Contains(validStringOperations, filterItem.Operator)
 	case "bool":
-		return utils.StringFoundInArray(filterItem.Operator, validBoolOperations)
+		return slices.Contains(validBoolOperations, filterItem.Operator)
 	default:
 		return false
 	}
@@ -183,7 +182,7 @@ func validateSortKey(q *Query, val reflect.Value) error {
 		if filterIdx < 0 {
 			return fmt.Errorf("'%s' is not a valid sort key", item.Key)
 		}
-		if !utils.StringFoundInArray(item.Order, validSortOrder) {
+		if !slices.Contains(validSortOrder, item.Order) {
 			return fmt.Errorf("'%s' is not a valid sort key", item.Key)
 		}
 	}
