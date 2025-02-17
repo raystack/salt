@@ -12,13 +12,16 @@ var validNumberOperations = []string{"eq", "neq", "gt", "gte", "lte"}
 var validStringOperations = []string{"eq", "neq", "like"}
 var validBoolOperations = []string{"eq", "neq"}
 var validDatetimeOperations = []string{"eq", "neq", "gt", "gte", "lte"}
-var validSortOrder = []string{"asc", "desc"}
 
 const TAG = "rql"
 const DATATYPE_NUMBER = "number"
 const DATATYPE_DATETIME = "datetime"
 const DATATYPE_STRING = "string"
 const DATATYPE_BOOL = "bool"
+const SORT_ORDER_ASC = "asc"
+const SORT_ORDER_DESC = "desc"
+
+var validSortOrder = []string{SORT_ORDER_ASC, SORT_ORDER_DESC}
 
 type Query struct {
 	Filters []Filter `json:"filters"`
