@@ -12,7 +12,7 @@ import (
 var validNumberOperations = []string{"eq", "neq", "gt", "gte", "lte"}
 var validStringOperations = []string{"eq", "neq", "like"}
 var validBoolOperations = []string{"eq", "neq"}
-var validDatetimeOperations = []string{"eq", "neq", "gt", "gt", "gte", "lte"}
+var validDatetimeOperations = []string{"eq", "neq", "gt", "gte", "lte"}
 var validSortOrder = []string{"asc", "desc"}
 
 const TAG = "rql"
@@ -29,8 +29,8 @@ type Query struct {
 type Filter struct {
 	Name     string `json:"name"`
 	Operator string `json:"operator"`
-	Type     string `json:"type"`
-	Value    any    `json:"value"`
+	dataType string
+	Value    any `json:"value"`
 }
 
 type Sort struct {
@@ -52,7 +52,7 @@ func ValidateQuery(q *Query, checkStruct interface{}) error {
 
 		// validate filter key data type
 		allowedDataType := getDataTypeOfField(structKeyTag)
-		filterItem.Type = allowedDataType
+		filterItem.dataType = allowedDataType
 		switch allowedDataType {
 		case "number":
 			err := validateNumberType(filterItem)
@@ -163,7 +163,7 @@ func getDataTypeOfField(tagString string) string {
 }
 
 func isValidOperator(filterItem Filter) bool {
-	switch filterItem.Type {
+	switch filterItem.dataType {
 	case "number":
 		return utils.StringFoundInArray(filterItem.Operator, validNumberOperations)
 	case "datetime":
