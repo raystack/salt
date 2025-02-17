@@ -15,6 +15,10 @@ var validDatetimeOperations = []string{"eq", "neq", "gt", "gte", "lte"}
 var validSortOrder = []string{"asc", "desc"}
 
 const TAG = "rql"
+const DATATYPE_NUMBER = "number"
+const DATATYPE_DATETIME = "datetime"
+const DATATYPE_STRING = "string"
+const DATATYPE_BOOL = "bool"
 
 type Query struct {
 	Filters []Filter `json:"filters"`
@@ -53,22 +57,22 @@ func ValidateQuery(q *Query, checkStruct interface{}) error {
 		allowedDataType := getDataTypeOfField(structKeyTag)
 		filterItem.dataType = allowedDataType
 		switch allowedDataType {
-		case "number":
+		case DATATYPE_NUMBER:
 			err := validateNumberType(filterItem)
 			if err != nil {
 				return err
 			}
-		case "bool":
+		case DATATYPE_BOOL:
 			err := validateBoolType(filterItem)
 			if err != nil {
 				return err
 			}
-		case "datetime":
+		case DATATYPE_DATETIME:
 			err := validateDatetimeType(filterItem)
 			if err != nil {
 				return err
 			}
-		case "string":
+		case DATATYPE_STRING:
 			err := validateStringType(filterItem)
 			if err != nil {
 				return err
@@ -147,7 +151,7 @@ func searchKeyInsideStruct(keyName string, val reflect.Value) int {
 // type=int,min=10,max=200
 // to extract type else fallback to string
 func getDataTypeOfField(tagString string) string {
-	res := "string"
+	res := DATATYPE_STRING
 	splitted := strings.Split(tagString, ",")
 	for _, item := range splitted {
 		kvSplitted := strings.Split(item, "=")
@@ -163,13 +167,13 @@ func getDataTypeOfField(tagString string) string {
 
 func isValidOperator(filterItem Filter) bool {
 	switch filterItem.dataType {
-	case "number":
+	case DATATYPE_NUMBER:
 		return slices.Contains(validNumberOperations, filterItem.Operator)
-	case "datetime":
+	case DATATYPE_DATETIME:
 		return slices.Contains(validDatetimeOperations, filterItem.Operator)
-	case "string":
+	case DATATYPE_STRING:
 		return slices.Contains(validStringOperations, filterItem.Operator)
-	case "bool":
+	case DATATYPE_BOOL:
 		return slices.Contains(validBoolOperations, filterItem.Operator)
 	default:
 		return false
