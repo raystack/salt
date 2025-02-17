@@ -1,4 +1,4 @@
-# QP (Query parser)
+# RQL (Rest Query Language)
 
 A library to parse support advanced REST API query parameters like (filter, pagination, sort, group, search) and logical operators on the keys (like eq, neq, like, gt, lt etc)
 
@@ -32,18 +32,18 @@ Frontend should send the parameters and operator like this schema to the backend
 }
 ```
 
-The `qp` library can be used to parse this json, validate it and returns a Struct containing all the info to generate the operations and values for SQL.
+The `rql` library can be used to parse this json, validate it and returns a Struct containing all the info to generate the operations and values for SQL.
 
 The validation happens via stuct tags defined on your model. Example:
 
 ```golang
 type Organization struct {
-	Id              int       `qp:"type=number,min=10,max=200"`
-	BillingPlanName string    `qp:"type=string"`
-	CreatedAt       time.Time `qp:"type=datetime"`
-	MemberCount     int       `qp:"type=number"`
-	Title           string    `qp:"type=string"`
-	Enabled         bool      `qp:"type=bool"`
+	Id              int       `rql:"type=number,min=10,max=200"`
+	BillingPlanName string    `rql:"type=string"`
+	CreatedAt       time.Time `rql:"type=datetime"`
+	MemberCount     int       `rql:"type=number"`
+	Title           string    `rql:"type=string"`
+	Enabled         bool      `rql:"type=bool"`
 }
 
 ```

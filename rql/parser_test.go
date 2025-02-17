@@ -1,4 +1,4 @@
-package parser
+package rql
 
 import (
 	"testing"
@@ -6,10 +6,10 @@ import (
 )
 
 type TestStruct struct {
-	ID        int32     `qp:"type=number"`
-	Name      string    `qp:"type=string"`
-	IsActive  bool      `qp:"type=bool"`
-	CreatedAt time.Time `qp:"type=datetime"`
+	ID        int32     `rql:"type=number"`
+	Name      string    `rql:"type=string"`
+	IsActive  bool      `rql:"type=bool"`
+	CreatedAt time.Time `rql:"type=datetime"`
 }
 
 func TestValidateQuery(t *testing.T) {

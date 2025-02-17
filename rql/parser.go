@@ -1,4 +1,4 @@
-package parser
+package rql
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ var validBoolOperations = []string{"eq", "neq"}
 var validDatetimeOperations = []string{"eq", "neq", "gt", "gt", "gte", "lte"}
 var validSortOrder = []string{"asc", "desc"}
 
-const TAG = "qp"
+const TAG = "rql"
 
 type Query struct {
 	Filters []Filter `json:"filters"`
