@@ -23,10 +23,10 @@ func TestValidateQuery(t *testing.T) {
 			name: "Valid filters and sort",
 			query: Query{
 				Filters: []Filter{
-					{Name: "ID", Operator: "eq", Type: "number", Value: 123},
-					{Name: "Name", Operator: "like", Type: "string", Value: "test"},
-					{Name: "IsActive", Operator: "eq", Type: "bool", Value: true},
-					{Name: "CreatedAt", Operator: "eq", Type: "datetime", Value: "2021-09-15T15:53:00Z"},
+					{Name: "ID", Operator: "eq", Value: 123},
+					{Name: "Name", Operator: "like", Value: "test"},
+					{Name: "IsActive", Operator: "eq", Value: true},
+					{Name: "CreatedAt", Operator: "eq", Value: "2021-09-15T15:53:00Z"},
 				},
 				Sort: []Sort{
 					{Key: "ID", Order: "asc"},
@@ -39,7 +39,7 @@ func TestValidateQuery(t *testing.T) {
 			name: "Invalid filter key",
 			query: Query{
 				Filters: []Filter{
-					{Name: "NonExistentKey", Operator: "eq", Type: "string", Value: "test"},
+					{Name: "NonExistentKey", Operator: "eq", Value: "test"},
 				},
 			},
 			checkStruct: TestStruct{},
@@ -49,7 +49,7 @@ func TestValidateQuery(t *testing.T) {
 			name: "Invalid filter operator",
 			query: Query{
 				Filters: []Filter{
-					{Name: "ID", Operator: "invalid", Type: "number", Value: 123},
+					{Name: "ID", Operator: "invalid", Value: 123},
 				},
 			},
 			checkStruct: TestStruct{},
@@ -59,7 +59,7 @@ func TestValidateQuery(t *testing.T) {
 			name: "Invalid filter value type",
 			query: Query{
 				Filters: []Filter{
-					{Name: "ID", Operator: "eq", Type: "number", Value: "invalid"},
+					{Name: "ID", Operator: "eq", Value: "invalid"},
 				},
 			},
 			checkStruct: TestStruct{},
