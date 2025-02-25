@@ -8,10 +8,10 @@ import (
 	"time"
 )
 
-var validNumberOperations = []string{"eq", "neq", "gt", "gte", "lte"}
+var validNumberOperations = []string{"eq", "neq", "gt", "lt", "gte", "lte"}
 var validStringOperations = []string{"eq", "neq", "like"}
 var validBoolOperations = []string{"eq", "neq"}
-var validDatetimeOperations = []string{"eq", "neq", "gt", "gte", "lte"}
+var validDatetimeOperations = []string{"eq", "neq", "gt", "lt", "gte", "lte"}
 
 const TAG = "rql"
 const DATATYPE_NUMBER = "number"
