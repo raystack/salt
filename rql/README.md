@@ -26,8 +26,8 @@ Frontend should send the parameters and operator like this schema to the backend
   "limit": 50,
   "search": "abcd",
   "sort": [
-    { "key": "title", "order": "desc" },
-    { "key": "created_at", "order": "asc" }
+    { "name": "title", "order": "desc" },
+    { "name": "created_at", "order": "asc" }
   ]
 }
 ```
