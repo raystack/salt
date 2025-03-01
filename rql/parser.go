@@ -40,7 +40,7 @@ type Filter struct {
 }
 
 type Sort struct {
-	Key   string `json:"key"`
+	Name  string `json:"name"`
 	Order string `json:"order"`
 }
 
@@ -185,12 +185,12 @@ func isValidOperator(filterItem Filter) bool {
 
 func validateSortKey(q *Query, val reflect.Value) error {
 	for _, item := range q.Sort {
-		filterIdx := searchKeyInsideStruct(item.Key, val)
+		filterIdx := searchKeyInsideStruct(item.Name, val)
 		if filterIdx < 0 {
-			return fmt.Errorf("'%s' is not a valid sort key", item.Key)
+			return fmt.Errorf("'%s' is not a valid sort key", item.Name)
 		}
 		if !slices.Contains(validSortOrder, item.Order) {
-			return fmt.Errorf("'%s' is not a valid sort key", item.Key)
+			return fmt.Errorf("'%s' is not a valid sort key", item.Name)
 		}
 	}
 	return nil

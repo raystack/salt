@@ -29,7 +29,7 @@ func TestValidateQuery(t *testing.T) {
 					{Name: "CreatedAt", Operator: "eq", Value: "2021-09-15T15:53:00Z"},
 				},
 				Sort: []Sort{
-					{Key: "ID", Order: "asc"},
+					{Name: "ID", Order: "asc"},
 				},
 			},
 			checkStruct: TestStruct{},
@@ -69,7 +69,7 @@ func TestValidateQuery(t *testing.T) {
 			name: "Invalid sort key",
 			query: Query{
 				Sort: []Sort{
-					{Key: "NonExistentKey", Order: "asc"},
+					{Name: "NonExistentKey", Order: "asc"},
 				},
 			},
 			checkStruct: TestStruct{},
