@@ -25,7 +25,7 @@ var validSortOrder = []string{SORT_ORDER_ASC, SORT_ORDER_DESC}
 
 type Query struct {
 	Filters []Filter `json:"filters"`
-	GroupBy []string `json:"group_by"`
+	GroupBy string   `json:"group_by"`
 	Offset  int      `json:"offset"`
 	Limit   int      `json:"limit"`
 	Search  string   `json:"search"`
@@ -89,7 +89,7 @@ func ValidateQuery(q *Query, checkStruct interface{}) error {
 		}
 	}
 
-	err := validateGroupByKeys(q, val)
+	err := validateGroupByKey(q, val)
 	if err != nil {
 		return err
 	}
@@ -196,12 +196,10 @@ func validateSortKey(q *Query, val reflect.Value) error {
 	return nil
 }
 
-func validateGroupByKeys(q *Query, val reflect.Value) error {
-	for _, item := range q.GroupBy {
-		filterIdx := searchKeyInsideStruct(item, val)
-		if filterIdx < 0 {
-			return fmt.Errorf("'%s' is not a valid sort key", item)
-		}
+func validateGroupByKey(q *Query, val reflect.Value) error {
+	filterIdx := searchKeyInsideStruct(q.GroupBy, val)
+	if filterIdx < 0 {
+		return fmt.Errorf("'%s' is not a valid sort key", q.GroupBy)
 	}
 	return nil
 }

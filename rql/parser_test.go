@@ -75,6 +75,14 @@ func TestValidateQuery(t *testing.T) {
 			checkStruct: TestStruct{},
 			expectErr:   true,
 		},
+		{
+			name: "Invalid group_by key",
+			query: Query{
+				GroupBy: "NonExistent",
+			},
+			checkStruct: TestStruct{},
+			expectErr:   true,
+		},
 	}
 
 	for _, tt := range tests {

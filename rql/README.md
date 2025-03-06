@@ -21,7 +21,7 @@ Frontend should send the parameters and operator like this schema to the backend
     },
     { "name": "title", "operator": "like", "value": "xyz" }
   ],
-  "group_by": ["billing_plan_name"],
+  "group_by": "billing_plan_name",
   "offset": 20,
   "limit": 50,
   "search": "abcd",
