@@ -9,7 +9,7 @@ import (
 )
 
 var validNumberOperations = []string{"eq", "neq", "gt", "lt", "gte", "lte"}
-var validStringOperations = []string{"eq", "neq", "like"}
+var validStringOperations = []string{"eq", "neq", "like", "in", "notIn"}
 var validBoolOperations = []string{"eq", "neq"}
 var validDatetimeOperations = []string{"eq", "neq", "gt", "lt", "gte", "lte"}
 
