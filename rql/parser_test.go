@@ -6,10 +6,10 @@ import (
 )
 
 type TestStruct struct {
-	ID        int32     `rql:"type=number"`
-	Name      string    `rql:"type=string"`
-	IsActive  bool      `rql:"type=bool"`
-	CreatedAt time.Time `rql:"type=datetime"`
+	ID        int32     `rql:"name=id,type=number"`
+	Name      string    `rql:"name=name,type=string"`
+	IsActive  bool      `rql:"name=is_active,type=bool"`
+	CreatedAt time.Time `rql:"name=created_at,type=datetime"`
 }
 
 func TestValidateQuery(t *testing.T) {
@@ -25,8 +25,8 @@ func TestValidateQuery(t *testing.T) {
 				Filters: []Filter{
 					{Name: "ID", Operator: "eq", Value: 123},
 					{Name: "Name", Operator: "like", Value: "test"},
-					{Name: "IsActive", Operator: "eq", Value: true},
-					{Name: "CreatedAt", Operator: "eq", Value: "2021-09-15T15:53:00Z"},
+					{Name: "is_active", Operator: "eq", Value: true},
+					{Name: "created_at", Operator: "eq", Value: "2021-09-15T15:53:00Z"},
 				},
 				Sort: []Sort{
 					{Name: "ID", Order: "asc"},
