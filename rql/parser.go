@@ -188,6 +188,20 @@ func getDataTypeOfField(tagString string) string {
 	return res
 }
 
+func GetDataTypeOfField(fieldName string, checkStruct interface{}) (string, error) {
+	val := reflect.ValueOf(checkStruct)
+	filterIdx := searchKeyInsideStruct(fieldName, val)
+	if filterIdx < 0 {
+		return "", fmt.Errorf("'%s' is not a valid field", fieldName)
+	}
+	structKeyTag := val.Type().Field(filterIdx).Tag.Get(TAG)
+	dataType := getDataTypeOfField(structKeyTag)
+	if !slices.Contains([]string{DATATYPE_STRING, DATATYPE_BOOL, DATATYPE_NUMBER, DATATYPE_DATETIME}, dataType) {
+		return "", fmt.Errorf("invalid datatype '%s' is for field %s", dataType, fieldName)
+	}
+	return dataType, nil
+}
+
 func isValidOperator(filterItem Filter) bool {
 	switch filterItem.dataType {
 	case DATATYPE_NUMBER:
