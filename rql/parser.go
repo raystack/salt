@@ -142,11 +142,31 @@ func validateStringType(filterItem Filter) error {
 }
 
 func searchKeyInsideStruct(keyName string, val reflect.Value) int {
+	normalizedKey := strings.ToLower(keyName)
+
 	for i := 0; i < val.NumField(); i++ {
-		if strings.ToLower(val.Type().Field(i).Name) == strings.ToLower(keyName) {
+		field := val.Type().Field(i)
+
+		// Check field name
+		if strings.ToLower(field.Name) == normalizedKey {
 			return i
 		}
+
+		// Check rql tag
+		if tag, ok := field.Tag.Lookup("rql"); ok {
+			// Parse the tag string
+			tagParts := strings.Split(tag, ",")
+			for _, part := range tagParts {
+				if strings.HasPrefix(part, "name=") {
+					tagName := strings.TrimPrefix(part, "name=")
+					if strings.ToLower(tagName) == normalizedKey {
+						return i
+					}
+				}
+			}
+		}
 	}
+
 	return -1
 }
 

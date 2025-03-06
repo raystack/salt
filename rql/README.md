@@ -21,7 +21,7 @@ Frontend should send the parameters and operator like this schema to the backend
     },
     { "name": "title", "operator": "like", "value": "xyz" }
   ],
-  "group_by": ["billing_plan_name"],
+  "group_by": ["plan_name"],
   "offset": 20,
   "limit": 50,
   "search": "abcd",
@@ -38,12 +38,12 @@ The validation happens via stuct tags defined on your model. Example:
 
 ```golang
 type Organization struct {
-	Id              int       `rql:"type=number,min=10,max=200"`
-	BillingPlanName string    `rql:"type=string"`
-	CreatedAt       time.Time `rql:"type=datetime"`
-	MemberCount     int       `rql:"type=number"`
-	Title           string    `rql:"type=string"`
-	Enabled         bool      `rql:"type=bool"`
+	Id              int       `rql:"name=id,type=number,min=10,max=200"`
+	BillingPlanName string    `rql:"name=plan_name,type=string"`
+	CreatedAt       time.Time `rql:"name=created_at,type=datetime"`
+	MemberCount     int       `rql:"name=member_count,type=number"`
+	Title           string    `rql:"name=title,type=string"`
+	Enabled         bool      `rql:"name=enabled,type=bool"`
 }
 
 ```
@@ -102,9 +102,9 @@ Using this struct, a SQL query can be generated. Here is an example using `goqu`
 	for _, sort_item := range userInput.Sort {
 		switch sort_item.Order {
 		case "asc":
-			query = query.OrderAppend(goqu.C(sort_item.Key).Asc())
+			query = query.OrderAppend(goqu.C(sort_item.Name).Asc())
 		case "desc":
-			query = query.OrderAppend(goqu.C(sort_item.Key).Desc())
+			query = query.OrderAppend(goqu.C(sort_item.Name).Desc())
 		default:
 		}
 	}
