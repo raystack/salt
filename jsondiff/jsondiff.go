@@ -50,13 +50,26 @@ func (jd *JSONDiffer) compareObjects(obj1, obj2 interface{}, path string, diffs 
 		return
 	}
 
-	if obj1 == nil && obj2 != nil {
-		*diffs = append(*diffs, jd.createDiffEntry(path, "added", nil, obj2))
-		return
-	}
-	if obj1 != nil && obj2 == nil {
-		*diffs = append(*diffs, jd.createDiffEntry(path, "removed", obj1, nil))
-		return
+	// Handle null value changes when we have a path context
+	if path != "" {
+		if obj1 == nil && obj2 != nil {
+			*diffs = append(*diffs, jd.createDiffEntry(path, "modified", obj1, obj2))
+			return
+		}
+		if obj1 != nil && obj2 == nil {
+			*diffs = append(*diffs, jd.createDiffEntry(path, "modified", obj1, obj2))
+			return
+		}
+	} else {
+		// Top-level comparison logic for when fields might not exist
+		if obj1 == nil && obj2 != nil {
+			*diffs = append(*diffs, jd.createDiffEntry(path, "added", nil, obj2))
+			return
+		}
+		if obj1 != nil && obj2 == nil {
+			*diffs = append(*diffs, jd.createDiffEntry(path, "removed", obj1, nil))
+			return
+		}
 	}
 
 	type1 := reflect.TypeOf(obj1)
@@ -144,7 +157,8 @@ func (jd *JSONDiffer) createDiffEntry(path, changeType string, oldValue, newValu
 		toVal := jd.formatValue(newValue)
 		entry.FromValue = &fromVal
 		entry.ToValue = &toVal
-		entry.ValueType = jd.getValueType(newValue)
+		// For reconstruction, we need the old value's type, not the new value's type
+		entry.ValueType = jd.getValueType(oldValue)
 	}
 
 	return entry

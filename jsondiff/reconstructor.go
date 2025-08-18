@@ -127,6 +127,11 @@ func (jr *JSONReconstructor) removeAtPath(obj interface{}, pathParts []string) e
 }
 
 func (jr *JSONReconstructor) parseValue(valueStr, valueType string) (interface{}, error) {
+	// Handle null values first
+	if valueStr == "null" || valueType == "null" {
+		return nil, nil
+	}
+
 	switch valueType {
 	case "string":
 		return valueStr, nil
@@ -139,6 +144,12 @@ func (jr *JSONReconstructor) parseValue(valueStr, valueType string) (interface{}
 		}
 		return nil, fmt.Errorf("invalid number: %s", valueStr)
 	case "boolean":
+		switch valueStr {
+		case "true":
+			return true, nil
+		case "false":
+			return false, nil
+		}
 		return strconv.ParseBool(valueStr)
 	case "array", "object":
 		var result interface{}

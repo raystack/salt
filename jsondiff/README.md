@@ -18,6 +18,8 @@ go get github.com/raystack/salt/jsondiff
 
 ## Usage
 
+### Custom JSONDiffer
+
 ```go
 package main
 
@@ -56,7 +58,7 @@ func main() {
         }
     }`
 
-    // Generate diff
+    // Generate diff using custom differ
     differ := jsondiff.NewJSONDiffer()
     diffs, err := differ.Compare(originalJSON, currentJSON)
     if err != nil {
@@ -64,7 +66,7 @@ func main() {
         return
     }
 
-    fmt.Println("Generated Diff:")
+    fmt.Printf("Generated %d diff entries:\n", len(diffs))
     diffJSON, err := json.MarshalIndent(diffs, "", "  ")
     if err != nil {
         fmt.Printf("Error formatting diff: %v\n", err)
@@ -73,10 +75,6 @@ func main() {
     fmt.Println(string(diffJSON))
 
     // Test reconstruction
-    fmt.Println("\n" + strings.Repeat("=", 50))
-    fmt.Println("Reconstruction Test")
-    fmt.Println(strings.Repeat("=", 50))
-
     reconstructor := jsondiff.NewJSONReconstructor()
     reconstructed, err := reconstructor.ReverseDiff(currentJSON, diffs)
     if err != nil {
@@ -90,15 +88,87 @@ func main() {
     json.Unmarshal([]byte(reconstructed), &reconstructedObj)
 
     if reflect.DeepEqual(originalObj, reconstructedObj) {
-        fmt.Println("✓ Reconstruction successful - matches original")
+        fmt.Println("✓ Reconstruction successful")
     } else {
-        fmt.Println("✗ Reconstruction failed - doesn't match original")
+        fmt.Println("✗ Reconstruction failed")
+    }
+}
+```
+
+### wI2L JSONDiffer
+
+```go
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "reflect"
+    "strings"
+    "github.com/raystack/salt/jsondiff"
+)
+
+func main() {
+    originalJSON := `{
+        "name": "John",
+        "matrix4D": [[[[1,2,3],[4,5,6],[4,5,6]]]],
+        "old_param": "value",
+        "fruits": {
+            "apple": 1,
+            "pears": 2,
+            "arr": [1,2,3]
+        }
+    }`
+
+    currentJSON := `{
+        "name": "John Doe",
+        "matrix4D": [[[[1,2,3],[4,5,6,7]]]],
+        "age": 30,
+        "fruits": {
+            "apple": 1,
+            "beans": 2,
+            "arr": [1,3,4]
+        },
+        "new_object": {
+            "a":1,
+            "b":[1,2]
+        }
+    }`
+
+    // Generate diff using wI2L differ
+    differ := jsondiff.NewWI2LDiffer()
+    diffs, err := differ.Compare(originalJSON, currentJSON)
+    if err != nil {
+        fmt.Printf("Error generating diff: %v\n", err)
+        return
     }
 
-    fmt.Println("\nOriginal JSON:")
-    fmt.Println(originalJSON)
-    fmt.Println("\nReconstructed JSON:")
-    fmt.Println(reconstructed)
+    fmt.Printf("Generated %d diff entries:\n", len(diffs))
+    diffJSON, err := json.MarshalIndent(diffs, "", "  ")
+    if err != nil {
+        fmt.Printf("Error formatting diff: %v\n", err)
+        return
+    }
+    fmt.Println(string(diffJSON))
+
+    // Test reconstruction
+    reconstructor := jsondiff.NewJSONReconstructor()
+    reconstructed, err := reconstructor.ReverseDiff(currentJSON, diffs)
+    if err != nil {
+        fmt.Printf("Error reconstructing: %v\n", err)
+        return
+    }
+
+    // Verify reconstruction accuracy
+    var originalObj, reconstructedObj interface{}
+    json.Unmarshal([]byte(originalJSON), &originalObj)
+    json.Unmarshal([]byte(reconstructed), &reconstructedObj)
+
+    if reflect.DeepEqual(originalObj, reconstructedObj) {
+        fmt.Println("✓ Reconstruction successful")
+    } else {
+        fmt.Println("✗ Reconstruction failed")
+    }
 }
 ```
 
@@ -145,6 +215,13 @@ This approach provides cleaner, more predictable diffs for complex nested struct
 ```go
 func NewJSONDiffer() *JSONDiffer
 func (jd *JSONDiffer) Compare(json1, json2 string) ([]DiffEntry, error)
+```
+
+### WI2LDiffer
+
+```go
+func NewWI2LDiffer() *WI2LDiffer
+func (w *WI2LDiffer) Compare(json1, json2 string) ([]DiffEntry, error)
 ```
 
 ### JSONReconstructor
