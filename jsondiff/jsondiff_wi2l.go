@@ -72,7 +72,7 @@ func (w *WI2LDiffer) convertPatchToDiffEntries(patch jsondiff.Patch) []DiffEntry
 				FromValue:  w.formatPatchValue(op.OldValue),
 				ToValue:    w.formatPatchValue(op.Value),
 				// For reconstruction compatibility, use old value type
-				ValueType:  w.inferValueType(op.OldValue),
+				ValueType: w.inferValueType(op.OldValue),
 			})
 		case "move":
 			// Handle move operations - could be array reordering
@@ -104,12 +104,12 @@ func (w *WI2LDiffer) postProcessArrays(diffs []DiffEntry, json1, json2 string) [
 	// Always consolidate any array element changes to whole array operations
 	arrayChanges := make(map[string][]DiffEntry)
 	var result []DiffEntry
-	
+
 	// Parse original JSONs once
 	var obj1, obj2 interface{}
 	json.Unmarshal([]byte(json1), &obj1)
 	json.Unmarshal([]byte(json2), &obj2)
-	
+
 	for _, diff := range diffs {
 		if w.isArrayElementPath(diff.FullPath) {
 			arrayPath := w.getArrayPathFromElement(diff.FullPath)
@@ -118,18 +118,18 @@ func (w *WI2LDiffer) postProcessArrays(diffs []DiffEntry, json1, json2 string) [
 			result = append(result, diff)
 		}
 	}
-	
+
 	// Consolidate ALL array changes to whole array operations
 	for arrayPath, changes := range arrayChanges {
 		if len(changes) > 0 {
 			// Get the complete arrays from both JSONs
 			oldArray := w.getValueAtPath(obj1, arrayPath)
 			newArray := w.getValueAtPath(obj2, arrayPath)
-			
+
 			// Determine change type based on array existence
 			var changeType string
 			var fromValue, toValue *string
-			
+
 			if oldArray == nil && newArray != nil {
 				changeType = "added"
 				toValue = w.formatPatchValue(newArray)
@@ -141,7 +141,7 @@ func (w *WI2LDiffer) postProcessArrays(diffs []DiffEntry, json1, json2 string) [
 				fromValue = w.formatPatchValue(oldArray)
 				toValue = w.formatPatchValue(newArray)
 			}
-			
+
 			result = append(result, DiffEntry{
 				FullPath:   arrayPath,
 				FieldName:  w.extractFieldNameFromPath(arrayPath),
@@ -152,7 +152,7 @@ func (w *WI2LDiffer) postProcessArrays(diffs []DiffEntry, json1, json2 string) [
 			})
 		}
 	}
-	
+
 	return result
 }
 
