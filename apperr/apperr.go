@@ -9,9 +9,9 @@ import (
 type Component string
 
 const (
-	DataLayer  Component = "DataLayer"
+	DataLayer Component = "DataLayer"
 	LogicLayer Component = "LogicLayer"
-	APILayer  Component = "APILayer"
+	APILayer Component = "APILayer"
 )
 
 // AppError is our custom error type
