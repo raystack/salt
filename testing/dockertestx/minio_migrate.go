@@ -8,7 +8,7 @@ import (
 
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
-	"github.com/raystack/salt/internal/apperr"
+	"github.com/raystack/salt/apperr"
 )
 
 const waitContainerTimeout = 60 * time.Second
