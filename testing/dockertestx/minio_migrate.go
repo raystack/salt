@@ -57,7 +57,7 @@ func MigrateMinio(minioHost string, bucketName string, opts ...dockerMigrateMini
 	if dm.pool == nil {
 		dm.pool, err = dockertest.NewPool("")
 		if err != nil {
-			return nil, apperr.New(
+			return apperr.New(
 				apperr.DataLayer, 
 				"Could not create dockertest pool", //for user
 				err, //for logger
