@@ -8,6 +8,7 @@ import (
 
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
+	"github.com/raystack/salt/internal/apperr"
 )
 
 const waitContainerTimeout = 60 * time.Second
@@ -56,7 +57,11 @@ func MigrateMinio(minioHost string, bucketName string, opts ...dockerMigrateMini
 	if dm.pool == nil {
 		dm.pool, err = dockertest.NewPool("")
 		if err != nil {
-			return fmt.Errorf("could not create dockertest pool: %w", err)
+			return nil, apperr.New(
+				apperr.DataLayer, 
+				"Could not create dockertest pool", //for user
+				err, //for logger
+			)
 		}
 	}
 

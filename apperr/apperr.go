@@ -11,7 +11,7 @@ type Component string
 const (
 	DataLayer  Component = "DataLayer"
 	LogicLayer Component = "LogicLayer"
-	APIClient  Component = "APIClient"
+	APILayer  Component = "APILayer"
 )
 
 // AppError is our custom error type
@@ -25,7 +25,6 @@ type AppError struct {
 
 // New creates a new AppError and captures the caller's traceback automatically
 func New(comp Component, publicMsg string, err error) *AppError {
-	// runtime.Caller(1) skips this function and gets the file/line of the caller
 	_, file, line, ok := runtime.Caller(1)
 	if !ok {
 		file = "unknown"
@@ -41,8 +40,6 @@ func New(comp Component, publicMsg string, err error) *AppError {
 	}
 }
 
-// Error fulfills the standard Go error interface. 
-// THIS IS FOR YOUR LOGGER: It prints everything, including the traceback.
 func (e *AppError) Error() string {
 	if e.OriginalErr != nil {
 		return fmt.Sprintf("[%s] %s:%d - %s: %v", e.Component, e.File, e.Line, e.PublicMessage, e.OriginalErr)
@@ -50,8 +47,6 @@ func (e *AppError) Error() string {
 	return fmt.Sprintf("[%s] %s:%d - %s", e.Component, e.File, e.Line, e.PublicMessage)
 }
 
-// Unwrap allows standard library functions like errors.Is and errors.As to work
-// by exposing the underlying wrapped error.
 func (e *AppError) Unwrap() error {
 	return e.OriginalErr
 }
