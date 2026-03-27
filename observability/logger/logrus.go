@@ -1,4 +1,4 @@
-package log
+package logger
 
 import (
 	"io"
@@ -76,7 +76,7 @@ func LogrusWithWriter(writer io.Writer) Option {
 //	func (p *PlainFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 //	    return []byte(entry.Message), nil
 //	}
-//	l := log.NewLogrus(log.LogrusWithFormatter(&PlainFormatter{}))
+//	l := logger.NewLogrus(logger.LogrusWithFormatter(&PlainFormatter{}))
 func LogrusWithFormatter(f logrus.Formatter) Option {
 	return func(logger interface{}) {
 		logger.(*Logrus).log.SetFormatter(f)

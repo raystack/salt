@@ -1,11 +1,11 @@
-package telemetry
+package observability
 
 import (
 	"context"
 	"fmt"
 	"time"
 
-	"github.com/raystack/salt/log"
+	"github.com/raystack/salt/observability/logger"
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/contrib/samplers/probability/consistent"
@@ -29,7 +29,7 @@ type OpenTelemetryConfig struct {
 	VerboseResourceLabelsEnabled bool          `yaml:"verbose_resource_labels_enabled" mapstructure:"verbose_resource_labels_enabled" default:"false"`
 }
 
-func initOTLP(ctx context.Context, cfg Config, logger log.Logger) (func(), error) {
+func initOTLP(ctx context.Context, cfg Config, logger logger.Logger) (func(), error) {
 	if !cfg.OpenTelemetry.Enabled {
 		logger.Info("OpenTelemetry monitoring is disabled.")
 		return noOp, nil
@@ -78,7 +78,7 @@ func initOTLP(ctx context.Context, cfg Config, logger log.Logger) (func(), error
 	}
 	return shutdownProviders, nil
 }
-func initGlobalMetrics(ctx context.Context, res *resource.Resource, cfg OpenTelemetryConfig, logger log.Logger) (func(), error) {
+func initGlobalMetrics(ctx context.Context, res *resource.Resource, cfg OpenTelemetryConfig, logger logger.Logger) (func(), error) {
 	exporter, err := otlpmetricgrpc.New(ctx,
 		otlpmetricgrpc.WithEndpoint(cfg.CollectorAddr),
 		otlpmetricgrpc.WithCompressor(gzip.Name),
@@ -98,7 +98,7 @@ func initGlobalMetrics(ctx context.Context, res *resource.Resource, cfg OpenTele
 		}
 	}, nil
 }
-func initGlobalTracer(ctx context.Context, res *resource.Resource, cfg OpenTelemetryConfig, logger log.Logger) (func(), error) {
+func initGlobalTracer(ctx context.Context, res *resource.Resource, cfg OpenTelemetryConfig, logger logger.Logger) (func(), error) {
 	exporter, err := otlptrace.New(ctx, otlptracegrpc.NewClient(
 		otlptracegrpc.WithEndpoint(cfg.CollectorAddr),
 		otlptracegrpc.WithInsecure(),

@@ -3,7 +3,7 @@ package otelhttpclient_test
 import (
 	"testing"
 
-	otelhttpclient "github.com/raystack/salt/telemetry/otelhhtpclient"
+	"github.com/raystack/salt/observability/otelhttpclient"
 	"github.com/stretchr/testify/assert"
 )
 

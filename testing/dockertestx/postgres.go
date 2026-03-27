@@ -8,7 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
-	"github.com/raystack/salt/log"
+	"github.com/raystack/salt/observability/logger"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 
 type dockerPostgresOption func(dpg *dockerPostgres)
 
-func PostgresWithLogger(logger log.Logger) dockerPostgresOption {
+func PostgresWithLogger(logger logger.Logger) dockerPostgresOption {
 	return func(dpg *dockerPostgres) {
 		dpg.logger = logger
 	}
@@ -69,7 +69,7 @@ func PostgresWithDockerPool(pool *dockertest.Pool) dockerPostgresOption {
 }
 
 type dockerPostgres struct {
-	logger             log.Logger
+	logger             logger.Logger
 	network            *dockertest.Network
 	pool               *dockertest.Pool
 	username           string

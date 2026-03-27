@@ -1,4 +1,4 @@
-package log_test
+package logger_test
 
 import (
 	"bufio"
@@ -15,7 +15,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/raystack/salt/log"
+	"github.com/raystack/salt/observability/logger"
 )
 
 type zapBufWriter struct {
@@ -41,7 +41,7 @@ func (m zapClock) NewTicker(duration time.Duration) *time.Ticker {
 	return time.NewTicker(duration)
 }
 
-func buildBufferedZapOption(writer io.Writer, t time.Time, bufWriterKey string) log.Option {
+func buildBufferedZapOption(writer io.Writer, t time.Time, bufWriterKey string) logger.Option {
 	config := zap.NewDevelopmentConfig()
 	config.DisableCaller = true
 	// register mock writer
@@ -52,7 +52,7 @@ func buildBufferedZapOption(writer io.Writer, t time.Time, bufWriterKey string) 
 	customPath := fmt.Sprintf("%s:", bufWriterKey)
 	config.OutputPaths = []string{customPath}
 
-	return log.ZapWithConfig(config, zap.WithClock(&zapClock{
+	return logger.ZapWithConfig(config, zap.WithClock(&zapClock{
 		t: t,
 	}))
 }
@@ -64,7 +64,7 @@ func TestZap(t *testing.T) {
 		var b bytes.Buffer
 		bWriter := bufio.NewWriter(&b)
 
-		zapper := log.NewZap(buildBufferedZapOption(bWriter, mockedTime, randomString(10)))
+		zapper := logger.NewZap(buildBufferedZapOption(bWriter, mockedTime, randomString(10)))
 		zapper.Info("hello", "wor", "ld")
 		bWriter.Flush()
 
@@ -75,9 +75,9 @@ func TestZap(t *testing.T) {
 		var b bytes.Buffer
 		bWriter := bufio.NewWriter(&b)
 
-		zapper := log.NewZap(buildBufferedZapOption(bWriter, mockedTime, randomString(10)))
+		zapper := logger.NewZap(buildBufferedZapOption(bWriter, mockedTime, randomString(10)))
 		ctx := zapper.NewContext(context.Background())
-		contextualLog := log.ZapFromContext(ctx)
+		contextualLog := logger.ZapFromContext(ctx)
 		contextualLog.Info("hello", "wor", "ld")
 		bWriter.Flush()
 
@@ -88,11 +88,11 @@ func TestZap(t *testing.T) {
 		var b bytes.Buffer
 		bWriter := bufio.NewWriter(&b)
 
-		zapper := log.NewZap(buildBufferedZapOption(bWriter, mockedTime, randomString(10)))
+		zapper := logger.NewZap(buildBufferedZapOption(bWriter, mockedTime, randomString(10)))
 		ctx := zapper.NewContext(context.Background())
-		ctx = log.ZapContextWithFields(ctx, zap.Int("one", 1))
-		ctx = log.ZapContextWithFields(ctx, zap.String("two", "two"))
-		log.ZapFromContext(ctx).Info("hello", "wor", "ld")
+		ctx = logger.ZapContextWithFields(ctx, zap.Int("one", 1))
+		ctx = logger.ZapContextWithFields(ctx, zap.String("two", "two"))
+		logger.ZapFromContext(ctx).Info("hello", "wor", "ld")
 		bWriter.Flush()
 
 		assert.Equal(t, mockedTime.Format("2006-01-02T15:04:05.000Z0700")+"\tINFO\thello\t{\"one\": 1, \"two\": \"two\", \"wor\": \"ld\"}\n", b.String())

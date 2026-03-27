@@ -11,10 +11,10 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
-	"github.com/raystack/salt/log"
+	"github.com/raystack/salt/observability/logger"
 )
 
-func newTestRepository(logger log.Logger) (*repositories.PostgresRepository, *dockertest.Pool, *dockertest.Resource, error) {
+func newTestRepository(logger logger.Logger) (*repositories.PostgresRepository, *dockertest.Pool, *dockertest.Resource, error) {
 	host := "localhost"
 	port := "5433"
 	user := "test_user"

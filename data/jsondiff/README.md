@@ -13,7 +13,7 @@ A Go library for calculating differences between JSON documents and reconstructi
 ## Installation
 
 ```bash
-go get github.com/raystack/salt/jsondiff
+go get github.com/raystack/salt/data/jsondiff
 ```
 
 ## Usage
@@ -28,7 +28,7 @@ import (
     "fmt"
     "reflect"
     "strings"
-    "github.com/raystack/salt/jsondiff"
+    "github.com/raystack/salt/data/jsondiff"
 )
 
 func main() {
@@ -105,7 +105,7 @@ import (
     "fmt"
     "reflect"
     "strings"
-    "github.com/raystack/salt/jsondiff"
+    "github.com/raystack/salt/data/jsondiff"
 )
 
 func main() {

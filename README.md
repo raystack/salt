@@ -14,52 +14,65 @@ To use, run the following command:
 go get github.com/raystack/salt
 ```
 
-## Pacakages
+## Packages
 
-### Configuration and Environment
-- **`config`**  
+### Configuration
+- **`config`**
   Utilities for managing application configurations using environment variables, files, or defaults.
 
 ### CLI Utilities
-- **`cli/cmdx`**  
-  Command execution and management tools.
+- **`cli/commander`**
+  Command execution, completion, help topics, and management tools.
 
-- **`cli/printer`**  
+- **`cli/printer`**
   Utilities for formatting and printing output to the terminal.
 
-- **`cli/prompt`**  
+- **`cli/prompter`**
   Interactive CLI prompts for user input.
 
-- **`cli/terminal`**  
-  Terminal utilities for colors, cursor management, and formatting.
+- **`cli/terminator`**
+  Terminal utilities for browser, pager, and brew helpers.
 
-- **`cli/version`**  
+- **`cli/releaser`**
   Utilities for displaying and managing CLI tool versions.
 
 ### Authentication and Security
-- **`auth/oidc`**  
+- **`auth/oidc`**
   Helpers for integrating OpenID Connect authentication flows.
 
-- **`auth/audit`**  
+- **`auth/audit`**
   Auditing tools for tracking security events and compliance.
 
 ### Server and Infrastructure
-- **`server`**  
-  Utilities for setting up and managing HTTP or RPC servers.
+- **`server/mux`**
+  gRPC-gateway multiplexer for serving gRPC and HTTP on a single port.
 
-- **`db`**  
+- **`server/spa`**
+  Single-page application static file handler.
+
+- **`db`**
   Helpers for database connections, migrations, and query execution.
 
-- **`telemetry`**  
-  Observability tools for capturing application metrics and traces.
+### Observability
+- **`observability`**
+  OpenTelemetry initialization, metrics, and tracing setup.
+
+- **`observability/logger`**
+  Structured logging with Zap and Logrus adapters.
+
+- **`observability/otelgrpc`**
+  OpenTelemetry gRPC client interceptors for metrics.
+
+- **`observability/otelhttpclient`**
+  OpenTelemetry HTTP client transport for metrics.
+
+### Data Utilities
+- **`data/rql`**
+  REST query language parser for filters, pagination, sorting, and search.
+
+- **`data/jsondiff`**
+  JSON document diffing and reconstruction.
 
 ### Development and Testing
-- **`dockertestx`**  
-  Tools for creating and managing Docker-based testing environments.
-
-### Utilities
-- **`log`**  
-  Simplified logging utilities for structured and unstructured log messages.
-
-- **`utils`**  
-  General-purpose utility functions for common programming tasks.
+- **`testing/dockertestx`**
+  Docker-based test environment helpers for Postgres, Minio, SpiceDB, and more.
