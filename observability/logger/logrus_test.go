@@ -1,4 +1,4 @@
-package log_test
+package logger_test
 
 import (
 	"bufio"
@@ -8,7 +8,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/raystack/salt/log"
+	"github.com/raystack/salt/observability/logger"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -18,7 +18,7 @@ func TestLogrus(t *testing.T) {
 		var b bytes.Buffer
 		foo := bufio.NewWriter(&b)
 
-		logger := log.NewLogrus(log.LogrusWithLevel("debug"), log.LogrusWithWriter(foo), log.LogrusWithFormatter(&logrus.TextFormatter{
+		logger := logger.NewLogrus(logger.LogrusWithLevel("debug"), logger.LogrusWithWriter(foo), logger.LogrusWithFormatter(&logrus.TextFormatter{
 			DisableTimestamp: true,
 		}))
 		logger.Info("hello world")
@@ -30,7 +30,7 @@ func TestLogrus(t *testing.T) {
 		var b bytes.Buffer
 		foo := bufio.NewWriter(&b)
 
-		logger := log.NewLogrus(log.LogrusWithLevel("info"), log.LogrusWithWriter(foo), log.LogrusWithFormatter(&logrus.TextFormatter{
+		logger := logger.NewLogrus(logger.LogrusWithLevel("info"), logger.LogrusWithWriter(foo), logger.LogrusWithFormatter(&logrus.TextFormatter{
 			DisableTimestamp: true,
 		}))
 		logger.Debug("hello world")
@@ -42,7 +42,7 @@ func TestLogrus(t *testing.T) {
 		var b bytes.Buffer
 		foo := bufio.NewWriter(&b)
 
-		logger := log.NewLogrus(log.LogrusWithLevel("debug"), log.LogrusWithWriter(foo), log.LogrusWithFormatter(&logrus.TextFormatter{
+		logger := logger.NewLogrus(logger.LogrusWithLevel("debug"), logger.LogrusWithWriter(foo), logger.LogrusWithFormatter(&logrus.TextFormatter{
 			DisableTimestamp: true,
 		}))
 		logger.Debug("current values", "day", 11, "month", "aug")
@@ -54,7 +54,7 @@ func TestLogrus(t *testing.T) {
 		var b bytes.Buffer
 		foo := bufio.NewWriter(&b)
 
-		logger := log.NewLogrus(log.LogrusWithLevel("info"), log.LogrusWithWriter(foo), log.LogrusWithFormatter(&logrus.TextFormatter{
+		logger := logger.NewLogrus(logger.LogrusWithLevel("info"), logger.LogrusWithWriter(foo), logger.LogrusWithFormatter(&logrus.TextFormatter{
 			DisableTimestamp: true,
 		}))
 		var err = fmt.Errorf("request failed")
@@ -66,7 +66,7 @@ func TestLogrus(t *testing.T) {
 		var b bytes.Buffer
 		foo := bufio.NewWriter(&b)
 
-		logger := log.NewLogrus(log.LogrusWithLevel("info"), log.LogrusWithWriter(foo), log.LogrusWithFormatter(&logrus.TextFormatter{
+		logger := logger.NewLogrus(logger.LogrusWithLevel("info"), logger.LogrusWithWriter(foo), logger.LogrusWithFormatter(&logrus.TextFormatter{
 			DisableTimestamp: true,
 		}))
 		var err = fmt.Errorf("request failed")

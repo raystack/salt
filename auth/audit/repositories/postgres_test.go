@@ -11,7 +11,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/jmoiron/sqlx/types"
-	"github.com/raystack/salt/log"
+	"github.com/raystack/salt/observability/logger"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -27,7 +27,7 @@ func TestPostgresRepository(t *testing.T) {
 
 func (s *PostgresRepositoryTestSuite) SetupSuite() {
 	var err error
-	repository, pool, dockerResource, err := newTestRepository(log.NewLogrus())
+	repository, pool, dockerResource, err := newTestRepository(logger.NewLogrus())
 	if err != nil {
 		s.T().Fatal(err)
 	}

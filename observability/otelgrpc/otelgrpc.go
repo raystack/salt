@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/raystack/salt/utils"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -30,7 +29,7 @@ type Meter struct {
 	attributes   []attribute.KeyValue
 }
 type MeterOpts struct {
-	meterName string `default:"github.com/raystack/salt/telemetry/otelgrpc"`
+	meterName string `default:"github.com/raystack/salt/observability/otelgrpc"`
 }
 type Option func(*MeterOpts)
 
@@ -78,7 +77,7 @@ func (m *Meter) RecordUnary(ctx context.Context, p UnaryParams) {
 	resSize := GetProtoSize(p.Res)
 	attrs := make([]attribute.KeyValue, len(m.attributes))
 	copy(attrs, m.attributes)
-	attrs = append(attrs, attribute.String("rpc.grpc.status_text", utils.StatusText(p.Err)))
+	attrs = append(attrs, attribute.String("rpc.grpc.status_text", StatusText(p.Err)))
 	attrs = append(attrs, attribute.String("network.type", netTypeFromCtx(ctx)))
 	attrs = append(attrs, ParseFullMethod(p.Method)...)
 	m.duration.Record(ctx,
@@ -94,7 +93,7 @@ func (m *Meter) RecordUnary(ctx context.Context, p UnaryParams) {
 func (m *Meter) RecordStream(ctx context.Context, start time.Time, method string, err error) {
 	attrs := make([]attribute.KeyValue, len(m.attributes))
 	copy(attrs, m.attributes)
-	attrs = append(attrs, attribute.String("rpc.grpc.status_text", utils.StatusText(err)))
+	attrs = append(attrs, attribute.String("rpc.grpc.status_text", StatusText(err)))
 	attrs = append(attrs, attribute.String("network.type", netTypeFromCtx(ctx)))
 	attrs = append(attrs, ParseFullMethod(method)...)
 	m.duration.Record(ctx,

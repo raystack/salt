@@ -1,4 +1,4 @@
-package utils
+package otelgrpc
 
 import (
 	"github.com/pkg/errors"
@@ -38,6 +38,7 @@ func StatusCode(err error) codes.Code {
 	}
 	return codes.Unknown
 }
+
 func StatusText(err error) string {
 	return codeToStr[StatusCode(err)]
 }

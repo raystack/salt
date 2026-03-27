@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/raystack/salt/telemetry/otelgrpc"
+	"github.com/raystack/salt/observability/otelgrpc"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.20.0"
