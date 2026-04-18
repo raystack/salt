@@ -6,7 +6,7 @@
 
 The standard way to build raystack services and CLIs.
 
-Salt provides two entry points — `app.Run()` for services and `cli.Execute()` for command-line tools — along with the building blocks they use: configuration, middleware, terminal output, and more.
+Salt provides `app.Run()` for services and `cli.Init()` for command-line tools, along with the building blocks they use: configuration, middleware, terminal output, and more.
 
 ## Quick start
 
@@ -43,19 +43,25 @@ H2C and health check at `/ping` enabled by default. HTTP middleware is explicit 
 ```go
 package main
 
-import "github.com/raystack/salt/cli"
+import (
+    "github.com/raystack/salt/cli"
+    "github.com/spf13/cobra"
+)
 
 func main() {
-    cli.Execute(
-        cli.Name("frontier"),
-        cli.Description("identity management"),
+    rootCmd := &cobra.Command{Use: "frontier", Short: "identity management"}
+    rootCmd.PersistentFlags().StringP("host", "h", "", "API server host")
+    rootCmd.AddCommand(serverCmd, userCmd)
+
+    cli.Init(rootCmd,
         cli.Version("0.1.0", "raystack/frontier"),
-        cli.Commands(serverCmd, userCmd),
     )
+
+    rootCmd.Execute()
 }
 ```
 
-Help, shell completion, and reference docs enabled by default. Commands access shared output via `cli.Output(cmd)`.
+Help, shell completion, and reference docs added automatically. Commands access shared output via `cli.Output(cmd)`.
 
 ## Installation
 

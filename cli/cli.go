@@ -1,13 +1,16 @@
-// Package cli provides a CLI bootstrap for raystack applications.
+// Package cli provides CLI enhancements for raystack applications.
 //
 // Usage:
 //
-//	cli.Execute(
-//	    cli.Name("frontier"),
-//	    cli.Description("identity management"),
+//	rootCmd := &cobra.Command{Use: "frontier", Short: "identity management"}
+//	rootCmd.AddCommand(serverCmd, userCmd)
+//
+//	cli.Init(rootCmd,
 //	    cli.Version("0.1.0", "raystack/frontier"),
-//	    cli.Commands(serverCmd, configCmd),
+//	    cli.Topics(authTopic, envTopic),
 //	)
+//
+//	rootCmd.Execute()
 package cli
 
 import (
@@ -29,84 +32,56 @@ type cliContext struct {
 	prompter prompt.Prompter
 }
 
-// CLI holds the configured CLI application.
-type CLI struct {
-	name        string
-	description string
-	version     string
-	repo        string
-	commands    []*cobra.Command
-	topics      []commander.HelpTopic
-	hooks       []commander.HookBehavior
-}
-
-// Execute creates and runs a CLI application with sensible defaults.
-// Help, completion, and reference commands are enabled automatically.
-func Execute(opts ...Option) error {
-	c, err := New(opts...)
-	if err != nil {
-		return err
-	}
-	return c.execute()
-}
-
-// New creates a CLI without executing, for advanced wiring.
-func New(opts ...Option) (*CLI, error) {
-	c := &CLI{}
+// Init enhances a cobra root command with standard CLI features:
+// help, completion, reference docs, output/prompter context, and
+// optionally a version command with update checking.
+//
+// The developer owns the root command — Init only adds features to it.
+func Init(rootCmd *cobra.Command, opts ...Option) {
+	cfg := &config{}
 	for _, opt := range opts {
-		opt(c)
+		opt(cfg)
 	}
-	if c.name == "" {
-		return nil, fmt.Errorf("cli: Name is required")
-	}
-	return c, nil
-}
 
-func (c *CLI) execute() error {
-	rootCmd := &cobra.Command{
-		Use:   c.name,
-		Short: c.description,
-		PersistentPreRun: func(cmd *cobra.Command, _ []string) {
-			ctx := context.WithValue(cmd.Context(), contextKey{}, &cliContext{
-				output:   printer.NewOutput(os.Stdout),
-				prompter: prompt.New(),
-			})
-			cmd.SetContext(ctx)
-		},
-		SilenceUsage: true,
+	// Inject shared output and prompter into command context.
+	existing := rootCmd.PersistentPreRun
+	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+		ctx := context.WithValue(cmd.Context(), contextKey{}, &cliContext{
+			output:   printer.NewOutput(os.Stdout),
+			prompter: prompt.New(),
+		})
+		cmd.SetContext(ctx)
+		if existing != nil {
+			existing(cmd, args)
+		}
 	}
 
 	// Wire commander features.
 	var managerOpts []func(*commander.Manager)
-	if len(c.topics) > 0 {
-		managerOpts = append(managerOpts, commander.WithTopics(c.topics))
+	if len(cfg.topics) > 0 {
+		managerOpts = append(managerOpts, commander.WithTopics(cfg.topics))
 	}
-	if len(c.hooks) > 0 {
-		managerOpts = append(managerOpts, commander.WithHooks(c.hooks))
+	if len(cfg.hooks) > 0 {
+		managerOpts = append(managerOpts, commander.WithHooks(cfg.hooks))
 	}
 	mgr := commander.New(rootCmd, managerOpts...)
 	mgr.Init()
 
 	// Add version command if configured.
-	if c.version != "" {
-		rootCmd.AddCommand(c.versionCmd())
+	if cfg.version != "" {
+		rootCmd.AddCommand(versionCmd(rootCmd.Name(), cfg.version, cfg.repo))
 	}
-
-	// Add user commands.
-	rootCmd.AddCommand(c.commands...)
-
-	return rootCmd.Execute()
 }
 
-func (c *CLI) versionCmd() *cobra.Command {
+func versionCmd(name, ver, repo string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Show version information",
 		Run: func(cmd *cobra.Command, _ []string) {
 			out := Output(cmd)
-			out.Println(fmt.Sprintf("%s version %s", c.name, c.version))
-			if c.repo != "" {
-				if msg := version.CheckForUpdate(c.version, c.repo); msg != "" {
+			out.Println(fmt.Sprintf("%s version %s", name, ver))
+			if repo != "" {
+				if msg := version.CheckForUpdate(ver, repo); msg != "" {
 					out.Warning(msg)
 				}
 			}

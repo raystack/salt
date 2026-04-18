@@ -13,7 +13,7 @@ import (
 )
 
 // App is a service lifecycle manager that wires together configuration,
-// logging, database, telemetry, and HTTP serving with graceful shutdown.
+// logging, telemetry, and HTTP serving with graceful shutdown.
 //
 // Defaults: h2c enabled, health check at /ping.
 type App struct {

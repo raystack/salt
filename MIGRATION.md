@@ -95,7 +95,7 @@ HTTP middleware is explicit — use `middleware.DefaultHTTP(logger)` for the sta
 
 ## CLI bootstrap
 
-New `cli.Execute()` for CLI applications:
+New `cli.Init()` enhances your root command with standard features:
 
 ```go
 // Before
@@ -108,13 +108,16 @@ rootCmd.Execute()
 // After
 import "github.com/raystack/salt/cli"
 
-cli.Execute(
-    cli.Name("frontier"),
-    cli.Description("identity management"),
+rootCmd := &cobra.Command{Use: "frontier", Short: "identity management"}
+rootCmd.PersistentFlags().StringP("host", "h", "", "API host")
+rootCmd.AddCommand(serverCmd, configCmd)
+
+cli.Init(rootCmd,
     cli.Version("0.1.0", "raystack/frontier"),
-    cli.Commands(serverCmd, configCmd),
     cli.Topics(topics...),
 )
+
+rootCmd.Execute()
 ```
 
 Access shared output and prompting in commands:

@@ -6,7 +6,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func ExampleExecute() {
+func ExampleInit() {
+	rootCmd := &cobra.Command{
+		Use:   "frontier",
+		Short: "identity management",
+	}
+	rootCmd.PersistentFlags().StringP("host", "h", "", "API server host")
+
 	listCmd := &cobra.Command{
 		Use:   "list",
 		Short: "List resources",
@@ -15,25 +21,26 @@ func ExampleExecute() {
 			out.Table([][]string{
 				{"ID", "NAME"},
 				{"1", "Alice"},
-				{"2", "Bob"},
 			})
 			return nil
 		},
 	}
+	rootCmd.AddCommand(listCmd)
 
-	cli.Execute(
-		cli.Name("myapp"),
-		cli.Description("my application"),
-		cli.Version("0.1.0", "raystack/myapp"),
-		cli.Commands(listCmd),
+	cli.Init(rootCmd,
+		cli.Version("0.1.0", "raystack/frontier"),
 	)
+
+	rootCmd.Execute()
 }
 
-func ExampleExecute_withTopics() {
-	cli.Execute(
-		cli.Name("myapp"),
-		cli.Description("my application"),
-		cli.Commands(),
+func ExampleInit_withTopics() {
+	rootCmd := &cobra.Command{
+		Use:   "myapp",
+		Short: "my application",
+	}
+
+	cli.Init(rootCmd,
 		cli.Topics(
 			commander.HelpTopic{
 				Name:  "auth",
@@ -42,4 +49,6 @@ func ExampleExecute_withTopics() {
 			},
 		),
 	)
+
+	rootCmd.Execute()
 }
