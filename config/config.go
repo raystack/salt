@@ -9,8 +9,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/go-playground/validator"
-	"github.com/mcuadros/go-defaults"
+	"github.com/creasty/defaults"
+	"github.com/go-playground/validator/v10"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
@@ -96,7 +96,7 @@ func (l *Loader) Load(config interface{}) error {
 	}
 
 	// Apply default values before reading configuration
-	defaults.SetDefaults(config)
+	defaults.Set(config)
 
 	// Bind flags dynamically using reflection on `cmdx` tags if a flag set is provided
 	if l.flags != nil {
@@ -116,11 +116,11 @@ func (l *Loader) Load(config interface{}) error {
 		}
 	}
 
-	// Attempt to read the configuration file
+	// Attempt to read the configuration file (missing file is not an error).
 	if err := l.v.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
-		if errors.As(err, &configFileNotFoundError) {
-			fmt.Println("Warning: Config file not found. Falling back to defaults and environment variables.")
+		if !errors.As(err, &configFileNotFoundError) && !os.IsNotExist(err) {
+			return fmt.Errorf("failed to read config file: %w", err)
 		}
 	}
 
@@ -139,7 +139,7 @@ func (l *Loader) Load(config interface{}) error {
 
 // Init initializes the configuration file with default values.
 func (l *Loader) Init(config interface{}) error {
-	defaults.SetDefaults(config)
+	defaults.Set(config)
 
 	path := l.v.ConfigFileUsed()
 	if fileExists(path) {
