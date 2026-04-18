@@ -34,9 +34,8 @@ func Handler(build embed.FS, dir string, index string, gzip bool) (http.Handler,
 	if _, err = fsys.Open(index); err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			return nil, fmt.Errorf("ui is enabled but no index.html found: %w", err)
-		} else {
-			return nil, fmt.Errorf("ui assets error: %w", err)
 		}
+		return nil, fmt.Errorf("ui assets error: %w", err)
 	}
 	router := &router{index: index, fs: http.FS(fsys)}
 
