@@ -38,7 +38,7 @@ type cliContext struct {
 //
 // The developer owns the root command — Init only adds features to it.
 func Init(rootCmd *cobra.Command, opts ...Option) {
-	cfg := &config{}
+	cfg := &options{}
 	for _, opt := range opts {
 		opt(cfg)
 	}
