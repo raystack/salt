@@ -1,0 +1,177 @@
+package app_test
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"log/slog"
+	"net/http"
+	"testing"
+	"time"
+
+	"github.com/raystack/salt/app"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func nopLogger() *slog.Logger { return slog.New(slog.DiscardHandler) }
+
+func TestNew(t *testing.T) {
+	t.Run("creates app with defaults", func(t *testing.T) {
+		a, err := app.New()
+		require.NoError(t, err)
+		assert.NotNil(t, a)
+		assert.NotNil(t, a.Logger())
+	})
+
+	t.Run("sets logger", func(t *testing.T) {
+		l := nopLogger()
+		a, err := app.New(app.WithLogger(l))
+		require.NoError(t, err)
+		assert.Equal(t, l, a.Logger())
+	})
+
+	t.Run("returns error from option", func(t *testing.T) {
+		badOpt := func(_ *app.App) error {
+			return fmt.Errorf("bad option")
+		}
+		_, err := app.New(badOpt)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "bad option")
+	})
+}
+
+func TestAppStartAndShutdown(t *testing.T) {
+	t.Run("starts with health check and h2c by default", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+
+		a, err := app.New(
+			app.WithLogger(nopLogger()),
+			app.WithAddr("127.0.0.1:18950"),
+		)
+		require.NoError(t, err)
+
+		errCh := make(chan error, 1)
+		go func() { errCh <- a.Start(ctx) }()
+
+		time.Sleep(100 * time.Millisecond)
+
+		// Health check should be on by default at /ping
+		resp, err := http.Get("http://127.0.0.1:18950/ping")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		cancel()
+
+		select {
+		case err := <-errCh:
+			assert.NoError(t, err)
+		case <-time.After(5 * time.Second):
+			t.Fatal("shutdown timed out")
+		}
+	})
+
+	t.Run("runs onStart hooks", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+
+		var hookRan bool
+		a, err := app.New(
+			app.WithAddr("127.0.0.1:18951"),
+			app.WithOnStart(func(_ context.Context) error {
+				hookRan = true
+				return nil
+			}),
+		)
+		require.NoError(t, err)
+
+		go func() {
+			time.Sleep(100 * time.Millisecond)
+			cancel()
+		}()
+
+		a.Start(ctx)
+		assert.True(t, hookRan)
+	})
+
+	t.Run("runs onStop hooks", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+
+		var hookRan bool
+		a, err := app.New(
+			app.WithAddr("127.0.0.1:18952"),
+			app.WithOnStop(func(_ context.Context) error {
+				hookRan = true
+				return nil
+			}),
+		)
+		require.NoError(t, err)
+
+		go func() {
+			time.Sleep(100 * time.Millisecond)
+			cancel()
+		}()
+
+		a.Start(ctx)
+		assert.True(t, hookRan)
+	})
+
+	t.Run("serves custom handler", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		a, err := app.New(
+			app.WithLogger(nopLogger()),
+			app.WithAddr("127.0.0.1:18953"),
+			app.WithHandler("/hello", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				fmt.Fprint(w, "world")
+			})),
+		)
+		require.NoError(t, err)
+
+		go a.Start(ctx)
+		time.Sleep(100 * time.Millisecond)
+
+		resp, err := http.Get("http://127.0.0.1:18953/hello")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Equal(t, "world", string(body))
+
+		cancel()
+	})
+
+	t.Run("applies explicit middleware", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		addHeader := func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("X-Custom", "salt")
+				next.ServeHTTP(w, r)
+			})
+		}
+
+		a, err := app.New(
+			app.WithLogger(nopLogger()),
+			app.WithAddr("127.0.0.1:18954"),
+			app.WithHTTPMiddleware(addHeader),
+			app.WithHandler("/test", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			})),
+		)
+		require.NoError(t, err)
+
+		go a.Start(ctx)
+		time.Sleep(100 * time.Millisecond)
+
+		resp, err := http.Get("http://127.0.0.1:18954/test")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		assert.Equal(t, "salt", resp.Header.Get("X-Custom"))
+
+		cancel()
+	})
+}
