@@ -174,4 +174,26 @@ func TestAppStartAndShutdown(t *testing.T) {
 
 		cancel()
 	})
+
+	t.Run("onStart failure returns error and runs cleanup", func(t *testing.T) {
+		var cleanupRan bool
+		a, err := app.New(
+			app.WithAddr("127.0.0.1:18955"),
+			app.WithOnStart(func(_ context.Context) error {
+				return fmt.Errorf("migration failed")
+			}),
+			app.WithOnStop(func(_ context.Context) error {
+				cleanupRan = true
+				return nil
+			}),
+		)
+		require.NoError(t, err)
+
+		err = a.Start(context.Background())
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "migration failed")
+		// OnStop should NOT run — it runs only on graceful shutdown.
+		// cleanup() (telemetry flush) runs, but not onStop hooks.
+		assert.False(t, cleanupRan, "onStop hooks should not run on startup failure")
+	})
 }
