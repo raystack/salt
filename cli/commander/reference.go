@@ -15,13 +15,11 @@ import (
 func (m *Manager) addReferenceCommand() {
 	var isPlain bool
 	refCmd := &cobra.Command{
-		Use:   "reference",
-		Short: "Comprehensive reference of all commands",
-		Long:  m.generateReferenceMarkdown(),
-		Run:   m.runReferenceCommand(&isPlain),
-		Annotations: map[string]string{
-			"group": "help",
-		},
+		Use:     "reference",
+		Short:   "Comprehensive reference of all commands",
+		Long:    m.generateReferenceMarkdown(),
+		Run:     m.runReferenceCommand(&isPlain),
+		GroupID: "help",
 	}
 	refCmd.SetHelpFunc(m.runReferenceCommand(&isPlain))
 	refCmd.Flags().BoolVarP(&isPlain, "plain", "p", true, "output in plain markdown (without ANSI color)")

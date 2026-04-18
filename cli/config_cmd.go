@@ -35,9 +35,6 @@ func configInitCmd(appName string, defaultCfg interface{}) *cobra.Command {
 		Use:     "init",
 		Short:   "Initialize a new configuration file",
 		Example: fmt.Sprintf("  $ %s config init", appName),
-		Annotations: map[string]string{
-			"group": "core",
-		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			loader := config.NewLoader(config.WithAppConfig(appName))
 			if err := loader.Init(defaultCfg); err != nil {
@@ -54,9 +51,6 @@ func configListCmd(appName string) *cobra.Command {
 		Use:     "list",
 		Short:   "List current configuration",
 		Example: fmt.Sprintf("  $ %s config list", appName),
-		Annotations: map[string]string{
-			"group": "core",
-		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			loader := config.NewLoader(config.WithAppConfig(appName))
 			data, err := loader.View()

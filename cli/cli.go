@@ -43,6 +43,9 @@ func Init(rootCmd *cobra.Command, opts ...Option) {
 		opt(cfg)
 	}
 
+	// Set error prefix for consistent error messages.
+	rootCmd.SetErrPrefix(rootCmd.Name() + ":")
+
 	// Inject shared output and prompter into command context.
 	existing := rootCmd.PersistentPreRun
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {

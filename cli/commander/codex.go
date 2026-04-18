@@ -13,12 +13,10 @@ import (
 // This command generates a Markdown documentation tree for all commands in the hierarchy.
 func (m *Manager) addMarkdownCommand(outputPath string) {
 	markdownCmd := &cobra.Command{
-		Use:    "markdown",
-		Short:  "Generate Markdown documentation for all commands",
-		Hidden: true,
-		Annotations: map[string]string{
-			"group": "help",
-		},
+		Use:     "markdown",
+		Short:   "Generate Markdown documentation for all commands",
+		Hidden:  true,
+		GroupID: "help",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return m.generateMarkdownTree(outputPath, m.RootCmd)
 		},

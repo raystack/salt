@@ -24,9 +24,7 @@ func (m *Manager) addHelpTopicCommand(topic HelpTopic) {
 		Long:    topic.Long,
 		Example: topic.Example,
 		Hidden:  false,
-		Annotations: map[string]string{
-			"group": "help",
-		},
+		GroupID: "help",
 	}
 
 	helpCmd.SetHelpFunc(helpTopicHelpFunc)

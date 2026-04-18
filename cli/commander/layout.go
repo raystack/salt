@@ -18,7 +18,6 @@ import (
 // Section Titles for Help Output
 const (
 	usage     = "Usage"
-	corecmd   = "Core commands"
 	othercmd  = "Other commands"
 	helpcmd   = "Help topics"
 	flags     = "Flags"
@@ -86,7 +85,7 @@ func displayHelp(cmd *cobra.Command, args []string) {
 
 // buildHelpEntries constructs a structured help message for a command.
 func buildHelpEntries(cmd *cobra.Command) []helpEntry {
-	var coreCommands, helpCommands, otherCommands []string
+	var helpCommands, ungroupedCommands []string
 	groupCommands := map[string][]string{}
 
 	for _, c := range cmd.Commands() {
@@ -95,24 +94,15 @@ func buildHelpEntries(cmd *cobra.Command) []helpEntry {
 		}
 
 		entry := fmt.Sprintf("%s%s", rpad(c.Name(), c.NamePadding()+3), c.Short)
-		if group, ok := c.Annotations["group"]; ok {
-			switch group {
-			case "core":
-				coreCommands = append(coreCommands, entry)
-			case "help":
-				helpCommands = append(helpCommands, entry)
-			default:
-				groupCommands[group] = append(groupCommands[group], entry)
-			}
-		} else {
-			otherCommands = append(otherCommands, entry)
-		}
-	}
 
-	// Treat all commands as core if no groups are specified
-	if len(coreCommands) == 0 && len(groupCommands) == 0 {
-		coreCommands = otherCommands
-		otherCommands = []string{}
+		switch c.GroupID {
+		case "help":
+			helpCommands = append(helpCommands, entry)
+		case "":
+			ungroupedCommands = append(ungroupedCommands, entry)
+		default:
+			groupCommands[c.GroupID] = append(groupCommands[c.GroupID], entry)
+		}
 	}
 
 	helpEntries := []helpEntry{}
@@ -121,14 +111,16 @@ func buildHelpEntries(cmd *cobra.Command) []helpEntry {
 	}
 
 	helpEntries = append(helpEntries, helpEntry{usage, cmd.UseLine()})
-	if len(coreCommands) > 0 {
-		helpEntries = append(helpEntries, helpEntry{corecmd, strings.Join(coreCommands, "\n")})
-	}
-	for group, cmds := range groupCommands {
-		helpEntries = append(helpEntries, helpEntry{fmt.Sprintf("%s commands", toTitle(group)), strings.Join(cmds, "\n")})
-	}
-	if len(otherCommands) > 0 {
-		helpEntries = append(helpEntries, helpEntry{othercmd, strings.Join(otherCommands, "\n")})
+	if len(ungroupedCommands) > 0 && len(groupCommands) == 0 {
+		// No groups defined — show all commands under "Core commands"
+		helpEntries = append(helpEntries, helpEntry{"Core commands", strings.Join(ungroupedCommands, "\n")})
+	} else {
+		for group, cmds := range groupCommands {
+			helpEntries = append(helpEntries, helpEntry{fmt.Sprintf("%s commands", toTitle(group)), strings.Join(cmds, "\n")})
+		}
+		if len(ungroupedCommands) > 0 {
+			helpEntries = append(helpEntries, helpEntry{othercmd, strings.Join(ungroupedCommands, "\n")})
+		}
 	}
 	if len(helpCommands) > 0 {
 		helpEntries = append(helpEntries, helpEntry{helpcmd, strings.Join(helpCommands, "\n")})

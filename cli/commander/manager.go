@@ -12,7 +12,6 @@ type Manager struct {
 	Help       bool           // Enable custom help.
 	Reference  bool           // Enable reference command.
 	Completion bool           // Enable shell completion.
-	Config     bool           // Enable configuration management.
 	Docs       bool           // Enable markdown documentation
 	Hooks      []HookBehavior // Hook behaviors to apply to commands
 	Topics     []HelpTopic    // Help topics with their details.
@@ -66,6 +65,13 @@ func New(rootCmd *cobra.Command, options ...func(*Manager)) *Manager {
 // It enables or disables features like custom help, reference documentation,
 // shell completion, help topics, and client hooks based on the Manager's settings.
 func (m *Manager) Init() {
+	// Register the help group used by salt's internal commands
+	// (reference, completion, topics). Developers register their
+	// own groups via rootCmd.AddGroup() before calling Init.
+	m.RootCmd.AddGroup(
+		&cobra.Group{ID: "help", Title: "Help topics:"},
+	)
+
 	if m.Help {
 		m.setCustomHelp()
 	}
