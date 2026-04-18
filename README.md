@@ -1,78 +1,132 @@
-# salt
+# Salt
 
-[![GoDoc reference](https://img.shields.io/badge/godoc-reference-5272B4.svg)](https://godoc.org/github.com/raystack/salt)
-![test workflow](https://github.com/raystack/salt/actions/workflows/test.yaml/badge.svg)
-[![Go Report Card](https://goreportcard.com/badge/github.com/raystack/salt)](https://goreportcard.com/report/github.com/raystack/salt)
+[![Go Reference](https://pkg.go.dev/badge/github.com/raystack/salt.svg)](https://pkg.go.dev/github.com/raystack/salt)
+![test](https://github.com/raystack/salt/actions/workflows/test.yaml/badge.svg)
+![lint](https://github.com/raystack/salt/actions/workflows/lint.yaml/badge.svg)
 
-Salt is a Golang utility library offering a variety of packages to simplify and enhance application development. It provides modular and reusable components for common tasks, including configuration management, CLI utilities, authentication, logging, and more.
+The standard way to build raystack services and CLIs.
+
+Salt provides two entry points — `app.Run()` for services and `cli.Execute()` for command-line tools — along with the building blocks they use: configuration, middleware, terminal output, and more.
+
+## Quick start
+
+### Service
+
+```go
+package main
+
+import (
+    "log/slog"
+
+    "github.com/raystack/salt/app"
+    "github.com/raystack/salt/config"
+    "github.com/raystack/salt/middleware"
+)
+
+func main() {
+    var cfg Config
+
+    app.Run(
+        app.WithConfig(&cfg, config.WithFile("config.yaml")),
+        app.WithLogger(slog.Default()),
+        app.WithHTTPMiddleware(middleware.DefaultHTTP(slog.Default())),
+        app.WithHandler("/api/", apiHandler),
+        app.WithAddr(cfg.Addr),
+    )
+}
+```
+
+H2C and health check at `/ping` enabled by default. HTTP middleware is explicit — you choose what runs.
+
+### CLI
+
+```go
+package main
+
+import "github.com/raystack/salt/cli"
+
+func main() {
+    cli.Execute(
+        cli.Name("frontier"),
+        cli.Description("identity management"),
+        cli.Version("0.1.0", "raystack/frontier"),
+        cli.Commands(serverCmd, userCmd),
+    )
+}
+```
+
+Help, shell completion, and reference docs enabled by default. Commands access shared output via `cli.Output(cmd)`.
 
 ## Installation
-
-To use, run the following command:
 
 ```
 go get github.com/raystack/salt
 ```
 
+Requires Go 1.24+.
+
 ## Packages
 
-### Configuration
-- **`config`**
-  Utilities for managing application configurations using environment variables, files, or defaults.
+### Bootstrap
 
-### CLI Utilities
-- **`cli/commander`**
-  Command execution, completion, help topics, and management tools.
+| Package | Description |
+|---------|-------------|
+| [`app`](app/) | Service lifecycle — config, logger, telemetry, server, graceful shutdown |
+| [`cli`](cli/) | CLI lifecycle — root command, help, completion, version check |
 
-- **`cli/printer`**
-  Utilities for formatting and printing output to the terminal.
+### Server & Middleware
 
-- **`cli/prompter`**
-  Interactive CLI prompts for user input.
+| Package | Description |
+|---------|-------------|
+| [`server`](server/) | HTTP server with h2c, health checks, graceful shutdown |
+| [`server/spa`](server/spa/) | Single-page application static file handler |
+| [`middleware`](middleware/) | Connect interceptors and HTTP middleware |
+| [`middleware/recovery`](middleware/recovery/) | Panic recovery |
+| [`middleware/requestid`](middleware/requestid/) | X-Request-ID propagation |
+| [`middleware/requestlog`](middleware/requestlog/) | Request logging with duration |
+| [`middleware/errorz`](middleware/errorz/) | Error sanitization for clients |
+| [`middleware/cors`](middleware/cors/) | CORS with Connect defaults |
 
-- **`cli/terminator`**
-  Terminal utilities for browser, pager, and brew helpers.
+### CLI
 
-- **`cli/releaser`**
-  Utilities for displaying and managing CLI tool versions.
+| Package | Description |
+|---------|-------------|
+| [`cli/commander`](cli/commander/) | Cobra enhancements — help layout, completion, reference docs, hooks |
+| [`cli/printer`](cli/printer/) | Terminal output — styled text, tables, JSON/YAML, spinners, progress bars, markdown |
+| [`cli/prompt`](cli/prompt/) | Interactive prompts — select, multi-select, input, confirm |
+| [`cli/terminal`](cli/terminal/) | Terminal utilities — TTY detection, browser, pager |
+| [`cli/version`](cli/version/) | Version checking against GitHub releases |
 
-### Authentication and Security
-- **`auth/oidc`**
-  Helpers for integrating OpenID Connect authentication flows.
+### Infrastructure
 
-- **`auth/audit`**
-  Auditing tools for tracking security events and compliance.
+| Package | Description |
+|---------|-------------|
+| [`config`](config/) | Configuration from files, env vars, flags, and struct defaults |
+| [`telemetry`](telemetry/) | OpenTelemetry initialization — traces and metrics via OTLP |
 
-### Server and Infrastructure
-- **`server/mux`**
-  gRPC-gateway multiplexer for serving gRPC and HTTP on a single port.
+### Data
 
-- **`server/spa`**
-  Single-page application static file handler.
+| Package | Description |
+|---------|-------------|
+| [`data/rql`](data/rql/) | REST query language — filters, pagination, sorting, search |
+| [`data/jsondiff`](data/jsondiff/) | JSON document diffing and reconstruction |
 
-- **`db`**
-  Helpers for database connections, migrations, and query execution.
+## Logging
 
-### Observability
-- **`observability`**
-  OpenTelemetry initialization, metrics, and tracing setup.
+Salt uses `*slog.Logger` from the Go standard library. No custom logger interface — pass `slog.Default()` or any `*slog.Logger` to packages that need it.
 
-- **`observability/logger`**
-  Structured logging with Zap and Logrus adapters.
+```go
+// Production
+logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
 
-- **`observability/otelgrpc`**
-  OpenTelemetry gRPC client interceptors for metrics.
+// Tests
+logger := slog.New(slog.DiscardHandler)
+```
 
-- **`observability/otelhttpclient`**
-  OpenTelemetry HTTP client transport for metrics.
+## Migration
 
-### Data Utilities
-- **`data/rql`**
-  REST query language parser for filters, pagination, sorting, and search.
+See [MIGRATION.md](MIGRATION.md) for upgrading from previous versions.
 
-- **`data/jsondiff`**
-  JSON document diffing and reconstruction.
+## License
 
-### Development and Testing
-- **`testing/dockertestx`**
-  Docker-based test environment helpers for Postgres, Minio, SpiceDB, and more.
+Apache License 2.0
