@@ -91,16 +91,20 @@ func versionCmd(name, ver, repo string) *cobra.Command {
 
 // Output extracts the shared printer from a command's context.
 func Output(cmd *cobra.Command) *printer.Output {
-	if ctx, ok := cmd.Context().Value(contextKey{}).(*cliContext); ok {
-		return ctx.output
+	if ctx := cmd.Context(); ctx != nil {
+		if cc, ok := ctx.Value(contextKey{}).(*cliContext); ok {
+			return cc.output
+		}
 	}
 	return printer.NewOutput(os.Stdout)
 }
 
 // Prompter extracts the shared prompter from a command's context.
 func Prompter(cmd *cobra.Command) prompt.Prompter {
-	if ctx, ok := cmd.Context().Value(contextKey{}).(*cliContext); ok {
-		return ctx.prompter
+	if ctx := cmd.Context(); ctx != nil {
+		if cc, ok := ctx.Value(contextKey{}).(*cliContext); ok {
+			return cc.prompter
+		}
 	}
 	return prompt.New()
 }
