@@ -92,6 +92,48 @@ func ExampleTest() {
 	// Output: hello from test
 }
 
+func ExampleAddJSONFlags() {
+	type User struct {
+		ID     int    `json:"id"`
+		Name   string `json:"name"`
+		Email  string `json:"email"`
+		Status string `json:"status"`
+	}
+
+	var exporter cli.Exporter
+
+	listCmd := &cobra.Command{
+		Use: "list",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			users := []User{
+				{ID: 1, Name: "Alice", Email: "alice@example.com", Status: "active"},
+				{ID: 2, Name: "Bob", Email: "bob@example.com", Status: "inactive"},
+			}
+
+			// If --json was used, write structured output and return.
+			if exporter != nil {
+				return exporter.Write(cli.IO(cmd), users)
+			}
+
+			// Otherwise, render a human-readable table.
+			out := cli.Output(cmd)
+			out.Table([][]string{
+				{"ID", "NAME", "STATUS"},
+				{"1", "Alice", "active"},
+				{"2", "Bob", "inactive"},
+			})
+			return nil
+		},
+	}
+
+	cli.AddJSONFlags(listCmd, &exporter, []string{"id", "name", "email", "status"})
+
+	rootCmd := &cobra.Command{Use: "myapp"}
+	rootCmd.AddCommand(listCmd)
+	cli.Init(rootCmd)
+	cli.Execute(rootCmd)
+}
+
 func ExampleInit_withTopics() {
 	rootCmd := &cobra.Command{
 		Use:   "myapp",

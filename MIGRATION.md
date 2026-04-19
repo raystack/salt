@@ -254,6 +254,38 @@ The following exports are removed — their functionality is now internal to `cl
 | `cli.FlagError` (type) | Unexported; flag errors are handled internally by `Execute` |
 | `commander.IsCommandErr(err)` | Removed; `Execute` detects and handles flag/command errors |
 
+## JSON output
+
+Commands can offer `--json` with field selection via `cli.AddJSONFlags`:
+
+```go
+var exporter cli.Exporter
+
+listCmd := &cobra.Command{
+    Use: "list",
+    RunE: func(cmd *cobra.Command, _ []string) error {
+        users := fetchUsers()
+
+        if exporter != nil {
+            return exporter.Write(cli.IO(cmd), users)
+        }
+
+        cli.Output(cmd).Table(rows)
+        return nil
+    },
+}
+
+cli.AddJSONFlags(listCmd, &exporter, []string{"id", "name", "email", "status"})
+```
+
+Usage: `myapp list --json id,name` outputs only the requested fields. Fields are extracted via `json` struct tags. For custom field handling, implement the `Exportable` interface:
+
+```go
+func (u *User) ExportData(fields []string) map[string]any {
+    return cli.StructExportData(u, fields)
+}
+```
+
 ## Printer
 
 Package-level functions replaced by `Output` type:

@@ -78,7 +78,7 @@ Requires Go 1.24+.
 | Package | Description |
 |---------|-------------|
 | [`app`](app/) | Service lifecycle — config, logger, telemetry, server, graceful shutdown |
-| [`cli`](cli/) | CLI lifecycle — init, execute, error handling, help, completion, version check |
+| [`cli`](cli/) | CLI lifecycle — init, execute, IOStreams, `--json` export, error handling, help, completion |
 
 ### Server & Middleware
 
