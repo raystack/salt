@@ -112,3 +112,9 @@ func (w *statusWriter) WriteHeader(code int) {
 	w.status = code
 	w.ResponseWriter.WriteHeader(code)
 }
+
+// Unwrap returns the underlying ResponseWriter, allowing the http package
+// to access optional interfaces (Flusher, Hijacker, etc.) through it.
+func (w *statusWriter) Unwrap() http.ResponseWriter {
+	return w.ResponseWriter
+}

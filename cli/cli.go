@@ -53,16 +53,23 @@ func Init(rootCmd *cobra.Command, opts ...Option) {
 	rootCmd.SilenceUsage = true
 
 	// Inject shared output and prompter into command context.
-	existing := rootCmd.PersistentPreRun
-	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+	// Preserve any existing PersistentPreRun or PersistentPreRunE hook.
+	existingRun := rootCmd.PersistentPreRun
+	existingRunE := rootCmd.PersistentPreRunE
+	rootCmd.PersistentPreRun = nil
+	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		ctx := context.WithValue(cmd.Context(), contextKey{}, &cliContext{
 			output:   printer.NewOutput(os.Stdout),
 			prompter: prompt.New(),
 		})
 		cmd.SetContext(ctx)
-		if existing != nil {
-			existing(cmd, args)
+		if existingRunE != nil {
+			return existingRunE(cmd, args)
 		}
+		if existingRun != nil {
+			existingRun(cmd, args)
+		}
+		return nil
 	}
 
 	// Wire commander features.

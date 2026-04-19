@@ -11,7 +11,7 @@ func ExampleInit() {
 		Use:   "frontier",
 		Short: "identity management",
 	}
-	rootCmd.PersistentFlags().StringP("host", "h", "", "API server host")
+	rootCmd.PersistentFlags().String("host", "", "API server host")
 
 	listCmd := &cobra.Command{
 		Use:   "list",

@@ -96,8 +96,10 @@ func (l *Loader) Load(config any) error {
 		return err
 	}
 
-	// Apply default values before reading configuration
-	defaults.Set(config)
+	// Apply default values before reading configuration.
+	if err := defaults.Set(config); err != nil {
+		return fmt.Errorf("failed to set defaults: %w", err)
+	}
 
 	// Bind flags dynamically using reflection on `cmdx` tags if a flag set is provided
 	if l.flags != nil {
