@@ -11,6 +11,18 @@
 //	)
 //
 //	cli.Execute(rootCmd)
+//
+// Commands access shared I/O via [IO], or the convenience helpers
+// [Output] and [Prompter]:
+//
+//	ios := cli.IO(cmd)         // full IOStreams
+//	out := cli.Output(cmd)     // formatting (table, JSON, spinner)
+//	p   := cli.Prompter(cmd)   // interactive prompts
+//
+// For testing, [Test] returns IOStreams backed by buffers:
+//
+//	ios, stdin, stdout, stderr := cli.Test()
+//	ios.SetStdoutTTY(true)
 package cli
 
 import (
@@ -28,10 +40,10 @@ import (
 
 type contextKey struct{}
 
-type cliContext struct {
-	output   *printer.Output
-	prompter prompt.Prompter
-}
+// ContextKey returns the context key used to store IOStreams.
+// This is primarily useful for tests that need to inject IOStreams
+// into a command's context directly.
+func ContextKey() contextKey { return contextKey{} }
 
 // Init enhances a cobra root command with standard CLI features:
 // help, completion, reference docs, output/prompter context, and
@@ -52,16 +64,13 @@ func Init(rootCmd *cobra.Command, opts ...Option) {
 	rootCmd.SilenceErrors = true
 	rootCmd.SilenceUsage = true
 
-	// Inject shared output and prompter into command context.
+	// Inject IOStreams into command context.
 	// Preserve any existing PersistentPreRun or PersistentPreRunE hook.
 	existingRun := rootCmd.PersistentPreRun
 	existingRunE := rootCmd.PersistentPreRunE
 	rootCmd.PersistentPreRun = nil
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
-		ctx := context.WithValue(cmd.Context(), contextKey{}, &cliContext{
-			output:   printer.NewOutput(os.Stdout),
-			prompter: prompt.New(),
-		})
+		ctx := context.WithValue(cmd.Context(), contextKey{}, System())
 		cmd.SetContext(ctx)
 		if existingRunE != nil {
 			return existingRunE(cmd, args)
@@ -139,22 +148,23 @@ func versionCmd(name, ver, repo string) *cobra.Command {
 	}
 }
 
-// Output extracts the shared printer from a command's context.
-func Output(cmd *cobra.Command) *printer.Output {
+// IO extracts the IOStreams from a command's context.
+// Returns a default System() IOStreams if none was injected.
+func IO(cmd *cobra.Command) *IOStreams {
 	if ctx := cmd.Context(); ctx != nil {
-		if cc, ok := ctx.Value(contextKey{}).(*cliContext); ok {
-			return cc.output
+		if ios, ok := ctx.Value(contextKey{}).(*IOStreams); ok {
+			return ios
 		}
 	}
-	return printer.NewOutput(os.Stdout)
+	return System()
+}
+
+// Output extracts the shared printer from a command's context.
+func Output(cmd *cobra.Command) *printer.Output {
+	return IO(cmd).Output()
 }
 
 // Prompter extracts the shared prompter from a command's context.
 func Prompter(cmd *cobra.Command) prompt.Prompter {
-	if ctx := cmd.Context(); ctx != nil {
-		if cc, ok := ctx.Value(contextKey{}).(*cliContext); ok {
-			return cc.prompter
-		}
-	}
-	return prompt.New()
+	return IO(cmd).Prompter()
 }

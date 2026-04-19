@@ -150,7 +150,7 @@ rootCmd.AddGroup(&cobra.Group{ID: "manage", Title: "Management:"})
 cmd.GroupID = "manage"
 ```
 
-Access shared output and prompting in commands:
+Access shared output, prompting, and I/O capabilities in commands:
 
 ```go
 func newListCmd() *cobra.Command {
@@ -162,6 +162,48 @@ func newListCmd() *cobra.Command {
             return nil
         },
     }
+}
+```
+
+`cli.IO(cmd)` provides the full IOStreams for commands that need richer control:
+
+```go
+func newDeleteCmd() *cobra.Command {
+    return &cobra.Command{
+        Use: "delete",
+        RunE: func(cmd *cobra.Command, args []string) error {
+            ios := cli.IO(cmd)
+            if !ios.CanPrompt() {
+                return fmt.Errorf("--yes required in non-interactive mode")
+            }
+            ok, _ := ios.Prompter().Confirm("Delete?", false)
+            if !ok {
+                return cli.ErrCancel
+            }
+            // Use pager for long output
+            ios.StartPager()
+            defer ios.StopPager()
+            ios.Output().Markdown(longDoc)
+            return nil
+        },
+    }
+}
+```
+
+For testing commands, `cli.Test()` returns IOStreams backed by buffers:
+
+```go
+func TestListCmd(t *testing.T) {
+    ios, _, stdout, _ := cli.Test()
+    ios.SetStdoutTTY(true) // simulate a terminal
+
+    cmd := newListCmd()
+    ctx := context.WithValue(context.Background(), cli.ContextKey(), ios)
+    cmd.SetContext(ctx)
+    cmd.SetArgs([]string{})
+    require.NoError(t, cmd.Execute())
+
+    assert.Contains(t, stdout.String(), "Alice")
 }
 ```
 

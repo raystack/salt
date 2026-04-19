@@ -49,6 +49,12 @@ func NewOutput(w io.Writer) *Output {
 	return &Output{w: w, errW: os.Stderr, theme: newTheme(), tty: tty}
 }
 
+// NewOutputFrom creates an Output with explicit streams and TTY state.
+// Use this when the caller has already determined TTY status (e.g. from IOStreams).
+func NewOutputFrom(w io.Writer, errW io.Writer, tty bool) *Output {
+	return &Output{w: w, errW: errW, theme: newTheme(), tty: tty}
+}
+
 // --- Text output ---
 
 // Success prints a green success message to stderr.

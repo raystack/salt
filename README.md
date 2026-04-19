@@ -50,7 +50,7 @@ import (
 
 func main() {
     rootCmd := &cobra.Command{Use: "frontier", Short: "identity management"}
-    rootCmd.PersistentFlags().StringP("host", "h", "", "API server host")
+    rootCmd.PersistentFlags().String("host", "", "API server host")
     rootCmd.AddCommand(serverCmd, userCmd)
 
     cli.Init(rootCmd,
@@ -61,7 +61,7 @@ func main() {
 }
 ```
 
-`Init` adds help, shell completion, reference docs, and silences Cobra's default error output. `Execute` runs the command and handles all errors with proper exit codes. Commands access shared output via `cli.Output(cmd)`.
+`Init` adds help, shell completion, reference docs, and silences Cobra's default error output. `Execute` runs the command and handles all errors with proper exit codes. Commands access shared I/O via `cli.IO(cmd)`, or the convenience helpers `cli.Output(cmd)` and `cli.Prompter(cmd)`. Use `cli.Test()` in tests for captured, deterministic output.
 
 ## Installation
 

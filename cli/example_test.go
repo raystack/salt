@@ -1,6 +1,8 @@
 package cli_test
 
 import (
+	"fmt"
+
 	"github.com/raystack/salt/cli"
 	"github.com/raystack/salt/cli/commander"
 	"github.com/spf13/cobra"
@@ -49,6 +51,45 @@ func ExampleExecute() {
 
 	cli.Init(rootCmd)
 	cli.Execute(rootCmd)
+}
+
+func ExampleIO() {
+	deleteCmd := &cobra.Command{
+		Use: "delete",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ios := cli.IO(cmd)
+
+			// Guard interactive prompts in non-TTY environments.
+			if !ios.CanPrompt() {
+				return fmt.Errorf("--yes flag required in non-interactive mode")
+			}
+
+			ok, _ := ios.Prompter().Confirm("Delete resource?", false)
+			if !ok {
+				return cli.ErrCancel
+			}
+
+			ios.Output().Success("deleted")
+			return nil
+		},
+	}
+
+	rootCmd := &cobra.Command{Use: "myapp"}
+	rootCmd.AddCommand(deleteCmd)
+	cli.Init(rootCmd)
+	cli.Execute(rootCmd)
+}
+
+func ExampleTest() {
+	// Use cli.Test() in unit tests to capture output.
+	ios, _, stdout, _ := cli.Test()
+	ios.SetStdoutTTY(true) // simulate a terminal
+
+	out := ios.Output()
+	out.Println("hello from test")
+
+	fmt.Print(stdout.String())
+	// Output: hello from test
 }
 
 func ExampleInit_withTopics() {
