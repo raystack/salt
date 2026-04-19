@@ -157,6 +157,39 @@ func newListCmd() *cobra.Command {
 }
 ```
 
+## Error handling
+
+`commander.IsCommandErr` (string matching) is replaced by typed errors and a helper:
+
+```go
+// Before
+if err := rootCmd.Execute(); err != nil {
+    if commander.IsCommandErr(err) {
+        // show usage
+    }
+    fmt.Fprintln(os.Stderr, err)
+    os.Exit(1)
+}
+
+// After
+if err := rootCmd.Execute(); err != nil {
+    cli.HandleError(err) // handles ErrSilent, ErrCancel, FlagError, and default
+}
+```
+
+In commands, return typed errors:
+
+```go
+// Command already printed the error — exit silently
+return cli.ErrSilent
+
+// User cancelled (ctrl-c) — exit 0
+return cli.ErrCancel
+
+// Bad input — print error + usage
+return cli.NewFlagError(fmt.Errorf("--port must be positive"))
+```
+
 ## Printer
 
 Package-level functions replaced by `Output` type:
