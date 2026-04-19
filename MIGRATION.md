@@ -6,7 +6,7 @@ This guide covers migrating from the previous salt version to the new structure.
 
 Update `go.mod` to require Go 1.24:
 
-```
+```text
 go 1.24
 ```
 
@@ -279,7 +279,7 @@ httpMW := middleware.DefaultHTTP(slog.Default())
 // If you imported go-defaults directly:
 // Before: "github.com/mcuadros/go-defaults"
 // After:  "github.com/creasty/defaults"
-// API change: defaults.SetDefaults(cfg) → defaults.Set(cfg)
+// API change: defaults.SetDefaults(cfg) → defaults.Set(cfg) (now returns error)
 ```
 
 The config package no longer prints warnings to stdout when a config file is missing.
