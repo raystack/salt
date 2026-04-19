@@ -5,6 +5,7 @@ import (
 
 	"github.com/mattn/go-isatty"
 	"github.com/muesli/termenv"
+	"golang.org/x/term"
 )
 
 // IsTTY checks if the current output is a TTY (teletypewriter) or a Cygwin terminal.
@@ -19,6 +20,16 @@ func IsTTY() bool {
 // variable is set, which is a common way to disable colored output.
 func IsColorDisabled() bool {
 	return termenv.EnvNoColor()
+}
+
+// Width returns the terminal width in columns. Returns 80 if the width
+// cannot be determined (e.g. non-TTY, piped output).
+func Width() int {
+	w, _, err := term.GetSize(int(os.Stdout.Fd()))
+	if err == nil && w > 0 {
+		return w
+	}
+	return 80
 }
 
 // IsCI checks if the code is running in a Continuous Integration (CI) environment.

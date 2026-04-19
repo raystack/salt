@@ -27,42 +27,48 @@ import (
 )
 
 // Output handles all terminal output for a CLI command.
+//
+// Data output (Table, JSON, YAML, Println) goes to the primary writer (stdout).
+// Status output (Spin, Warning, Error, Info, Success) goes to the error writer (stderr).
+// This separation ensures spinners and status messages don't corrupt
+// piped data output (e.g. myapp list --json | jq).
 type Output struct {
 	w     io.Writer
+	errW  io.Writer
 	theme Theme
 	tty   bool
 }
 
-// NewOutput creates a new Output that writes to w.
+// NewOutput creates a new Output that writes data to w and status to stderr.
 // It auto-detects TTY and color support from the writer.
 func NewOutput(w io.Writer) *Output {
 	tty := false
 	if f, ok := w.(*os.File); ok {
 		tty = isatty.IsTerminal(f.Fd()) || isatty.IsCygwinTerminal(f.Fd())
 	}
-	return &Output{w: w, theme: newTheme(), tty: tty}
+	return &Output{w: w, errW: os.Stderr, theme: newTheme(), tty: tty}
 }
 
 // --- Text output ---
 
-// Success prints a green success message.
+// Success prints a green success message to stderr.
 func (o *Output) Success(msg string) {
-	fmt.Fprintln(o.w, o.color(o.theme.Green, msg))
+	fmt.Fprintln(o.errW, o.color(o.theme.Green, msg))
 }
 
-// Warning prints a yellow warning message.
+// Warning prints a yellow warning message to stderr.
 func (o *Output) Warning(msg string) {
-	fmt.Fprintln(o.w, o.color(o.theme.Yellow, msg))
+	fmt.Fprintln(o.errW, o.color(o.theme.Yellow, msg))
 }
 
-// Error prints a red error message.
+// Error prints a red error message to stderr.
 func (o *Output) Error(msg string) {
-	fmt.Fprintln(o.w, o.color(o.theme.Red, msg))
+	fmt.Fprintln(o.errW, o.color(o.theme.Red, msg))
 }
 
-// Info prints a cyan informational message.
+// Info prints a cyan informational message to stderr.
 func (o *Output) Info(msg string) {
-	fmt.Fprintln(o.w, o.color(o.theme.Cyan, msg))
+	fmt.Fprintln(o.errW, o.color(o.theme.Cyan, msg))
 }
 
 // Bold prints a bold message.
@@ -194,15 +200,15 @@ func (o *Output) Spin(label string) *Indicator {
 	if label != "" {
 		s.Prefix = label + " "
 	}
-	s.Writer = o.w
+	s.Writer = o.errW
 	s.Start()
 	return &Indicator{s}
 }
 
-// Progress creates a progress bar.
+// Progress creates a progress bar on stderr.
 func (o *Output) Progress(max int, description string) *progressbar.ProgressBar {
 	return progressbar.NewOptions(max,
-		progressbar.OptionSetWriter(o.w),
+		progressbar.OptionSetWriter(o.errW),
 		progressbar.OptionEnableColorCodes(true),
 		progressbar.OptionSetDescription(description),
 		progressbar.OptionShowCount(),
