@@ -11,30 +11,17 @@ import (
 )
 
 var (
-	// Timeout sets the HTTP client timeout for fetching release info.
-	Timeout = time.Second * 1
-
-	// APIFormat is the GitHub API URL template to fetch the latest release of a repository.
-	APIFormat = "https://api.github.com/repos/%s/releases/latest"
+	timeout   = time.Second * 1
+	apiFormat = "https://api.github.com/repos/%s/releases/latest"
 )
 
-// Info holds information about a software release.
-type Info struct {
-	Version string // Version of the release
-	TarURL  string // Tarball URL of the release
+type releaseInfo struct {
+	version string
+	tarURL  string
 }
 
-// FetchInfo fetches details related to the latest release from the provided URL.
-//
-// Parameters:
-//   - releaseURL: The URL to fetch the latest release information from.
-//     Example: "https://api.github.com/repos/raystack/optimus/releases/latest"
-//
-// Returns:
-//   - An *Info struct containing the release and tarball URL.
-//   - An error if the HTTP request or response parsing fails.
-func FetchInfo(url string) (*Info, error) {
-	httpClient := http.Client{Timeout: Timeout}
+func fetchInfo(url string) (*releaseInfo, error) {
+	httpClient := http.Client{Timeout: timeout}
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
@@ -67,22 +54,13 @@ func FetchInfo(url string) (*Info, error) {
 		return nil, fmt.Errorf("failed to parse JSON response: %w", err)
 	}
 
-	return &Info{
-		Version: data.TagName,
-		TarURL:  data.Tarball,
+	return &releaseInfo{
+		version: data.TagName,
+		tarURL:  data.Tarball,
 	}, nil
 }
 
-// CompareVersions compares the current release with the latest release.
-//
-// Parameters:
-//   - currVersion: The current release string.
-//   - latestVersion: The latest release string.
-//
-// Returns:
-//   - true if the current release is greater than or equal to the latest release.
-//   - An error if release parsing fails.
-func CompareVersions(current, latest string) (bool, error) {
+func compareVersions(current, latest string) (bool, error) {
 	currentVersion, err := version.NewVersion(current)
 	if err != nil {
 		return false, fmt.Errorf("invalid current version format: %w", err)
@@ -96,26 +74,20 @@ func CompareVersions(current, latest string) (bool, error) {
 	return currentVersion.GreaterThanOrEqual(latestVersion), nil
 }
 
-// CheckForUpdate generates a message indicating if an update is available.
-//
-// Parameters:
-//   - currentVersion: The current version string (e.g., "v1.0.0").
-//   - repo: The GitHub repository in the format "owner/repo".
-//
-// Returns:
-//   - A string containing the update message if a newer version is available.
-//   - An empty string if the current version is up-to-date or if an error occurs.
+// CheckForUpdate checks GitHub for a newer release and returns an update
+// message if one is available. Returns an empty string if up-to-date or
+// if the check fails.
 func CheckForUpdate(currentVersion, repo string) string {
-	releaseURL := fmt.Sprintf(APIFormat, repo)
-	info, err := FetchInfo(releaseURL)
+	releaseURL := fmt.Sprintf(apiFormat, repo)
+	info, err := fetchInfo(releaseURL)
 	if err != nil {
 		return ""
 	}
 
-	isLatest, err := CompareVersions(currentVersion, info.Version)
+	isLatest, err := compareVersions(currentVersion, info.version)
 	if err != nil || isLatest {
 		return ""
 	}
 
-	return fmt.Sprintf("A new release (%s) is available. consider updating to latest version.", info.Version)
+	return fmt.Sprintf("A new release (%s) is available. consider updating to latest version.", info.version)
 }
