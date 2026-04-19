@@ -120,6 +120,28 @@ cli.Init(rootCmd,
 rootCmd.Execute()
 ```
 
+Config command helper replaces boilerplate:
+
+```go
+// Before (50 lines of config init/list commands)
+cmd.AddCommand(configInitCommand())
+cmd.AddCommand(configListCommand())
+
+// After (1 line)
+rootCmd.AddCommand(cli.ConfigCommand("frontier", &Config{}))
+```
+
+Command grouping uses cobra's native GroupID instead of annotations:
+
+```go
+// Before
+cmd.Annotations = map[string]string{"group": "core"}
+
+// After
+rootCmd.AddGroup(&cobra.Group{ID: "manage", Title: "Management:"})
+cmd.GroupID = "manage"
+```
+
 Access shared output and prompting in commands:
 
 ```go
@@ -207,6 +229,10 @@ httpMW := middleware.DefaultHTTP(slog.Default())
 
 The config package no longer prints warnings to stdout when a config file is missing.
 
+## Version package
+
+`cli/version` now exports only `CheckForUpdate`. The functions `FetchInfo`, `CompareVersions`, and types `Info`, `Timeout`, `APIFormat` are no longer exported — they were internal implementation details.
+
 ## Dependency changes
 
 | Removed (direct) | Replacement |
@@ -232,9 +258,16 @@ The config package no longer prints warnings to stdout when a config file is mis
 
 | Upgraded | From → To |
 |----------|-----------|
+| `spf13/cobra` | v1.8.1 → v1.10.2 |
+| `spf13/pflag` | v1.0.5 → v1.0.10 |
+| `spf13/viper` | v1.19.0 → v1.21.0 |
 | `go-playground/validator` | v9 → v10 |
 | `charmbracelet/glamour` | v0.3 → v1.0.0 |
 | `muesli/termenv` | v0.11 → v0.16.0 |
 | `briandowns/spinner` | v1.18 → v1.23.2 |
 | `schollz/progressbar` | v3.8 → v3.19.0 |
 | `mattn/go-isatty` | v0.0.19 → v0.0.21 |
+| `opentelemetry/otel` | v1.31.0 → v1.43.0 |
+| `google.golang.org/grpc` | v1.67.1 → v1.80.0 |
+| `stretchr/testify` | v1.9.0 → v1.11.1 |
+| `hashicorp/go-version` | v1.3.0 → v1.9.0 |
