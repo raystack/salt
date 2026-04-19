@@ -11,6 +11,7 @@ type Prompter interface {
 	Select(message, defaultValue string, options []string) (int, error)
 	MultiSelect(message, defaultValue string, options []string) ([]int, error)
 	Input(message, defaultValue string) (string, error)
+	Password(message string) (string, error)
 	Confirm(message string, defaultValue bool) (bool, error)
 }
 
@@ -106,6 +107,27 @@ func (p *huhPrompter) Input(message, defaultValue string) (string, error) {
 	}
 	if result == "" {
 		result = defaultValue
+	}
+	return result, nil
+}
+
+// Password prompts the user for a secret input. The input is masked.
+//
+// Parameters:
+//   - message: The prompt message to display.
+//
+// Returns:
+//   - The user's input as a string.
+//   - An error, if any.
+func (p *huhPrompter) Password(message string) (string, error) {
+	var result string
+	err := huh.NewInput().
+		Title(message).
+		Value(&result).
+		EchoMode(huh.EchoModePassword).
+		Run()
+	if err != nil {
+		return "", fmt.Errorf("prompt error: %w", err)
 	}
 	return result, nil
 }
