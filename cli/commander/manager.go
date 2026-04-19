@@ -1,10 +1,6 @@
 package commander
 
-import (
-	"strings"
-
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
 // Manager manages and configures features for a CLI tool.
 type Manager struct {
@@ -105,28 +101,4 @@ func WithHooks(hooks []HookBehavior) func(*Manager) {
 	return func(m *Manager) {
 		m.Hooks = hooks
 	}
-}
-
-// IsCommandErr checks if the given error is related to a Cobra command error.
-// This is useful for distinguishing between user errors (e.g., incorrect commands or flags)
-// and program errors, allowing the application to display appropriate messages.
-func IsCommandErr(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	// Known Cobra command error keywords
-	cmdErrorKeywords := []string{
-		"unknown command",
-		"unknown flag",
-		"unknown shorthand flag",
-	}
-
-	errMessage := err.Error()
-	for _, keyword := range cmdErrorKeywords {
-		if strings.Contains(errMessage, keyword) {
-			return true
-		}
-	}
-	return false
 }
