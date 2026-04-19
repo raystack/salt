@@ -112,13 +112,21 @@ func (o *Output) YAML(data interface{}) error {
 	return nil
 }
 
-// Table writes rows as a tab-aligned table.
+// Table writes rows as a tab-aligned table when the output is a TTY.
+// When piped (non-TTY), it writes tab-separated values for easy
+// processing with tools like awk, cut, or jq.
 func (o *Output) Table(rows [][]string) {
-	tw := tabwriter.NewWriter(o.w, 0, 0, 2, ' ', 0)
-	for _, row := range rows {
-		fmt.Fprintln(tw, strings.Join(row, "\t"))
+	if o.tty {
+		tw := tabwriter.NewWriter(o.w, 0, 0, 2, ' ', 0)
+		for _, row := range rows {
+			fmt.Fprintln(tw, strings.Join(row, "\t"))
+		}
+		tw.Flush()
+	} else {
+		for _, row := range rows {
+			fmt.Fprintln(o.w, strings.Join(row, "\t"))
+		}
 	}
-	tw.Flush()
 }
 
 // --- Markdown ---
