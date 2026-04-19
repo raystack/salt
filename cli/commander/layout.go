@@ -2,7 +2,6 @@ package commander
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -12,7 +11,6 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 // Section Titles for Help Output
@@ -39,7 +37,6 @@ func (m *Manager) setCustomHelp() {
 		displayHelp(cmd, args)
 	})
 	m.RootCmd.SetUsageFunc(generateUsage)
-	m.RootCmd.SetFlagErrorFunc(handleFlagError)
 }
 
 // generateUsage customizes the usage function for a command.
@@ -62,14 +59,6 @@ func generateUsage(cmd *cobra.Command) error {
 		cmd.Print(indent(dedent(flagUsages), "  "))
 	}
 	return nil
-}
-
-// handleFlagError processes flag-related errors, including the special case of help flags.
-func handleFlagError(cmd *cobra.Command, err error) error {
-	if errors.Is(err, pflag.ErrHelp) {
-		return err
-	}
-	return err
 }
 
 // displayHelp generates a custom help message for a Cobra command.

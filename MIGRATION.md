@@ -95,7 +95,7 @@ HTTP middleware is explicit — use `middleware.DefaultHTTP(logger)` for the sta
 
 ## CLI bootstrap
 
-New `cli.Init()` enhances your root command with standard features:
+`cli.Init()` enhances your root command with standard features and `cli.Execute()` runs it with proper error handling:
 
 ```go
 // Before
@@ -103,7 +103,15 @@ rootCmd := &cobra.Command{Use: "frontier", Short: "identity management"}
 mgr := commander.New(rootCmd, commander.WithTopics(topics))
 mgr.Init()
 rootCmd.AddCommand(serverCmd, configCmd)
-rootCmd.Execute()
+
+cmd, err := rootCmd.ExecuteC()
+if err != nil {
+    if commander.IsCommandErr(err) {
+        fmt.Println(cmd.UsageString())
+    }
+    fmt.Println(err)
+    os.Exit(1)
+}
 
 // After
 import "github.com/raystack/salt/cli"
@@ -117,7 +125,7 @@ cli.Init(rootCmd,
     cli.Topics(topics...),
 )
 
-rootCmd.Execute()
+cli.Execute(rootCmd)
 ```
 
 Config command helper replaces boilerplate:
@@ -159,7 +167,7 @@ func newListCmd() *cobra.Command {
 
 ## Error handling
 
-`commander.IsCommandErr` (string matching) is replaced by typed errors and a helper:
+`commander.IsCommandErr` (string matching) and manual error handling are replaced by `cli.Execute`:
 
 ```go
 // Before
@@ -172,23 +180,37 @@ if err := rootCmd.Execute(); err != nil {
 }
 
 // After
-if err := rootCmd.Execute(); err != nil {
-    cli.HandleError(err) // handles ErrSilent, ErrCancel, FlagError, and default
-}
+cli.Execute(rootCmd) // handles all errors with proper exit codes
 ```
 
-In commands, return typed errors:
+`cli.Execute` uses `ExecuteC` internally and handles all error types:
+
+| Error | Behavior |
+|-------|----------|
+| `cli.ErrSilent` | Exit 1, no output (command already printed the error) |
+| `cli.ErrCancel` | Exit 0, no output (user cancelled) |
+| Flag errors | Prints error + failing command's usage, exit 1 |
+| Other errors | Prints "Error: \<message\>", exit 1 |
+
+In commands, return sentinel errors to control exit behavior:
 
 ```go
-// Command already printed the error — exit silently
+// Command already printed a rich error — exit 1, no extra output
+out.Error("connection failed: timeout")
 return cli.ErrSilent
 
-// User cancelled (ctrl-c) — exit 0
+// User cancelled (ctrl-c, declined prompt) — exit 0
 return cli.ErrCancel
-
-// Bad input — print error + usage
-return cli.NewFlagError(fmt.Errorf("--port must be positive"))
 ```
+
+The following exports are removed — their functionality is now internal to `cli.Execute`:
+
+| Removed | Replacement |
+|---------|-------------|
+| `cli.HandleError(err)` | `cli.Execute(rootCmd)` handles errors automatically |
+| `cli.NewFlagError(err)` | `cli.Init` wraps flag errors automatically via `SetFlagErrorFunc` |
+| `cli.FlagError` (type) | Unexported; flag errors are handled internally by `Execute` |
+| `commander.IsCommandErr(err)` | Removed; `Execute` detects and handles flag/command errors |
 
 ## Printer
 

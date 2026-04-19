@@ -1,10 +1,11 @@
 package jsondiff
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -25,7 +26,7 @@ func NewJSONDiffer() *JSONDiffer {
 }
 
 func (jd *JSONDiffer) Compare(json1, json2 string) ([]DiffEntry, error) {
-	var obj1, obj2 interface{}
+	var obj1, obj2 any
 
 	if err := json.Unmarshal([]byte(json1), &obj1); err != nil {
 		return nil, fmt.Errorf("error parsing first JSON: %w", err)
@@ -38,14 +39,14 @@ func (jd *JSONDiffer) Compare(json1, json2 string) ([]DiffEntry, error) {
 	var diffs []DiffEntry
 	jd.compareObjects(obj1, obj2, "", &diffs)
 
-	sort.Slice(diffs, func(i, j int) bool {
-		return diffs[i].FullPath < diffs[j].FullPath
+	slices.SortFunc(diffs, func(a, b DiffEntry) int {
+		return cmp.Compare(a.FullPath, b.FullPath)
 	})
 
 	return diffs, nil
 }
 
-func (jd *JSONDiffer) compareObjects(obj1, obj2 interface{}, path string, diffs *[]DiffEntry) {
+func (jd *JSONDiffer) compareObjects(obj1, obj2 any, path string, diffs *[]DiffEntry) {
 	if reflect.DeepEqual(obj1, obj2) {
 		return
 	}
@@ -81,12 +82,12 @@ func (jd *JSONDiffer) compareObjects(obj1, obj2 interface{}, path string, diffs 
 	}
 
 	switch v1 := obj1.(type) {
-	case map[string]interface{}:
-		v2 := obj2.(map[string]interface{})
+	case map[string]any:
+		v2 := obj2.(map[string]any)
 		jd.compareObjects_internal(v1, v2, path, diffs)
 
-	case []interface{}:
-		v2 := obj2.([]interface{})
+	case []any:
+		v2 := obj2.([]any)
 		jd.compareArrays(v1, v2, path, diffs)
 
 	default:
@@ -96,7 +97,7 @@ func (jd *JSONDiffer) compareObjects(obj1, obj2 interface{}, path string, diffs 
 	}
 }
 
-func (jd *JSONDiffer) compareObjects_internal(obj1, obj2 map[string]interface{}, path string, diffs *[]DiffEntry) {
+func (jd *JSONDiffer) compareObjects_internal(obj1, obj2 map[string]any, path string, diffs *[]DiffEntry) {
 	allKeys := make(map[string]bool)
 	for key := range obj1 {
 		allKeys[key] = true
@@ -121,7 +122,7 @@ func (jd *JSONDiffer) compareObjects_internal(obj1, obj2 map[string]interface{},
 	}
 }
 
-func (jd *JSONDiffer) compareArrays(arr1, arr2 []interface{}, path string, diffs *[]DiffEntry) {
+func (jd *JSONDiffer) compareArrays(arr1, arr2 []any, path string, diffs *[]DiffEntry) {
 	if !reflect.DeepEqual(arr1, arr2) {
 		*diffs = append(*diffs, jd.createDiffEntry(path, "modified", arr1, arr2))
 	}
@@ -134,7 +135,7 @@ func (jd *JSONDiffer) buildPath(parentPath, key string) string {
 	return parentPath + "/" + key
 }
 
-func (jd *JSONDiffer) createDiffEntry(path, changeType string, oldValue, newValue interface{}) DiffEntry {
+func (jd *JSONDiffer) createDiffEntry(path, changeType string, oldValue, newValue any) DiffEntry {
 	entry := DiffEntry{
 		FullPath:   path,
 		ChangeType: changeType,
@@ -177,7 +178,7 @@ func (jd *JSONDiffer) extractFieldName(path string) string {
 	return parts[len(parts)-1]
 }
 
-func (jd *JSONDiffer) getValueType(val interface{}) string {
+func (jd *JSONDiffer) getValueType(val any) string {
 	if val == nil {
 		return "null"
 	}
@@ -189,16 +190,16 @@ func (jd *JSONDiffer) getValueType(val interface{}) string {
 		return "number"
 	case bool:
 		return "boolean"
-	case []interface{}:
+	case []any:
 		return "array"
-	case map[string]interface{}:
+	case map[string]any:
 		return "object"
 	default:
 		return "unknown"
 	}
 }
 
-func (jd *JSONDiffer) formatValue(val interface{}) string {
+func (jd *JSONDiffer) formatValue(val any) string {
 	if val == nil {
 		return "null"
 	}
@@ -217,7 +218,7 @@ func (jd *JSONDiffer) formatValue(val interface{}) string {
 		return strconv.Itoa(v)
 	case int64:
 		return strconv.FormatInt(v, 10)
-	case map[string]interface{}, []interface{}:
+	case map[string]any, []any:
 		bytes, _ := json.Marshal(v)
 		return string(bytes)
 	default:

@@ -31,32 +31,24 @@ func ExampleInit() {
 		cli.Version("0.1.0", "raystack/frontier"),
 	)
 
-	if err := rootCmd.Execute(); err != nil {
-		cli.HandleError(err)
-	}
+	cli.Execute(rootCmd)
 }
 
-func ExampleHandleError() {
+func ExampleExecute() {
 	rootCmd := &cobra.Command{
 		Use: "myapp",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			// Return ErrSilent if you already printed the error
-			out := cli.Output(cmd)
-			out.Error("connection failed: timeout")
-			return cli.ErrSilent
-
-			// Return ErrCancel if user cancelled
-			// return cli.ErrCancel
-
-			// Return FlagError for bad input
-			// return cli.NewFlagError(fmt.Errorf("--port must be positive"))
+			p := cli.Prompter(cmd)
+			ok, _ := p.Confirm("Continue?", true)
+			if !ok {
+				return cli.ErrCancel // exit 0, no output
+			}
+			return nil
 		},
 	}
 
 	cli.Init(rootCmd)
-	if err := rootCmd.Execute(); err != nil {
-		cli.HandleError(err)
-	}
+	cli.Execute(rootCmd)
 }
 
 func ExampleInit_withTopics() {
@@ -75,5 +67,5 @@ func ExampleInit_withTopics() {
 		),
 	)
 
-	rootCmd.Execute()
+	cli.Execute(rootCmd)
 }

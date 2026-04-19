@@ -17,7 +17,7 @@ import (
 // Usage:
 //
 //	rootCmd.AddCommand(cli.ConfigCommand("frontier", &Config{}))
-func ConfigCommand(appName string, defaultCfg interface{}) *cobra.Command {
+func ConfigCommand(appName string, defaultCfg any) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "config <command>",
 		Short:   "Manage client configuration",
@@ -30,7 +30,7 @@ func ConfigCommand(appName string, defaultCfg interface{}) *cobra.Command {
 	return cmd
 }
 
-func configInitCmd(appName string, defaultCfg interface{}) *cobra.Command {
+func configInitCmd(appName string, defaultCfg any) *cobra.Command {
 	return &cobra.Command{
 		Use:     "init",
 		Short:   "Initialize a new configuration file",

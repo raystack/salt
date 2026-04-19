@@ -17,7 +17,7 @@ type Option func(*App) error
 // WithConfig loads configuration into the target struct.
 // The target must be a pointer to a struct. Config is loaded eagerly
 // so that subsequent options can reference fields from it.
-func WithConfig(target interface{}, loaderOpts ...config.Option) Option {
+func WithConfig(target any, loaderOpts ...config.Option) Option {
 	return func(_ *App) error {
 		loader := config.NewLoader(loaderOpts...)
 		return loader.Load(target)

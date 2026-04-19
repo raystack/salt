@@ -6,7 +6,7 @@
 
 The standard way to build raystack services and CLIs.
 
-Salt provides `app.Run()` for services and `cli.Init()` for command-line tools, along with the building blocks they use: configuration, middleware, terminal output, and more.
+Salt provides `app.Run()` for services and `cli.Init()` / `cli.Execute()` for command-line tools, along with the building blocks they use: configuration, middleware, terminal output, and more.
 
 ## Quick start
 
@@ -57,11 +57,11 @@ func main() {
         cli.Version("0.1.0", "raystack/frontier"),
     )
 
-    rootCmd.Execute()
+    cli.Execute(rootCmd)
 }
 ```
 
-Help, shell completion, and reference docs added automatically. Commands access shared output via `cli.Output(cmd)`.
+`Init` adds help, shell completion, reference docs, and silences Cobra's default error output. `Execute` runs the command and handles all errors with proper exit codes. Commands access shared output via `cli.Output(cmd)`.
 
 ## Installation
 
@@ -78,7 +78,7 @@ Requires Go 1.24+.
 | Package | Description |
 |---------|-------------|
 | [`app`](app/) | Service lifecycle — config, logger, telemetry, server, graceful shutdown |
-| [`cli`](cli/) | CLI lifecycle — root command, help, completion, version check |
+| [`cli`](cli/) | CLI lifecycle — init, execute, error handling, help, completion, version check |
 
 ### Server & Middleware
 

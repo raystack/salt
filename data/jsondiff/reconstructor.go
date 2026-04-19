@@ -14,7 +14,7 @@ func NewJSONReconstructor() *JSONReconstructor {
 }
 
 func (jr *JSONReconstructor) ReverseDiff(currentJSON string, diffs []DiffEntry) (string, error) {
-	var current interface{}
+	var current any
 	if err := json.Unmarshal([]byte(currentJSON), &current); err != nil {
 		return "", fmt.Errorf("error parsing current JSON: %w", err)
 	}
@@ -36,7 +36,7 @@ func (jr *JSONReconstructor) ReverseDiff(currentJSON string, diffs []DiffEntry) 
 	return string(result), nil
 }
 
-func (jr *JSONReconstructor) applyReverseDiff(obj interface{}, diff DiffEntry) error {
+func (jr *JSONReconstructor) applyReverseDiff(obj any, diff DiffEntry) error {
 	pathParts := jr.parsePath(diff.FullPath)
 
 	switch diff.ChangeType {
@@ -72,14 +72,14 @@ func (jr *JSONReconstructor) parsePath(path string) []string {
 	return strings.Split(strings.TrimPrefix(path, "/"), "/")
 }
 
-func (jr *JSONReconstructor) setAtPath(obj interface{}, pathParts []string, value interface{}) error {
+func (jr *JSONReconstructor) setAtPath(obj any, pathParts []string, value any) error {
 	if len(pathParts) == 0 {
 		return fmt.Errorf("empty path")
 	}
 
 	if len(pathParts) == 1 {
 		switch o := obj.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			o[pathParts[0]] = value
 		default:
 			return fmt.Errorf("cannot set value on non-object")
@@ -88,10 +88,10 @@ func (jr *JSONReconstructor) setAtPath(obj interface{}, pathParts []string, valu
 	}
 
 	switch o := obj.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		key := pathParts[0]
 		if o[key] == nil {
-			o[key] = make(map[string]interface{})
+			o[key] = make(map[string]any)
 		}
 		return jr.setAtPath(o[key], pathParts[1:], value)
 	default:
@@ -99,14 +99,14 @@ func (jr *JSONReconstructor) setAtPath(obj interface{}, pathParts []string, valu
 	}
 }
 
-func (jr *JSONReconstructor) removeAtPath(obj interface{}, pathParts []string) error {
+func (jr *JSONReconstructor) removeAtPath(obj any, pathParts []string) error {
 	if len(pathParts) == 0 {
 		return fmt.Errorf("empty path")
 	}
 
 	if len(pathParts) == 1 {
 		switch o := obj.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			delete(o, pathParts[0])
 		default:
 			return fmt.Errorf("cannot remove from non-object")
@@ -115,7 +115,7 @@ func (jr *JSONReconstructor) removeAtPath(obj interface{}, pathParts []string) e
 	}
 
 	switch o := obj.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		key := pathParts[0]
 		if o[key] == nil {
 			return nil
@@ -126,7 +126,7 @@ func (jr *JSONReconstructor) removeAtPath(obj interface{}, pathParts []string) e
 	}
 }
 
-func (jr *JSONReconstructor) parseValue(valueStr, valueType string) (interface{}, error) {
+func (jr *JSONReconstructor) parseValue(valueStr, valueType string) (any, error) {
 	// Handle null values first
 	if valueStr == "null" || valueType == "null" {
 		return nil, nil
@@ -152,7 +152,7 @@ func (jr *JSONReconstructor) parseValue(valueStr, valueType string) (interface{}
 		}
 		return strconv.ParseBool(valueStr)
 	case "array", "object":
-		var result interface{}
+		var result any
 		if err := json.Unmarshal([]byte(valueStr), &result); err != nil {
 			return nil, fmt.Errorf("invalid JSON: %w", err)
 		}
@@ -164,20 +164,20 @@ func (jr *JSONReconstructor) parseValue(valueStr, valueType string) (interface{}
 	}
 }
 
-func (jr *JSONReconstructor) deepCopy(obj interface{}) interface{} {
+func (jr *JSONReconstructor) deepCopy(obj any) any {
 	if obj == nil {
 		return nil
 	}
 
 	switch v := obj.(type) {
-	case map[string]interface{}:
-		copy := make(map[string]interface{})
+	case map[string]any:
+		copy := make(map[string]any)
 		for key, value := range v {
 			copy[key] = jr.deepCopy(value)
 		}
 		return copy
-	case []interface{}:
-		copy := make([]interface{}, len(v))
+	case []any:
+		copy := make([]any, len(v))
 		for i, value := range v {
 			copy[i] = jr.deepCopy(value)
 		}

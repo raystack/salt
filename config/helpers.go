@@ -46,7 +46,7 @@ func bindFlags(v *viper.Viper, flagSet *pflag.FlagSet, structType reflect.Type, 
 }
 
 // validateStructPtr ensures the provided value is a pointer to a struct.
-func validateStructPtr(value interface{}) error {
+func validateStructPtr(value any) error {
 	val := reflect.ValueOf(value)
 	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Struct {
 		return errors.New("load requires a pointer to a struct")
@@ -55,8 +55,8 @@ func validateStructPtr(value interface{}) error {
 }
 
 // extractFlattenedKeys retrieves all keys from the struct in a flattened format.
-func extractFlattenedKeys(config interface{}) ([]string, error) {
-	var structMap map[string]interface{}
+func extractFlattenedKeys(config any) ([]string, error) {
+	var structMap map[string]any
 	if err := mapstructure.Decode(config, &structMap); err != nil {
 		return nil, err
 	}

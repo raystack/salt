@@ -89,7 +89,7 @@ func (o *Output) Println(msg string) {
 // --- Structured output ---
 
 // JSON writes data as compact JSON.
-func (o *Output) JSON(data interface{}) error {
+func (o *Output) JSON(data any) error {
 	out, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -99,7 +99,7 @@ func (o *Output) JSON(data interface{}) error {
 }
 
 // PrettyJSON writes data as indented JSON.
-func (o *Output) PrettyJSON(data interface{}) error {
+func (o *Output) PrettyJSON(data any) error {
 	out, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return err
@@ -109,7 +109,7 @@ func (o *Output) PrettyJSON(data interface{}) error {
 }
 
 // YAML writes data as YAML.
-func (o *Output) YAML(data interface{}) error {
+func (o *Output) YAML(data any) error {
 	out, err := yaml.Marshal(data)
 	if err != nil {
 		return err
@@ -241,25 +241,25 @@ func Magenta(t string) string { return colorize(newTheme().Magenta, t) }
 // --- Formatted color helpers ---
 
 // Greenf returns formatted text styled in green.
-func Greenf(format string, a ...interface{}) string { return Green(fmt.Sprintf(format, a...)) }
+func Greenf(format string, a ...any) string { return Green(fmt.Sprintf(format, a...)) }
 
 // Yellowf returns formatted text styled in yellow.
-func Yellowf(format string, a ...interface{}) string { return Yellow(fmt.Sprintf(format, a...)) }
+func Yellowf(format string, a ...any) string { return Yellow(fmt.Sprintf(format, a...)) }
 
 // Cyanf returns formatted text styled in cyan.
-func Cyanf(format string, a ...interface{}) string { return Cyan(fmt.Sprintf(format, a...)) }
+func Cyanf(format string, a ...any) string { return Cyan(fmt.Sprintf(format, a...)) }
 
 // Redf returns formatted text styled in red.
-func Redf(format string, a ...interface{}) string { return Red(fmt.Sprintf(format, a...)) }
+func Redf(format string, a ...any) string { return Red(fmt.Sprintf(format, a...)) }
 
 // Greyf returns formatted text styled in grey.
-func Greyf(format string, a ...interface{}) string { return Grey(fmt.Sprintf(format, a...)) }
+func Greyf(format string, a ...any) string { return Grey(fmt.Sprintf(format, a...)) }
 
 // Bluef returns formatted text styled in blue.
-func Bluef(format string, a ...interface{}) string { return Blue(fmt.Sprintf(format, a...)) }
+func Bluef(format string, a ...any) string { return Blue(fmt.Sprintf(format, a...)) }
 
 // Magentaf returns formatted text styled in magenta.
-func Magentaf(format string, a ...interface{}) string { return Magenta(fmt.Sprintf(format, a...)) }
+func Magentaf(format string, a ...any) string { return Magenta(fmt.Sprintf(format, a...)) }
 
 // Italic returns text styled in italic.
 func Italic(t string) string { return termenv.String(t).Italic().String() }

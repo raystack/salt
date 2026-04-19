@@ -43,7 +43,7 @@ func (m *Manager) addCompletionCommand() {
 
 // generateCompletionSummary creates the long description for the `completion` command.
 func (m *Manager) generateCompletionSummary(exec string) string {
-	var execs []interface{}
+	var execs []any
 	for i := 0; i < 12; i++ {
 		execs = append(execs, exec)
 	}

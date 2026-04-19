@@ -44,7 +44,7 @@ type Sort struct {
 	Order string `json:"order"`
 }
 
-func ValidateQuery(q *Query, checkStruct interface{}) error {
+func ValidateQuery(q *Query, checkStruct any) error {
 	val := reflect.ValueOf(checkStruct)
 
 	// validate filters
@@ -188,7 +188,7 @@ func getDataTypeOfField(tagString string) string {
 	return res
 }
 
-func GetDataTypeOfField(fieldName string, checkStruct interface{}) (string, error) {
+func GetDataTypeOfField(fieldName string, checkStruct any) (string, error) {
 	val := reflect.ValueOf(checkStruct)
 	filterIdx := searchKeyInsideStruct(fieldName, val)
 	if filterIdx < 0 {

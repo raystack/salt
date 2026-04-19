@@ -30,7 +30,7 @@ func ExampleOutput_Table() {
 func ExampleOutput_JSON() {
 	out := printer.NewOutput(os.Stdout)
 
-	data := map[string]interface{}{
+	data := map[string]any{
 		"name": "Alice",
 		"age":  30,
 	}

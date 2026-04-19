@@ -1,7 +1,9 @@
 package commander
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -67,7 +69,7 @@ func (m *Manager) generateMarkdownTree(rootOutputPath string, cmd *cobra.Command
 
 // ensureDir ensures that the given directory exists, creating it if necessary.
 func ensureDir(path string) error {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
 		if err := os.MkdirAll(path, os.ModePerm); err != nil {
 			return err
 		}

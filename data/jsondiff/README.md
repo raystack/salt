@@ -83,7 +83,7 @@ func main() {
     }
 
     // Verify reconstruction accuracy
-    var originalObj, reconstructedObj interface{}
+    var originalObj, reconstructedObj any
     json.Unmarshal([]byte(originalJSON), &originalObj)
     json.Unmarshal([]byte(reconstructed), &reconstructedObj)
 
@@ -160,7 +160,7 @@ func main() {
     }
 
     // Verify reconstruction accuracy
-    var originalObj, reconstructedObj interface{}
+    var originalObj, reconstructedObj any
     json.Unmarshal([]byte(originalJSON), &originalObj)
     json.Unmarshal([]byte(reconstructed), &reconstructedObj)
 

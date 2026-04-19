@@ -10,11 +10,12 @@
 //	    cli.Topics(authTopic, envTopic),
 //	)
 //
-//	rootCmd.Execute()
+//	cli.Execute(rootCmd)
 package cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -46,6 +47,11 @@ func Init(rootCmd *cobra.Command, opts ...Option) {
 	// Set error prefix for consistent error messages.
 	rootCmd.SetErrPrefix(rootCmd.Name() + ":")
 
+	// Silence cobra's default error and usage printing.
+	// Errors are handled by Execute; usage is shown only for flag errors.
+	rootCmd.SilenceErrors = true
+	rootCmd.SilenceUsage = true
+
 	// Inject shared output and prompter into command context.
 	existing := rootCmd.PersistentPreRun
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
@@ -70,9 +76,43 @@ func Init(rootCmd *cobra.Command, opts ...Option) {
 	mgr := commander.New(rootCmd, managerOpts...)
 	mgr.Init()
 
+	// Wrap flag parsing errors so Execute can show contextual usage.
+	// Must be set after mgr.Init() which also configures a flag error func.
+	rootCmd.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
+		return &flagError{err: err}
+	})
+
 	// Add version command if configured.
 	if cfg.version != "" {
 		rootCmd.AddCommand(versionCmd(rootCmd.Name(), cfg.version, cfg.repo))
+	}
+}
+
+// Execute runs the root command and handles errors with appropriate
+// exit codes and output. It uses ExecuteC to obtain the failing command
+// so flag errors can show contextual usage.
+//
+// This function never returns on error — it calls os.Exit.
+func Execute(rootCmd *cobra.Command) {
+	cmd, err := rootCmd.ExecuteC()
+	if err == nil {
+		return
+	}
+
+	var flagErr *flagError
+	switch {
+	case errors.Is(err, ErrCancel):
+		os.Exit(0)
+	case errors.Is(err, ErrSilent):
+		os.Exit(1)
+	case errors.As(err, &flagErr):
+		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr)
+		fmt.Fprintln(os.Stderr, cmd.UsageString())
+		os.Exit(1)
+	default:
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		os.Exit(1)
 	}
 }
 
