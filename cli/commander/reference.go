@@ -6,8 +6,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/raystack/salt/cli/printer"
-
 	"github.com/spf13/cobra"
 )
 
@@ -17,13 +15,11 @@ import (
 func (m *Manager) addReferenceCommand() {
 	var isPlain bool
 	refCmd := &cobra.Command{
-		Use:   "reference",
-		Short: "Comprehensive reference of all commands",
-		Long:  m.generateReferenceMarkdown(),
-		Run:   m.runReferenceCommand(&isPlain),
-		Annotations: map[string]string{
-			"group": "help",
-		},
+		Use:     "reference",
+		Short:   "Comprehensive reference of all commands",
+		Long:    m.generateReferenceMarkdown(),
+		Run:     m.runReferenceCommand(&isPlain),
+		GroupID: "help",
 	}
 	refCmd.SetHelpFunc(m.runReferenceCommand(&isPlain))
 	refCmd.Flags().BoolVarP(&isPlain, "plain", "p", true, "output in plain markdown (without ANSI color)")
@@ -34,23 +30,8 @@ func (m *Manager) addReferenceCommand() {
 // runReferenceCommand handles the output generation for the `reference` command.
 // It renders the documentation either as plain markdown or with ANSI color.
 func (m *Manager) runReferenceCommand(isPlain *bool) func(cmd *cobra.Command, args []string) {
-	return func(cmd *cobra.Command, args []string) {
-		var (
-			output string
-			err    error
-		)
-
-		if *isPlain {
-			output = cmd.Long
-		} else {
-			output, err = printer.Markdown(cmd.Long)
-			if err != nil {
-				fmt.Println("Error generating markdown:", err)
-				return
-			}
-		}
-
-		fmt.Print(output)
+	return func(cmd *cobra.Command, _ []string) {
+		fmt.Print(cmd.Long)
 	}
 }
 

@@ -1,10 +1,6 @@
 package commander
 
-import (
-	"strings"
-
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
 // Manager manages and configures features for a CLI tool.
 type Manager struct {
@@ -12,7 +8,6 @@ type Manager struct {
 	Help       bool           // Enable custom help.
 	Reference  bool           // Enable reference command.
 	Completion bool           // Enable shell completion.
-	Config     bool           // Enable configuration management.
 	Docs       bool           // Enable markdown documentation
 	Hooks      []HookBehavior // Hook behaviors to apply to commands
 	Topics     []HelpTopic    // Help topics with their details.
@@ -66,6 +61,13 @@ func New(rootCmd *cobra.Command, options ...func(*Manager)) *Manager {
 // It enables or disables features like custom help, reference documentation,
 // shell completion, help topics, and client hooks based on the Manager's settings.
 func (m *Manager) Init() {
+	// Register the help group used by salt's internal commands
+	// (reference, completion, topics). Developers register their
+	// own groups via rootCmd.AddGroup() before calling Init.
+	m.RootCmd.AddGroup(
+		&cobra.Group{ID: "help", Title: "Help topics:"},
+	)
+
 	if m.Help {
 		m.setCustomHelp()
 	}
@@ -99,28 +101,4 @@ func WithHooks(hooks []HookBehavior) func(*Manager) {
 	return func(m *Manager) {
 		m.Hooks = hooks
 	}
-}
-
-// IsCommandErr checks if the given error is related to a Cobra command error.
-// This is useful for distinguishing between user errors (e.g., incorrect commands or flags)
-// and program errors, allowing the application to display appropriate messages.
-func IsCommandErr(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	// Known Cobra command error keywords
-	cmdErrorKeywords := []string{
-		"unknown command",
-		"unknown flag",
-		"unknown shorthand flag",
-	}
-
-	errMessage := err.Error()
-	for _, keyword := range cmdErrorKeywords {
-		if strings.Contains(errMessage, keyword) {
-			return true
-		}
-	}
-	return false
 }

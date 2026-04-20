@@ -1,24 +1,21 @@
-output:
-  formats:
-    - format: line-number
+version: "2"
+formatters:
+  enable:
+    - goimports
+    - gofmt
 linters:
-  enable-all: false
-  disable-all: true
+  disable:
+    - errcheck
   enable:
     - govet
-    - goimports
     - thelper
     - tparallel
     - unconvert
     - wastedassign
     - revive
     - unused
-    - gofmt
     - whitespace
     - misspell
-linters-settings:
-  revive:
-    ignore-generated-header: true
-    severity: warning
-severity:
-  default-severity: error
+  settings:
+    revive:
+      severity: warning

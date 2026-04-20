@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 
-	"github.com/go-playground/validator"
-	"github.com/mcuadros/go-defaults"
+	"github.com/creasty/defaults"
+	"github.com/go-playground/validator/v10"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
@@ -90,13 +91,15 @@ func WithAppConfig(app string) Option {
 //  2. Environment variables
 //  3. Configuration file
 //  4. Default values
-func (l *Loader) Load(config interface{}) error {
+func (l *Loader) Load(config any) error {
 	if err := validateStructPtr(config); err != nil {
 		return err
 	}
 
-	// Apply default values before reading configuration
-	defaults.SetDefaults(config)
+	// Apply default values before reading configuration.
+	if err := defaults.Set(config); err != nil {
+		return fmt.Errorf("failed to set defaults: %w", err)
+	}
 
 	// Bind flags dynamically using reflection on `cmdx` tags if a flag set is provided
 	if l.flags != nil {
@@ -116,11 +119,11 @@ func (l *Loader) Load(config interface{}) error {
 		}
 	}
 
-	// Attempt to read the configuration file
+	// Attempt to read the configuration file (missing file is not an error).
 	if err := l.v.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
-		if errors.As(err, &configFileNotFoundError) {
-			fmt.Println("Warning: Config file not found. Falling back to defaults and environment variables.")
+		if !errors.As(err, &configFileNotFoundError) && !errors.Is(err, fs.ErrNotExist) {
+			return fmt.Errorf("failed to read config file: %w", err)
 		}
 	}
 
@@ -138,8 +141,10 @@ func (l *Loader) Load(config interface{}) error {
 }
 
 // Init initializes the configuration file with default values.
-func (l *Loader) Init(config interface{}) error {
-	defaults.SetDefaults(config)
+func (l *Loader) Init(config any) error {
+	if err := defaults.Set(config); err != nil {
+		return fmt.Errorf("failed to set defaults: %w", err)
+	}
 
 	path := l.v.ConfigFileUsed()
 	if fileExists(path) {
@@ -162,12 +167,12 @@ func (l *Loader) Init(config interface{}) error {
 }
 
 // Get retrieves a configuration value by key.
-func (l *Loader) Get(key string) interface{} {
+func (l *Loader) Get(key string) any {
 	return l.v.Get(key)
 }
 
 // Set updates a configuration value in memory (not persisted to file).
-func (l *Loader) Set(key string, value interface{}) {
+func (l *Loader) Set(key string, value any) {
 	l.v.Set(key, value)
 }
 

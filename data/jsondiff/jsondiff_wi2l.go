@@ -106,7 +106,7 @@ func (w *WI2LDiffer) postProcessArrays(diffs []DiffEntry, json1, json2 string) [
 	var result []DiffEntry
 
 	// Parse original JSONs once
-	var obj1, obj2 interface{}
+	var obj1, obj2 any
 	json.Unmarshal([]byte(json1), &obj1)
 	json.Unmarshal([]byte(json2), &obj2)
 
@@ -198,7 +198,7 @@ func (w *WI2LDiffer) isArrayIndex(s string) bool {
 }
 
 // getValueAtPath retrieves value at JSON path
-func (w *WI2LDiffer) getValueAtPath(obj interface{}, path string) interface{} {
+func (w *WI2LDiffer) getValueAtPath(obj any, path string) any {
 	if path == "" || path == "/" {
 		return obj
 	}
@@ -208,7 +208,7 @@ func (w *WI2LDiffer) getValueAtPath(obj interface{}, path string) interface{} {
 
 	for _, part := range parts {
 		switch v := current.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			current = v[part]
 		default:
 			return nil
@@ -233,7 +233,7 @@ func (w *WI2LDiffer) extractFieldNameFromPath(path string) string {
 }
 
 // formatPatchValue formats a value to string
-func (w *WI2LDiffer) formatPatchValue(value interface{}) *string {
+func (w *WI2LDiffer) formatPatchValue(value any) *string {
 	if value == nil {
 		str := "null"
 		return &str
@@ -256,7 +256,7 @@ func (w *WI2LDiffer) formatPatchValue(value interface{}) *string {
 }
 
 // inferValueType determines the JSON type
-func (w *WI2LDiffer) inferValueType(value interface{}) string {
+func (w *WI2LDiffer) inferValueType(value any) string {
 	if value == nil {
 		return "null"
 	}
@@ -268,9 +268,9 @@ func (w *WI2LDiffer) inferValueType(value interface{}) string {
 		return "boolean"
 	case float64, int:
 		return "number"
-	case []interface{}:
+	case []any:
 		return "array"
-	case map[string]interface{}:
+	case map[string]any:
 		return "object"
 	default:
 		return "unknown"

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mcuadros/go-defaults"
+	"github.com/creasty/defaults"
 	"github.com/raystack/salt/config"
 	"github.com/spf13/pflag"
 )
@@ -145,7 +145,7 @@ log_level: "info"
 	loader := config.NewLoader(config.WithFile(configFilePath))
 
 	// Apply defaults
-	defaults.SetDefaults(cfg)
+	defaults.Set(cfg)
 	cfg.Server.Port = 3000 // Default value
 	cfg.Server.Host = "default-host.com"
 	cfg.LogLevel = "debug"

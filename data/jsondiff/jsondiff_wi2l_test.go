@@ -566,7 +566,7 @@ func TestWI2LDifferComprehensive(t *testing.T) {
 			}
 
 			// Verify reconstruction
-			var originalObj, reconstructedObj interface{}
+			var originalObj, reconstructedObj any
 			if err := json.Unmarshal([]byte(tc.json1), &originalObj); err != nil {
 				t.Fatalf("Failed to unmarshal original JSON: %v", err)
 			}

@@ -1,8 +1,6 @@
 package commander
 
 import (
-	"os"
-
 	"github.com/MakeNowJust/heredoc"
 	"github.com/spf13/cobra"
 )
@@ -23,18 +21,20 @@ func (m *Manager) addCompletionCommand() {
 		Long:                  summary,
 		DisableFlagsInUseLine: true,
 		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
-		Args:                  cobra.ExactValidArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		Args:                  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			out := cmd.OutOrStdout()
 			switch args[0] {
 			case "bash":
-				cmd.Root().GenBashCompletion(os.Stdout)
+				return cmd.Root().GenBashCompletion(out)
 			case "zsh":
-				cmd.Root().GenZshCompletion(os.Stdout)
+				return cmd.Root().GenZshCompletion(out)
 			case "fish":
-				cmd.Root().GenFishCompletion(os.Stdout, true)
+				return cmd.Root().GenFishCompletion(out, true)
 			case "powershell":
-				cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+				return cmd.Root().GenPowerShellCompletionWithDesc(out)
 			}
+			return nil
 		},
 	}
 
@@ -43,7 +43,7 @@ func (m *Manager) addCompletionCommand() {
 
 // generateCompletionSummary creates the long description for the `completion` command.
 func (m *Manager) generateCompletionSummary(exec string) string {
-	var execs []interface{}
+	var execs []any
 	for i := 0; i < 12; i++ {
 		execs = append(execs, exec)
 	}
