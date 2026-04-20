@@ -26,6 +26,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// cachedTheme is computed once at init to avoid querying terminal capabilities
+// on every color function call.
+var cachedTheme = newTheme()
+
 // Output handles all terminal output for a CLI command.
 //
 // Data output (Table, JSON, YAML, Println) goes to the primary writer (stdout).
@@ -77,9 +81,9 @@ func (o *Output) Info(msg string) {
 	fmt.Fprintln(o.errW, o.color(o.theme.Cyan, msg))
 }
 
-// Bold prints a bold message.
+// Bold prints a bold message to stderr.
 func (o *Output) Bold(msg string) {
-	fmt.Fprintln(o.w, termenv.String(msg).Bold().String())
+	fmt.Fprintln(o.errW, termenv.String(msg).Bold().String())
 }
 
 // Print prints a plain message.
@@ -224,25 +228,25 @@ func (o *Output) Progress(max int, description string) *progressbar.ProgressBar 
 // --- Formatting helpers (return styled strings for composition) ---
 
 // Green returns text styled in green.
-func Green(t string) string { return colorize(newTheme().Green, t) }
+func Green(t string) string { return colorize(cachedTheme.Green, t) }
 
 // Yellow returns text styled in yellow.
-func Yellow(t string) string { return colorize(newTheme().Yellow, t) }
+func Yellow(t string) string { return colorize(cachedTheme.Yellow, t) }
 
 // Cyan returns text styled in cyan.
-func Cyan(t string) string { return colorize(newTheme().Cyan, t) }
+func Cyan(t string) string { return colorize(cachedTheme.Cyan, t) }
 
 // Red returns text styled in red.
-func Red(t string) string { return colorize(newTheme().Red, t) }
+func Red(t string) string { return colorize(cachedTheme.Red, t) }
 
 // Grey returns text styled in grey.
-func Grey(t string) string { return colorize(newTheme().Grey, t) }
+func Grey(t string) string { return colorize(cachedTheme.Grey, t) }
 
 // Blue returns text styled in blue.
-func Blue(t string) string { return colorize(newTheme().Blue, t) }
+func Blue(t string) string { return colorize(cachedTheme.Blue, t) }
 
 // Magenta returns text styled in magenta.
-func Magenta(t string) string { return colorize(newTheme().Magenta, t) }
+func Magenta(t string) string { return colorize(cachedTheme.Magenta, t) }
 
 // --- Formatted color helpers ---
 

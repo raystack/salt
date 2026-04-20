@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"testing"
 	"time"
@@ -15,6 +16,18 @@ import (
 )
 
 func nopLogger() *slog.Logger { return slog.New(slog.DiscardHandler) }
+
+// freeAddr returns a "127.0.0.1:<port>" string using a port that is free at
+// the time of the call. There is a small TOCTOU window, but it eliminates
+// hardcoded-port flakes in CI.
+func freeAddr(t *testing.T) string {
+	t.Helper()
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	addr := ln.Addr().String()
+	ln.Close()
+	return addr
+}
 
 func TestNew(t *testing.T) {
 	t.Run("creates app with defaults", func(t *testing.T) {
@@ -44,10 +57,11 @@ func TestNew(t *testing.T) {
 func TestAppStartAndShutdown(t *testing.T) {
 	t.Run("starts with health check and h2c by default", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
+		addr := freeAddr(t)
 
 		a, err := app.New(
 			app.WithLogger(nopLogger()),
-			app.WithAddr("127.0.0.1:18950"),
+			app.WithAddr(addr),
 		)
 		require.NoError(t, err)
 
@@ -57,7 +71,7 @@ func TestAppStartAndShutdown(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 
 		// Health check should be on by default at /ping
-		resp, err := http.Get("http://127.0.0.1:18950/ping")
+		resp, err := http.Get("http://" + addr + "/ping")
 		require.NoError(t, err)
 		defer resp.Body.Close()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -74,10 +88,11 @@ func TestAppStartAndShutdown(t *testing.T) {
 
 	t.Run("runs onStart hooks", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
+		addr := freeAddr(t)
 
 		var hookRan bool
 		a, err := app.New(
-			app.WithAddr("127.0.0.1:18951"),
+			app.WithAddr(addr),
 			app.WithOnStart(func(_ context.Context) error {
 				hookRan = true
 				return nil
@@ -96,10 +111,11 @@ func TestAppStartAndShutdown(t *testing.T) {
 
 	t.Run("runs onStop hooks", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
+		addr := freeAddr(t)
 
 		var hookRan bool
 		a, err := app.New(
-			app.WithAddr("127.0.0.1:18952"),
+			app.WithAddr(addr),
 			app.WithOnStop(func(_ context.Context) error {
 				hookRan = true
 				return nil
@@ -119,10 +135,11 @@ func TestAppStartAndShutdown(t *testing.T) {
 	t.Run("serves custom handler", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
+		addr := freeAddr(t)
 
 		a, err := app.New(
 			app.WithLogger(nopLogger()),
-			app.WithAddr("127.0.0.1:18953"),
+			app.WithAddr(addr),
 			app.WithHandler("/hello", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				fmt.Fprint(w, "world")
 			})),
@@ -132,7 +149,7 @@ func TestAppStartAndShutdown(t *testing.T) {
 		go a.Start(ctx)
 		time.Sleep(100 * time.Millisecond)
 
-		resp, err := http.Get("http://127.0.0.1:18953/hello")
+		resp, err := http.Get("http://" + addr + "/hello")
 		require.NoError(t, err)
 		defer resp.Body.Close()
 
@@ -145,6 +162,7 @@ func TestAppStartAndShutdown(t *testing.T) {
 	t.Run("applies explicit middleware", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
+		addr := freeAddr(t)
 
 		addHeader := func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -155,7 +173,7 @@ func TestAppStartAndShutdown(t *testing.T) {
 
 		a, err := app.New(
 			app.WithLogger(nopLogger()),
-			app.WithAddr("127.0.0.1:18954"),
+			app.WithAddr(addr),
 			app.WithHTTPMiddleware(addHeader),
 			app.WithHandler("/test", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(http.StatusOK)
@@ -166,7 +184,7 @@ func TestAppStartAndShutdown(t *testing.T) {
 		go a.Start(ctx)
 		time.Sleep(100 * time.Millisecond)
 
-		resp, err := http.Get("http://127.0.0.1:18954/test")
+		resp, err := http.Get("http://" + addr + "/test")
 		require.NoError(t, err)
 		defer resp.Body.Close()
 
@@ -176,9 +194,10 @@ func TestAppStartAndShutdown(t *testing.T) {
 	})
 
 	t.Run("onStart failure returns error and runs cleanup", func(t *testing.T) {
+		addr := freeAddr(t)
 		var cleanupRan bool
 		a, err := app.New(
-			app.WithAddr("127.0.0.1:18955"),
+			app.WithAddr(addr),
 			app.WithOnStart(func(_ context.Context) error {
 				return fmt.Errorf("migration failed")
 			}),

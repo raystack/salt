@@ -80,18 +80,24 @@ func Middleware(opts ...Option) func(http.Handler) http.Handler {
 				return
 			}
 
-			if isOriginAllowed(cfg.allowedOrigins, origin) {
-				w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Vary", "Origin")
+
+			if !isOriginAllowed(cfg.allowedOrigins, origin) {
+				if r.Method == http.MethodOptions {
+					w.WriteHeader(http.StatusForbidden)
+					return
+				}
+				next.ServeHTTP(w, r)
+				return
 			}
 
+			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Access-Control-Allow-Methods", strings.Join(cfg.allowedMethods, ", "))
 			w.Header().Set("Access-Control-Allow-Headers", strings.Join(cfg.allowedHeaders, ", "))
 
 			if cfg.maxAge > 0 {
 				w.Header().Set("Access-Control-Max-Age", strconv.Itoa(cfg.maxAge))
 			}
-
-			w.Header().Set("Vary", "Origin")
 
 			if r.Method == http.MethodOptions {
 				w.WriteHeader(http.StatusNoContent)

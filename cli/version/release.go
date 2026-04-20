@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-version"
@@ -21,7 +22,6 @@ var (
 
 type releaseInfo struct {
 	version string
-	tarURL  string
 }
 
 type cacheEntry struct {
@@ -65,7 +65,6 @@ func fetchInfo(url string) (*releaseInfo, error) {
 
 	return &releaseInfo{
 		version: data.TagName,
-		tarURL:  data.Tarball,
 	}, nil
 }
 
@@ -118,6 +117,11 @@ func buildMessage(current, latest string) string {
 
 func cachePath(repo string) string {
 	dir := configDir()
+	// Sanitize repo to prevent path traversal.
+	repo = filepath.Clean(repo)
+	if strings.Contains(repo, "..") {
+		return filepath.Join(dir, "raystack", "state.json")
+	}
 	return filepath.Join(dir, "raystack", repo, "state.json")
 }
 

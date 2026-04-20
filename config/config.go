@@ -142,7 +142,9 @@ func (l *Loader) Load(config any) error {
 
 // Init initializes the configuration file with default values.
 func (l *Loader) Init(config any) error {
-	defaults.Set(config)
+	if err := defaults.Set(config); err != nil {
+		return fmt.Errorf("failed to set defaults: %w", err)
+	}
 
 	path := l.v.ConfigFileUsed()
 	if fileExists(path) {

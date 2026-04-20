@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/muesli/termenv"
@@ -104,7 +105,14 @@ func buildHelpEntries(cmd *cobra.Command) []helpEntry {
 		// No groups defined — show all commands under "Core commands"
 		helpEntries = append(helpEntries, helpEntry{"Core commands", strings.Join(ungroupedCommands, "\n")})
 	} else {
-		for group, cmds := range groupCommands {
+		// Sort group names for deterministic output.
+		groupNames := make([]string, 0, len(groupCommands))
+		for group := range groupCommands {
+			groupNames = append(groupNames, group)
+		}
+		sort.Strings(groupNames)
+		for _, group := range groupNames {
+			cmds := groupCommands[group]
 			helpEntries = append(helpEntries, helpEntry{fmt.Sprintf("%s commands", toTitle(group)), strings.Join(cmds, "\n")})
 		}
 		if len(ungroupedCommands) > 0 {

@@ -37,6 +37,7 @@ type IOStreams struct {
 
 	pager        *terminal.Pager
 	pagerStarted bool
+	origOut      io.Writer
 
 	// lazily created
 	output   *printer.Output
@@ -45,14 +46,14 @@ type IOStreams struct {
 
 // System creates IOStreams wired to the real terminal.
 func System() *IOStreams {
-	outTTY := isTTYWriter(os.Stdout)
+	outTTY := isTTY(os.Stdout)
 	return &IOStreams{
 		In:           os.Stdin,
 		Out:          os.Stdout,
 		ErrOut:       os.Stderr,
-		inTTY:        isTTYWriter(os.Stdin),
+		inTTY:        isTTY(os.Stdin),
 		outTTY:       outTTY,
-		errTTY:       isTTYWriter(os.Stderr),
+		errTTY:       isTTY(os.Stderr),
 		colorEnabled: outTTY && !termenv.EnvNoColor(),
 	}
 }
@@ -127,6 +128,7 @@ func (s *IOStreams) StartPager() error {
 	if err := p.Start(); err != nil {
 		return err
 	}
+	s.origOut = s.Out
 	s.Out = p.Out
 	s.pager = p
 	s.pagerStarted = true
@@ -139,6 +141,11 @@ func (s *IOStreams) StopPager() {
 	if s.pager != nil && s.pagerStarted {
 		s.pager.Stop()
 		s.pagerStarted = false
+		if s.origOut != nil {
+			s.Out = s.origOut
+			s.origOut = nil
+			s.output = nil // invalidate cached Output
+		}
 	}
 }
 
@@ -158,6 +165,6 @@ func (s *IOStreams) Prompter() prompt.Prompter {
 	return s.prompter
 }
 
-func isTTYWriter(f *os.File) bool {
+func isTTY(f *os.File) bool {
 	return isatty.IsTerminal(f.Fd()) || isatty.IsCygwinTerminal(f.Fd())
 }

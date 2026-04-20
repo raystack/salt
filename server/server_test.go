@@ -14,19 +14,30 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// startServer starts a server on a random port, waits for it to be ready,
+// and returns the base URL. The server shuts down when ctx is cancelled.
+func startServer(t *testing.T, ctx context.Context, srv *server.Server) string {
+	t.Helper()
+	errCh := make(chan error, 1)
+	go func() { errCh <- srv.Start(ctx) }()
+
+	// Wait for the server to bind.
+	require.Eventually(t, func() bool {
+		return srv.ListenAddr() != nil
+	}, 2*time.Second, 10*time.Millisecond, "server did not start")
+
+	return "http://" + srv.ListenAddr().String()
+}
+
 func TestServer(t *testing.T) {
 	t.Run("health check enabled by default", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		srv := server.New(
-			server.WithAddr("127.0.0.1:18923"),
-		)
+		srv := server.New(server.WithAddr("127.0.0.1:0"))
+		base := startServer(t, ctx, srv)
 
-		go srv.Start(ctx)
-		time.Sleep(100 * time.Millisecond)
-
-		resp, err := http.Get("http://127.0.0.1:18923/ping")
+		resp, err := http.Get(base + "/ping")
 		require.NoError(t, err)
 		defer resp.Body.Close()
 
@@ -38,28 +49,20 @@ func TestServer(t *testing.T) {
 		err = json.Unmarshal(body, &result)
 		assert.NoError(t, err)
 		assert.Equal(t, "ok", result["status"])
-
-		cancel()
 	})
 
 	t.Run("h2c enabled by default", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		srv := server.New(
-			server.WithAddr("127.0.0.1:18924"),
-		)
-
-		go srv.Start(ctx)
-		time.Sleep(100 * time.Millisecond)
+		srv := server.New(server.WithAddr("127.0.0.1:0"))
+		base := startServer(t, ctx, srv)
 
 		// HTTP/1.1 still works with h2c enabled
-		resp, err := http.Get("http://127.0.0.1:18924/ping")
+		resp, err := http.Get(base + "/ping")
 		require.NoError(t, err)
 		defer resp.Body.Close()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		cancel()
 	})
 
 	t.Run("serves custom handler", func(t *testing.T) {
@@ -72,21 +75,17 @@ func TestServer(t *testing.T) {
 		})
 
 		srv := server.New(
-			server.WithAddr("127.0.0.1:18925"),
+			server.WithAddr("127.0.0.1:0"),
 			server.WithHandler("/hello", handler),
 		)
+		base := startServer(t, ctx, srv)
 
-		go srv.Start(ctx)
-		time.Sleep(100 * time.Millisecond)
-
-		resp, err := http.Get("http://127.0.0.1:18925/hello")
+		resp, err := http.Get(base + "/hello")
 		require.NoError(t, err)
 		defer resp.Body.Close()
 
 		body, _ := io.ReadAll(resp.Body)
 		assert.Equal(t, "hello", string(body))
-
-		cancel()
 	})
 
 	t.Run("graceful shutdown completes", func(t *testing.T) {
@@ -100,7 +99,10 @@ func TestServer(t *testing.T) {
 		errCh := make(chan error, 1)
 		go func() { errCh <- srv.Start(ctx) }()
 
-		time.Sleep(100 * time.Millisecond)
+		require.Eventually(t, func() bool {
+			return srv.ListenAddr() != nil
+		}, 2*time.Second, 10*time.Millisecond)
+
 		cancel()
 
 		select {
@@ -116,19 +118,15 @@ func TestServer(t *testing.T) {
 		defer cancel()
 
 		srv := server.New(
-			server.WithAddr("127.0.0.1:18926"),
+			server.WithAddr("127.0.0.1:0"),
 			server.WithHealthCheck("/healthz"),
 		)
+		base := startServer(t, ctx, srv)
 
-		go srv.Start(ctx)
-		time.Sleep(100 * time.Millisecond)
-
-		resp, err := http.Get("http://127.0.0.1:18926/healthz")
+		resp, err := http.Get(base + "/healthz")
 		require.NoError(t, err)
 		defer resp.Body.Close()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		cancel()
 	})
 
 	t.Run("disable health check", func(t *testing.T) {
@@ -136,18 +134,14 @@ func TestServer(t *testing.T) {
 		defer cancel()
 
 		srv := server.New(
-			server.WithAddr("127.0.0.1:18927"),
+			server.WithAddr("127.0.0.1:0"),
 			server.WithHealthCheck(""),
 		)
+		base := startServer(t, ctx, srv)
 
-		go srv.Start(ctx)
-		time.Sleep(100 * time.Millisecond)
-
-		resp, err := http.Get("http://127.0.0.1:18927/ping")
+		resp, err := http.Get(base + "/ping")
 		require.NoError(t, err)
 		defer resp.Body.Close()
 		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-
-		cancel()
 	})
 }

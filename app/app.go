@@ -64,9 +64,11 @@ func (a *App) Start(ctx context.Context) error {
 		a.telClean = cleanup
 	}
 
-	// Run onStart hooks.
-	for _, fn := range a.onStart {
+	// Run onStart hooks. If one fails, run onStop for previously
+	// successful hooks before returning.
+	for i, fn := range a.onStart {
 		if err := fn(ctx); err != nil {
+			a.stopHooks(context.Background(), i)
 			a.cleanup()
 			return fmt.Errorf("app on_start: %w", err)
 		}
@@ -91,12 +93,18 @@ func (a *App) Logger() *slog.Logger {
 }
 
 func (a *App) stop(ctx context.Context) {
-	for _, fn := range a.onStop {
-		if err := fn(ctx); err != nil {
+	a.stopHooks(ctx, len(a.onStop))
+	a.cleanup()
+}
+
+// stopHooks runs onStop hooks for the first n hooks (used for partial cleanup
+// when an onStart hook fails partway through).
+func (a *App) stopHooks(ctx context.Context, n int) {
+	for i := 0; i < n && i < len(a.onStop); i++ {
+		if err := a.onStop[i](ctx); err != nil {
 			a.logger.Error("app on_stop hook error", "error", err)
 		}
 	}
-	a.cleanup()
 }
 
 func (a *App) cleanup() {

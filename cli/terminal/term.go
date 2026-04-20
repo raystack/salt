@@ -1,6 +1,7 @@
 package terminal
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 
@@ -20,10 +21,10 @@ func IsCI() bool {
 // The goos parameter should be runtime.GOOS (e.g. "darwin", "windows", "linux").
 //
 // Returns an *exec.Cmd — call cmd.Run() or cmd.Start() to execute it.
-// Panics if stdout is not a terminal.
-func OpenBrowser(goos, url string) *exec.Cmd {
+// Returns an error if stdout is not a terminal.
+func OpenBrowser(goos, url string) (*exec.Cmd, error) {
 	if !isatty.IsTerminal(os.Stdout.Fd()) && !isatty.IsCygwinTerminal(os.Stdout.Fd()) {
-		panic("OpenBrowser called without a TTY")
+		return nil, fmt.Errorf("OpenBrowser requires a TTY on stdout")
 	}
-	return openBrowserCmd(goos, url)
+	return openBrowserCmd(goos, url), nil
 }

@@ -36,6 +36,7 @@ type Server struct {
 	idleTimeout  time.Duration
 	logger       *slog.Logger
 	httpMW       []func(http.Handler) http.Handler
+	listenAddr   net.Addr // set after Start binds
 }
 
 // New creates a new Server with the given options.
@@ -84,7 +85,8 @@ func (s *Server) Start(ctx context.Context) error {
 		return fmt.Errorf("server listen: %w", err)
 	}
 
-	s.logger.Info("server started", "addr", ln.Addr().String())
+	s.listenAddr = ln.Addr()
+	s.logger.Info("server started", "addr", s.listenAddr.String())
 
 	errCh := make(chan error, 1)
 	go func() {
@@ -109,6 +111,12 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 	s.logger.Info("server stopped")
 	return nil
+}
+
+// ListenAddr returns the address the server is listening on.
+// Only valid after Start has been called.
+func (s *Server) ListenAddr() net.Addr {
+	return s.listenAddr
 }
 
 func healthHandler(w http.ResponseWriter, _ *http.Request) {

@@ -72,12 +72,17 @@ func AddJSONFlags(cmd *cobra.Command, exportTarget *Exporter, fields []string) {
 	})
 
 	// Validate field names and set the exporter.
-	oldPreRun := cmd.PreRunE
+	// Preserve both PreRunE and PreRun (non-error variant).
+	oldPreRunE := cmd.PreRunE
+	oldPreRun := cmd.PreRun
+	cmd.PreRun = nil // avoid cobra running both
 	cmd.PreRunE = func(c *cobra.Command, args []string) error {
-		if oldPreRun != nil {
-			if err := oldPreRun(c, args); err != nil {
+		if oldPreRunE != nil {
+			if err := oldPreRunE(c, args); err != nil {
 				return err
 			}
+		} else if oldPreRun != nil {
+			oldPreRun(c, args)
 		}
 
 		jsonFlag := c.Flags().Lookup("json")
@@ -221,15 +226,23 @@ func (e *jsonExporter) extractData(v reflect.Value) any {
 }
 
 // fieldByTag finds a struct field whose `json` tag matches the given name.
+// It searches embedded structs recursively.
 func fieldByTag(v reflect.Value, name string) reflect.Value {
 	t := v.Type()
 	for i := 0; i < t.NumField(); i++ {
-		tag := t.Field(i).Tag.Get("json")
+		sf := t.Field(i)
+		tag := sf.Tag.Get("json")
 		if idx := strings.IndexByte(tag, ','); idx >= 0 {
 			tag = tag[:idx]
 		}
 		if strings.EqualFold(tag, name) {
 			return v.Field(i)
+		}
+		// Recurse into embedded (anonymous) struct fields.
+		if sf.Anonymous && sf.Type.Kind() == reflect.Struct {
+			if result := fieldByTag(v.Field(i), name); result.IsValid() {
+				return result
+			}
 		}
 	}
 	return reflect.Value{}

@@ -69,7 +69,7 @@ func main() {
 go get github.com/raystack/salt
 ```
 
-Requires Go 1.24+.
+Requires Go 1.25+.
 
 ## Packages
 

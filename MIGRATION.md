@@ -4,10 +4,10 @@ This guide covers migrating from the previous salt version to the new structure.
 
 ## Go version
 
-Update `go.mod` to require Go 1.24:
+Update `go.mod` to require Go 1.25:
 
 ```text
-go 1.24
+go 1.25
 ```
 
 ## Packages removed
