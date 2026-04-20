@@ -10,6 +10,7 @@
 package printer
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -100,21 +101,26 @@ func (o *Output) Println(msg string) {
 
 // JSON writes data as compact JSON.
 func (o *Output) JSON(data any) error {
-	out, err := json.Marshal(data)
-	if err != nil {
+	buf := &bytes.Buffer{}
+	enc := json.NewEncoder(buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(data); err != nil {
 		return err
 	}
-	fmt.Fprintln(o.w, string(out))
+	fmt.Fprint(o.w, buf.String())
 	return nil
 }
 
 // PrettyJSON writes data as indented JSON.
 func (o *Output) PrettyJSON(data any) error {
-	out, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
+	buf := &bytes.Buffer{}
+	enc := json.NewEncoder(buf)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(data); err != nil {
 		return err
 	}
-	fmt.Fprintln(o.w, string(out))
+	fmt.Fprint(o.w, buf.String())
 	return nil
 }
 

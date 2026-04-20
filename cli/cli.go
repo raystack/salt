@@ -70,8 +70,12 @@ func Init(rootCmd *cobra.Command, opts ...Option) {
 	existingRunE := rootCmd.PersistentPreRunE
 	rootCmd.PersistentPreRun = nil
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
-		ctx := context.WithValue(cmd.Context(), contextKey{}, System())
-		cmd.SetContext(ctx)
+		// Preserve IOStreams already in context (e.g. injected by tests).
+		ctx := cmd.Context()
+		if _, ok := ctx.Value(contextKey{}).(*IOStreams); !ok {
+			ctx = context.WithValue(ctx, contextKey{}, System())
+			cmd.SetContext(ctx)
+		}
 		if existingRunE != nil {
 			return existingRunE(cmd, args)
 		}
